@@ -3,7 +3,7 @@ import type { AxiosInstance } from "axios";
 
 // Usar URL de producción en Vercel, localhost en desarrollo
 const API_BASE_URL =
-  process.env.NODE_ENV === "production"
+  import.meta.env.MODE === "production"
     ? import.meta.env.VITE_API_URL || "https://api.dctpass.com"
     : "http://localhost:3000";
 

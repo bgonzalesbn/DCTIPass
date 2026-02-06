@@ -5,7 +5,6 @@ import { authAPI } from "../services/api";
 export default function LoginPage() {
   const [employeeNumber, setEmployeeNumber] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
