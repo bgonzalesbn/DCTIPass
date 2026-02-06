@@ -81,6 +81,11 @@ export default defineConfig({
         drop_console: true, // Remover console.log en producción
       },
     },
+    // Más optimizaciones
+    cssCodeSplit: true,
+    sourcemap: false,
+    reportCompressedSize: false,
+    chunkSizeWarningLimit: 500,
   },
   // Optimizaciones de desarrollador
   server: {
