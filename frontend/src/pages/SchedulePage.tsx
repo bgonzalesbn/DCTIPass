@@ -70,7 +70,6 @@ export default function SchedulePage() {
       activitiesData.forEach((activity: Activity) => {
         activitiesMap.set(activity._id, activity);
       });
-      setActivities(activitiesMap);
 
       // Obtener todas las insignias
       const badgesResponse = await stickersAPI.getAllBadges();
@@ -82,7 +81,6 @@ export default function SchedulePage() {
       badgesData.forEach((badge: Badge) => {
         badgesMap.set(badge._id, badge);
       });
-      setBadges(badgesMap);
 
       // Obtener insignias ganadas del usuario
       const userBadgesResponse = await stickersAPI.getUserBadges();
@@ -96,7 +94,7 @@ export default function SchedulePage() {
       });
       setCompletedActivities(completedSet);
 
-      // Enriquecer eventos con datos de actividad y insignia
+      // Enriquecer eventos con datos de actividad e insignia
       const enrichedEvents = events.map((event: ScheduleEvent) => {
         const activity = activitiesMap.get(event.activityId);
         const badge = activity ? badgesMap.get(activity.stickerId) : null;
