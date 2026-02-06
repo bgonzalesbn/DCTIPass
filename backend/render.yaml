@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: dctpass-backend
+    env: node
+    plan: starter
+    branch: main
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        scope: build
+      - key: JWT_SECRET
+        scope: build
+      - key: CORS_ORIGIN
+        value: https://dctpass.vercel.app
