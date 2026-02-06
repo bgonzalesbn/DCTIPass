@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#1e3a5f"/>
+  <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" 
+        font-family="Arial, sans-serif" font-size="200" font-weight="bold" fill="white">
+    IT
+  </text>
+  <text x="50%" y="78%" dominant-baseline="middle" text-anchor="middle" 
+        font-family="Arial, sans-serif" font-size="60" fill="#94c5f0">
+    Experience
+  </text>
+</svg>
