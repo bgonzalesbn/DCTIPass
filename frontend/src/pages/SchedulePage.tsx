@@ -27,10 +27,6 @@ interface ScheduleEvent {
 
 export default function SchedulePage() {
   const [scheduleEvents, setScheduleEvents] = useState<ScheduleEvent[]>([]);
-  const [activities, setActivities] = useState<Map<string, Activity>>(
-    new Map(),
-  );
-  const [badges, setBadges] = useState<Map<string, Badge>>(new Map());
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split("T")[0],
   );
@@ -57,7 +53,7 @@ export default function SchedulePage() {
       setError("");
 
       // Obtener horario del día
-      const scheduleResponse = await scheduleAPI.getSchedule({
+      const scheduleResponse = await scheduleAPI.getSchedules({
         date: selectedDate,
       });
       const events = Array.isArray(scheduleResponse.data)
@@ -123,7 +119,7 @@ export default function SchedulePage() {
   };
 
   const handleCompleteActivity = async (
-    scheduleId: string,
+    _scheduleId: string,
     activityId: string,
   ) => {
     try {

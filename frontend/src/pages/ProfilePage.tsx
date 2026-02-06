@@ -111,7 +111,7 @@ export default function ProfilePage() {
             lastName: "",
             email: userEmail || "",
             position: "",
-            group: "",
+            group: {} as Group,
             hobbies: [],
             points: 0,
             level: 1,
@@ -140,7 +140,7 @@ export default function ProfilePage() {
     setSuccess("");
 
     try {
-      const response = await usersAPI.updateProfile({
+      await usersAPI.updateProfile({
         email,
         hobbies,
       });
