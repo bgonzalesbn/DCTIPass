@@ -1,0 +1,24 @@
+const http = require('http');
+
+// Usaremos el backend que está corriendo en localhost:3000
+// Haremos una petición POST a un endpoint que crearemos temporalmente
+
+// Primero, vamos a crear un script que acceda directamente a MongoDB a través de una conexión local
+// Si el backend está corriendo, podemos hacer peticiones HTTP
+
+console.log('Intentando limpiar colecciones...');
+console.log('Por favor, asegúrate de que:');
+console.log('1. El backend está corriendo en localhost:3000');
+console.log('2. Tu IP está agregada a MongoDB Atlas whitelist');
+console.log('');
+console.log('Para agregar tu IP a MongoDB Atlas:');
+console.log('1. Ve a https://www.mongodb.com/cloud/atlas');
+console.log('2. Abre tu cluster "Cluster0"');
+console.log('3. Ve a Network Access > IP Whitelist');
+console.log('4. Click "Add IP Address"');
+console.log('5. Selecciona "Add Current IP Address" o ingresa 0.0.0.0/0 (acceso desde cualquier IP)');
+console.log('');
+console.log('O ejecuta este script directamente desde MongoDB Atlas Web UI:');
+console.log('');
+console.log('db.users.deleteMany({});');
+console.log('db.auth_credentials.deleteMany({});');
