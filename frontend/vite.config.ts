@@ -62,4 +62,28 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Separar librerías grandes en chunks individuales
+          react: ["react", "react-dom"],
+          zustand: ["zustand"],
+          axios: ["axios"],
+          router: ["react-router-dom"],
+        },
+      },
+    },
+    // Optimizar minificación
+    minify: "terser",
+    terserOptions: {
+      compress: {
+        drop_console: true, // Remover console.log en producción
+      },
+    },
+  },
+  // Optimizaciones de desarrollador
+  server: {
+    middlewareMode: false,
+  },
 });
