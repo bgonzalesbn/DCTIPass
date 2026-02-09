@@ -102,10 +102,10 @@ export class AdminService {
   async createSchedule(data: CreateScheduleDto) {
     // Validar que no exista un horario con solapamiento de horas para la misma actividad en la misma fecha
     const activityId = new Types.ObjectId(data.activityId);
-    const dateObj = new Date(data.date);
-    dateObj.setHours(0, 0, 0, 0);
-    const nextDay = new Date(dateObj);
-    nextDay.setDate(nextDay.getDate() + 1);
+    // Extraer solo la parte de fecha (YYYY-MM-DD) y fijar a mediodía UTC para evitar desfase de timezone
+    const dateOnly = data.date.substring(0, 10);
+    const dateObj = new Date(dateOnly + "T00:00:00.000Z");
+    const nextDay = new Date(dateOnly + "T23:59:59.999Z");
 
     const overlapping = await this.scheduleModel.findOne({
       activityId,
@@ -125,6 +125,7 @@ export class AdminService {
     const scheduleData: any = {
       ...data,
       activityId,
+      date: new Date(dateOnly + "T12:00:00.000Z"),
       groupIds: (data.groupIds || []).map((id) => new Types.ObjectId(id)),
       active: true,
     };
@@ -158,18 +159,18 @@ export class AdminService {
         const checkActivityId = data.activityId
           ? new Types.ObjectId(data.activityId)
           : current.activityId;
-        const checkDate = data.date ? new Date(data.date) : current.date;
+        const checkDate = data.date ? data.date.substring(0, 10) : null;
+        const baseDateStr =
+          checkDate || (current.date as Date).toISOString().substring(0, 10);
         const checkStartTime = data.startTime || current.startTime;
         const checkEndTime = data.endTime || current.endTime;
-        const dateObj = new Date(checkDate);
-        dateObj.setHours(0, 0, 0, 0);
-        const nextDay = new Date(dateObj);
-        nextDay.setDate(nextDay.getDate() + 1);
+        const dateStart = new Date(baseDateStr + "T00:00:00.000Z");
+        const dateEnd = new Date(baseDateStr + "T23:59:59.999Z");
 
         const overlapping = await this.scheduleModel.findOne({
           _id: { $ne: new Types.ObjectId(scheduleId) },
           activityId: checkActivityId,
-          date: { $gte: dateObj, $lt: nextDay },
+          date: { $gte: dateStart, $lte: dateEnd },
           deletedAt: null,
           startTime: { $lt: checkEndTime },
           endTime: { $gt: checkStartTime },
@@ -187,6 +188,10 @@ export class AdminService {
 
     if (data.activityId) {
       updateData.activityId = new Types.ObjectId(data.activityId);
+    }
+    if (data.date) {
+      const dOnly = data.date.substring(0, 10);
+      updateData.date = new Date(dOnly + "T12:00:00.000Z");
     }
     if (data.groupIds) {
       updateData.groupIds = data.groupIds.map((id) => new Types.ObjectId(id));

@@ -1,10 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { adminAPI } from "../../../services/api";
 import type { AdminSchedule, AdminActivity, AdminGroup } from "../../../types";
 
 const getErrorMessage = (err: unknown): string => {
   const error = err as { response?: { data?: { message?: string } } };
   return error.response?.data?.message || "Error inesperado";
+};
+
+/** Formato dd-MM-yyyy usando UTC para evitar desfase de timezone */
+const formatDateDDMMYYYY = (dateStr: string): string => {
+  if (!dateStr) return "-";
+  const d = new Date(dateStr);
+  const dd = String(d.getUTCDate()).padStart(2, "0");
+  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const yyyy = d.getUTCFullYear();
+  return `${dd}-${mm}-${yyyy}`;
 };
 
 export default function AdminSchedulesTab() {
@@ -14,6 +24,8 @@ export default function AdminSchedulesTab() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [groupDropdownOpen, setGroupDropdownOpen] = useState(false);
+  const groupDropdownRef = useRef<HTMLDivElement>(null);
   const [form, setForm] = useState({
     title: "",
     activityId: "",
@@ -44,6 +56,20 @@ export default function AdminSchedulesTab() {
 
   useEffect(() => {
     loadData();
+  }, []);
+
+  // Cerrar dropdown de grupos al hacer click fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        groupDropdownRef.current &&
+        !groupDropdownRef.current.contains(event.target as Node)
+      ) {
+        setGroupDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const resetForm = () => {
@@ -80,7 +106,7 @@ export default function AdminSchedulesTab() {
       const data: Record<string, unknown> = {
         title: form.title,
         activityId: form.activityId,
-        date: form.date,
+        date: form.date + "T12:00:00.000Z",
         startTime: form.startTime,
         endTime: form.endTime,
         order: form.order,
@@ -167,43 +193,77 @@ export default function AdminSchedulesTab() {
                 ))}
               </select>
             </div>
-            <div>
+            <div ref={groupDropdownRef} className="relative">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Grupos
               </label>
-              <div className="border rounded-lg px-3 py-2 max-h-40 overflow-y-auto space-y-1">
-                {groups.length === 0 && (
-                  <p className="text-sm text-gray-400">No hay grupos</p>
-                )}
-                {groups.map((g) => (
-                  <label
-                    key={g._id}
-                    className="flex items-center gap-2 text-sm cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={form.groupIds.includes(g._id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setForm({
-                            ...form,
-                            groupIds: [...form.groupIds, g._id],
-                          });
-                        } else {
-                          setForm({
-                            ...form,
-                            groupIds: form.groupIds.filter(
-                              (id) => id !== g._id,
-                            ),
-                          });
-                        }
-                      }}
-                      className="rounded border-gray-300"
-                    />
-                    {g.name}
-                  </label>
-                ))}
-              </div>
+              <button
+                type="button"
+                onClick={() => setGroupDropdownOpen(!groupDropdownOpen)}
+                className="w-full border rounded-lg px-3 py-2 text-sm text-left flex justify-between items-center bg-white"
+              >
+                <span
+                  className={
+                    form.groupIds.length === 0
+                      ? "text-gray-400"
+                      : "text-gray-900"
+                  }
+                >
+                  {form.groupIds.length === 0
+                    ? "Seleccionar grupos..."
+                    : `${form.groupIds.length} grupo${form.groupIds.length > 1 ? "s" : ""} seleccionado${form.groupIds.length > 1 ? "s" : ""}`}
+                </span>
+                <svg
+                  className={`w-4 h-4 transition-transform ${groupDropdownOpen ? "rotate-180" : ""}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+              {groupDropdownOpen && (
+                <div className="absolute z-10 mt-1 w-full bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  {groups.length === 0 && (
+                    <p className="px-3 py-2 text-sm text-gray-400">
+                      No hay grupos
+                    </p>
+                  )}
+                  {groups.map((g) => (
+                    <label
+                      key={g._id}
+                      className="flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-gray-50"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={form.groupIds.includes(g._id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setForm({
+                              ...form,
+                              groupIds: [...form.groupIds, g._id],
+                            });
+                          } else {
+                            setForm({
+                              ...form,
+                              groupIds: form.groupIds.filter(
+                                (id) => id !== g._id,
+                              ),
+                            });
+                          }
+                        }}
+                        className="rounded border-gray-300"
+                      />
+                      {g.name}
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -300,7 +360,7 @@ export default function AdminSchedulesTab() {
                       : "General"}
                   </td>
                   <td className="px-4 py-3 text-sm">
-                    {s.date ? new Date(s.date).toLocaleDateString() : "-"}
+                    {formatDateDDMMYYYY(s.date)}
                   </td>
                   <td className="px-4 py-3 text-sm">
                     {s.startTime} - {s.endTime}
