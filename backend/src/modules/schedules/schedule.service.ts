@@ -68,7 +68,7 @@ export class ScheduleService {
 
     return this.scheduleModel
       .find({
-        groupId: gId,
+        groupIds: gId,
         date: { $gte: dateObj, $lt: nextDay },
         active: true,
       })
@@ -91,7 +91,7 @@ export class ScheduleService {
 
     return this.scheduleModel
       .find({
-        groupId: gId,
+        groupIds: gId,
         date: { $gte: start, $lte: end },
         active: true,
       })
@@ -126,12 +126,12 @@ export class ScheduleService {
 
     return this.scheduleModel
       .find({
-        groupId: { $in: groupIds },
+        groupIds: { $in: groupIds },
         date: { $gte: today, $lt: tomorrow },
         active: true,
       })
       .populate("activityId", "_id name description color stickerId")
-      .populate("groupId", "_id name")
+      .populate("groupIds", "_id name")
       .sort({ startTime: 1 })
       .lean();
   }

@@ -70,7 +70,7 @@ export interface AdminSchedule {
     description?: string;
     color?: string;
   };
-  groupId?: { _id: string; name: string; shift?: string };
+  groupIds: { _id: string; name: string; shift?: string }[];
   title: string;
   date: string;
   startTime: string;

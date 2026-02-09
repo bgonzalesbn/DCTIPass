@@ -94,21 +94,43 @@ export class AdminService {
     return this.scheduleModel
       .find({ deletedAt: null })
       .populate("activityId", "_id name description color")
-      .populate("groupId", "_id name shift")
+      .populate("groupIds", "_id name shift")
       .sort({ date: 1, startTime: 1 })
       .lean();
   }
 
   async createSchedule(data: CreateScheduleDto) {
+    // Validar que no exista un horario con solapamiento de horas para la misma actividad en la misma fecha
+    const activityId = new Types.ObjectId(data.activityId);
+    const dateObj = new Date(data.date);
+    dateObj.setHours(0, 0, 0, 0);
+    const nextDay = new Date(dateObj);
+    nextDay.setDate(nextDay.getDate() + 1);
+
+    const overlapping = await this.scheduleModel.findOne({
+      activityId,
+      date: { $gte: dateObj, $lt: nextDay },
+      deletedAt: null,
+      // Solapamiento: el nuevo inicia antes de que termine el existente Y termina después de que inicie el existente
+      startTime: { $lt: data.endTime },
+      endTime: { $gt: data.startTime },
+    });
+
+    if (overlapping) {
+      throw new BadRequestException(
+        `Ya existe un horario para esta actividad en la fecha seleccionada que se solapa en horario (${overlapping.startTime} - ${overlapping.endTime})`,
+      );
+    }
+
     const scheduleData: any = {
       ...data,
-      activityId: new Types.ObjectId(data.activityId),
+      activityId,
+      groupIds: (data.groupIds || []).map((id) => new Types.ObjectId(id)),
       active: true,
     };
 
-    if (data.groupId) {
-      scheduleData.groupId = new Types.ObjectId(data.groupId);
-    }
+    // Limpiar campo legacy
+    delete scheduleData.groupId;
 
     if (data.subActivitySchedules) {
       scheduleData.subActivitySchedules = data.subActivitySchedules.map(
@@ -124,19 +146,54 @@ export class AdminService {
     return this.scheduleModel
       .findById(saved._id)
       .populate("activityId", "_id name description color")
-      .populate("groupId", "_id name shift")
+      .populate("groupIds", "_id name shift")
       .lean();
   }
 
   async updateSchedule(scheduleId: string, data: UpdateScheduleDto) {
+    // Validar solapamiento de horas si se cambia actividad, fecha u horas
+    if (data.activityId || data.date || data.startTime || data.endTime) {
+      const current = await this.scheduleModel.findById(scheduleId).lean();
+      if (current) {
+        const checkActivityId = data.activityId
+          ? new Types.ObjectId(data.activityId)
+          : current.activityId;
+        const checkDate = data.date ? new Date(data.date) : current.date;
+        const checkStartTime = data.startTime || current.startTime;
+        const checkEndTime = data.endTime || current.endTime;
+        const dateObj = new Date(checkDate);
+        dateObj.setHours(0, 0, 0, 0);
+        const nextDay = new Date(dateObj);
+        nextDay.setDate(nextDay.getDate() + 1);
+
+        const overlapping = await this.scheduleModel.findOne({
+          _id: { $ne: new Types.ObjectId(scheduleId) },
+          activityId: checkActivityId,
+          date: { $gte: dateObj, $lt: nextDay },
+          deletedAt: null,
+          startTime: { $lt: checkEndTime },
+          endTime: { $gt: checkStartTime },
+        });
+
+        if (overlapping) {
+          throw new BadRequestException(
+            `Ya existe un horario para esta actividad en la fecha seleccionada que se solapa en horario (${overlapping.startTime} - ${overlapping.endTime})`,
+          );
+        }
+      }
+    }
+
     const updateData: any = { ...data };
 
     if (data.activityId) {
       updateData.activityId = new Types.ObjectId(data.activityId);
     }
-    if (data.groupId) {
-      updateData.groupId = new Types.ObjectId(data.groupId);
+    if (data.groupIds) {
+      updateData.groupIds = data.groupIds.map((id) => new Types.ObjectId(id));
     }
+    // Limpiar campo legacy
+    delete updateData.groupId;
+
     if (data.subActivitySchedules) {
       updateData.subActivitySchedules = data.subActivitySchedules.map((s) => ({
         ...s,
@@ -147,7 +204,7 @@ export class AdminService {
     const schedule = await this.scheduleModel
       .findByIdAndUpdate(scheduleId, { $set: updateData }, { new: true })
       .populate("activityId", "_id name description color")
-      .populate("groupId", "_id name shift")
+      .populate("groupIds", "_id name shift")
       .lean();
 
     if (!schedule) {

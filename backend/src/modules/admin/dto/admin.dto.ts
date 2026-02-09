@@ -17,9 +17,10 @@ export class CreateScheduleDto {
   @IsNotEmpty()
   activityId: string;
 
-  @IsString()
+  @IsArray()
+  @IsString({ each: true })
   @IsOptional()
-  groupId?: string;
+  groupIds?: string[];
 
   @IsString()
   @IsNotEmpty()
@@ -73,9 +74,10 @@ export class UpdateScheduleDto {
   @IsOptional()
   activityId?: string;
 
-  @IsString()
+  @IsArray()
+  @IsString({ each: true })
   @IsOptional()
-  groupId?: string;
+  groupIds?: string[];
 
   @IsString()
   @IsOptional()

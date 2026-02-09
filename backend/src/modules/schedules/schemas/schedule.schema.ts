@@ -31,8 +31,8 @@ export const SubActivityScheduleSchema =
   collection: "schedule",
 })
 export class Schedule {
-  @Prop({ type: Types.ObjectId, ref: "Group", default: null })
-  groupId?: Types.ObjectId; // Opcional - puede ser un schedule general
+  @Prop({ type: [{ type: Types.ObjectId, ref: "Group" }], default: [] })
+  groupIds: Types.ObjectId[]; // Grupos asignados al horario
 
   @Prop({ required: true, type: Types.ObjectId, ref: "Activity" })
   activityId: Types.ObjectId;
@@ -66,7 +66,7 @@ export const ScheduleSchema = SchemaFactory.createForClass(Schedule);
 
 // Índices
 ScheduleSchema.index({ activityId: 1, date: 1 });
-ScheduleSchema.index({ groupId: 1, date: 1, startTime: 1, endTime: 1 });
-ScheduleSchema.index({ date: 1, groupId: 1 });
-ScheduleSchema.index({ groupId: 1, date: 1, startTime: 1 });
-ScheduleSchema.index({ groupId: 1, order: 1 });
+ScheduleSchema.index({ groupIds: 1, date: 1, startTime: 1, endTime: 1 });
+ScheduleSchema.index({ date: 1, groupIds: 1 });
+ScheduleSchema.index({ groupIds: 1, date: 1, startTime: 1 });
+ScheduleSchema.index({ groupIds: 1, order: 1 });

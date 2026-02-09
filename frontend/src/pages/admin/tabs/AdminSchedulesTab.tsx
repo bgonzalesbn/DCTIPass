@@ -17,7 +17,7 @@ export default function AdminSchedulesTab() {
   const [form, setForm] = useState({
     title: "",
     activityId: "",
-    groupId: "",
+    groupIds: [] as string[],
     date: "",
     startTime: "",
     endTime: "",
@@ -50,7 +50,7 @@ export default function AdminSchedulesTab() {
     setForm({
       title: "",
       activityId: "",
-      groupId: "",
+      groupIds: [],
       date: "",
       startTime: "",
       endTime: "",
@@ -64,7 +64,7 @@ export default function AdminSchedulesTab() {
     setForm({
       title: s.title,
       activityId: s.activityId?._id || "",
-      groupId: s.groupId?._id || "",
+      groupIds: (s.groupIds || []).map((g) => g._id),
       date: s.date ? s.date.split("T")[0] : "",
       startTime: s.startTime,
       endTime: s.endTime,
@@ -85,7 +85,7 @@ export default function AdminSchedulesTab() {
         endTime: form.endTime,
         order: form.order,
       };
-      if (form.groupId) data.groupId = form.groupId;
+      if (form.groupIds.length > 0) data.groupIds = form.groupIds;
 
       if (editingId) {
         await adminAPI.updateSchedule(editingId, data);
@@ -169,20 +169,41 @@ export default function AdminSchedulesTab() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Grupo (opcional)
+                Grupos
               </label>
-              <select
-                value={form.groupId}
-                onChange={(e) => setForm({ ...form, groupId: e.target.value })}
-                className="w-full border rounded-lg px-3 py-2 text-sm"
-              >
-                <option value="">Sin grupo</option>
+              <div className="border rounded-lg px-3 py-2 max-h-40 overflow-y-auto space-y-1">
+                {groups.length === 0 && (
+                  <p className="text-sm text-gray-400">No hay grupos</p>
+                )}
                 {groups.map((g) => (
-                  <option key={g._id} value={g._id}>
+                  <label
+                    key={g._id}
+                    className="flex items-center gap-2 text-sm cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={form.groupIds.includes(g._id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setForm({
+                            ...form,
+                            groupIds: [...form.groupIds, g._id],
+                          });
+                        } else {
+                          setForm({
+                            ...form,
+                            groupIds: form.groupIds.filter(
+                              (id) => id !== g._id,
+                            ),
+                          });
+                        }
+                      }}
+                      className="rounded border-gray-300"
+                    />
                     {g.name}
-                  </option>
+                  </label>
                 ))}
-              </select>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -253,7 +274,7 @@ export default function AdminSchedulesTab() {
                   Actividad
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Grupo
+                  Grupos
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Fecha
@@ -274,7 +295,9 @@ export default function AdminSchedulesTab() {
                     {s.activityId?.name || "-"}
                   </td>
                   <td className="px-4 py-3 text-sm">
-                    {s.groupId?.name || "General"}
+                    {s.groupIds && s.groupIds.length > 0
+                      ? s.groupIds.map((g) => g.name).join(", ")
+                      : "General"}
                   </td>
                   <td className="px-4 py-3 text-sm">
                     {s.date ? new Date(s.date).toLocaleDateString() : "-"}
