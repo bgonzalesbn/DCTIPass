@@ -6,6 +6,7 @@ import {
   Delete,
   Param,
   Body,
+  Query,
 } from "@nestjs/common";
 import { Types } from "mongoose";
 import { ActivitiesService } from "./activities.service";
@@ -26,8 +27,11 @@ export class ActivitiesController {
   ) {}
 
   @Get()
-  async getAllActivities() {
-    return this.activitiesService.findAll();
+  async getAllActivities(
+    @Query("page") page: number = 1,
+    @Query("limit") limit: number = 20,
+  ) {
+    return this.activitiesService.findAll(page, limit);
   }
 
   @Public()

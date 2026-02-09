@@ -62,7 +62,7 @@ async function bootstrap() {
   expressApp.use(express.json({ limit: "50mb" }));
   expressApp.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-  // 🔒 Apply rate limiter BEFORE validation pipes
+  // �🔒 Apply rate limiter BEFORE validation pipes
   expressApp.use(rateLimitMiddleware);
 
   // Global Pipes

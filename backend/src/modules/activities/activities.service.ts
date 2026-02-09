@@ -25,14 +25,41 @@ export class ActivitiesService {
   ) {}
 
   /**
-   * Get all active activities
+   * Get all active activities with pagination
+   * @param page - Page number (1-based)
+   * @param limit - Items per page (default 20)
    */
-  async findAll() {
-    return this.activityModel
-      .find({ active: true })
-      .populate("stickerId")
-      .populate("subActivities.stickerId")
-      .lean();
+  async findAll(page: number = 1, limit: number = 20) {
+    const skip = (page - 1) * limit;
+
+    // Validate inputs
+    page = Math.max(1, page);
+    limit = Math.min(Math.max(1, limit), 100); // Cap at 100 items per page
+
+    // Fetch data and total count in parallel
+    const [data, total] = await Promise.all([
+      this.activityModel
+        .find({ active: true })
+        .select("_id name description color stickerId subActivities")
+        .populate("stickerId", "_id name icon color points")
+        .populate("subActivities.stickerId", "_id name icon color points")
+        .limit(limit)
+        .skip(skip)
+        .lean(),
+      this.activityModel.countDocuments({ active: true }),
+    ]);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+        hasNext: page < Math.ceil(total / limit),
+        hasPrev: page > 1,
+      },
+    };
   }
 
   /**
