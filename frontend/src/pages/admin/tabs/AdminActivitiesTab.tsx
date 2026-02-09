@@ -401,20 +401,37 @@ export default function AdminActivitiesTab() {
     return used;
   };
 
+  /** Get sub-activity IDs already used in a given group's row (other slots) */
+  const getUsedInRow = (
+    mx: Record<string, string[]>,
+    groupId: string,
+    excludeSlotIdx: number,
+  ): Set<string> => {
+    const used = new Set<string>();
+    const row = mx[groupId];
+    if (!row) return used;
+    for (let i = 0; i < row.length; i++) {
+      if (i !== excludeSlotIdx && row[i]) {
+        used.add(row[i]);
+      }
+    }
+    return used;
+  };
+
   const updateSessionCell = (groupId: string, idx: number, val: string) => {
     setSessionMatrix((prev) => {
-      const next = { ...prev };
-      // If selecting a sub that another group already has in this slot, clear it from that group
       if (val) {
-        for (const gId of Object.keys(next)) {
-          if (gId !== groupId && next[gId][idx] === val) {
-            next[gId] = [...next[gId]];
-            next[gId][idx] = "";
-          }
-        }
+        // Block if same sub already used in this group's row (different slot)
+        const rowUsed = getUsedInRow(prev, groupId, idx);
+        if (rowUsed.has(val)) return prev;
+        // Block if same sub already used in this column by another group
+        const colUsed = getUsedInSlot(prev, idx, groupId);
+        if (colUsed.has(val)) return prev;
       }
-      next[groupId] = prev[groupId].map((v, i) => (i === idx ? val : v));
-      return next;
+      return {
+        ...prev,
+        [groupId]: prev[groupId].map((v, i) => (i === idx ? val : v)),
+      };
     });
   };
 
@@ -1164,70 +1181,105 @@ export default function AdminActivitiesTab() {
                                         </tr>
                                       </thead>
                                       <tbody>
-                                        {sch.groupIds.map((group) => (
-                                          <tr key={group._id}>
-                                            <td className="border border-gray-300 px-2 py-1.5 font-medium bg-white whitespace-nowrap text-gray-800">
-                                              {group.name}
-                                            </td>
-                                            {generateSlots(
-                                              sch.startTime,
-                                              sch.endTime,
-                                              sessionDuration,
-                                            ).map((_, slotIdx) => (
-                                              <td
-                                                key={slotIdx}
-                                                className="border border-gray-300 px-0.5 py-0.5 bg-white"
-                                              >
-                                                <select
-                                                  value={
-                                                    sessionMatrix[group._id]?.[
-                                                      slotIdx
-                                                    ] || ""
-                                                  }
-                                                  onChange={(e) =>
-                                                    updateSessionCell(
-                                                      group._id,
-                                                      slotIdx,
-                                                      e.target.value,
-                                                    )
-                                                  }
-                                                  className="w-full text-xs p-0.5 border-0 bg-transparent rounded focus:ring-1 focus:ring-blue-400"
-                                                >
-                                                  <option value="">—</option>
-                                                  {a.subActivities
-                                                    ?.slice()
-                                                    .sort(
-                                                      (x, y) =>
-                                                        x.order - y.order,
-                                                    )
-                                                    .map((sub) => {
-                                                      const used =
-                                                        getUsedInSlot(
-                                                          sessionMatrix,
-                                                          slotIdx,
-                                                          group._id,
-                                                        );
-                                                      const taken =
-                                                        used.has(sub._id) &&
-                                                        sessionMatrix[
-                                                          group._id
-                                                        ]?.[slotIdx] !==
-                                                          sub._id;
-                                                      return (
-                                                        <option
-                                                          key={sub._id}
-                                                          value={sub._id}
-                                                        >
-                                                          {sub.name}
-                                                          {taken ? " ⚠" : ""}
-                                                        </option>
-                                                      );
-                                                    })}
-                                                </select>
+                                        {sch.groupIds.map((group) => {
+                                          const groupName =
+                                            group.name ||
+                                            groups.find(
+                                              (g) => g._id === group._id,
+                                            )?.name ||
+                                            (typeof group === "string"
+                                              ? groups.find(
+                                                  (g) => g._id === group,
+                                                )?.name || group
+                                              : group._id);
+                                          return (
+                                            <tr
+                                              key={
+                                                group._id ||
+                                                (group as unknown as string)
+                                              }
+                                            >
+                                              <td className="border border-gray-300 px-2 py-1.5 font-medium bg-white whitespace-nowrap text-gray-800">
+                                                {groupName}
                                               </td>
-                                            ))}
-                                          </tr>
-                                        ))}
+                                              {generateSlots(
+                                                sch.startTime,
+                                                sch.endTime,
+                                                sessionDuration,
+                                              ).map((_, slotIdx) => (
+                                                <td
+                                                  key={slotIdx}
+                                                  className="border border-gray-300 px-0.5 py-0.5 bg-white"
+                                                >
+                                                  <select
+                                                    value={
+                                                      sessionMatrix[
+                                                        group._id
+                                                      ]?.[slotIdx] || ""
+                                                    }
+                                                    onChange={(e) =>
+                                                      updateSessionCell(
+                                                        group._id,
+                                                        slotIdx,
+                                                        e.target.value,
+                                                      )
+                                                    }
+                                                    className="w-full text-xs p-0.5 border-0 bg-transparent rounded focus:ring-1 focus:ring-blue-400"
+                                                  >
+                                                    <option value="">—</option>
+                                                    {a.subActivities
+                                                      ?.slice()
+                                                      .sort(
+                                                        (x, y) =>
+                                                          x.order - y.order,
+                                                      )
+                                                      .map((sub) => {
+                                                        const colUsed =
+                                                          getUsedInSlot(
+                                                            sessionMatrix,
+                                                            slotIdx,
+                                                            group._id,
+                                                          );
+                                                        const rowUsed =
+                                                          getUsedInRow(
+                                                            sessionMatrix,
+                                                            group._id,
+                                                            slotIdx,
+                                                          );
+                                                        const isCurrentVal =
+                                                          sessionMatrix[
+                                                            group._id
+                                                          ]?.[slotIdx] ===
+                                                          sub._id;
+                                                        const takenCol =
+                                                          !isCurrentVal &&
+                                                          colUsed.has(sub._id);
+                                                        const takenRow =
+                                                          !isCurrentVal &&
+                                                          rowUsed.has(sub._id);
+                                                        const disabled =
+                                                          takenCol || takenRow;
+                                                        return (
+                                                          <option
+                                                            key={sub._id}
+                                                            value={sub._id}
+                                                            disabled={disabled}
+                                                          >
+                                                            {sub.name}
+                                                            {takenCol
+                                                              ? " (columna)"
+                                                              : takenRow
+                                                                ? " (fila)"
+                                                                : ""}
+                                                          </option>
+                                                        );
+                                                      })}
+                                                  </select>
+                                                </td>
+                                              ))}
+                                            </tr>
+                                          );
+                                        })}
                                       </tbody>
                                     </table>
                                     {a.subActivities?.length === 0 && (
