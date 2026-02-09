@@ -1199,10 +1199,11 @@ export default function AdminActivitiesTab() {
                                                   (g) => g._id === group,
                                                 )?.name || group
                                               : group._id);
+                                          const gId = String(group._id);
                                           return (
                                             <tr
                                               key={
-                                                group._id ||
+                                                gId ||
                                                 (group as unknown as string)
                                               }
                                             >
@@ -1220,9 +1221,9 @@ export default function AdminActivitiesTab() {
                                                 >
                                                   <select
                                                     value={
-                                                      sessionMatrix[
-                                                        group._id
-                                                      ]?.[slotIdx] || ""
+                                                      sessionMatrix[gId]?.[
+                                                        slotIdx
+                                                      ] || ""
                                                     }
                                                     onChange={(e) => {
                                                       const newVal =
@@ -1232,12 +1233,12 @@ export default function AdminActivitiesTab() {
                                                           getUsedInSlot(
                                                             sessionMatrix,
                                                             slotIdx,
-                                                            group._id,
+                                                            gId,
                                                           );
                                                         const rowUsed =
                                                           getUsedInRow(
                                                             sessionMatrix,
-                                                            group._id,
+                                                            gId,
                                                             slotIdx,
                                                           );
                                                         if (
@@ -1247,13 +1248,13 @@ export default function AdminActivitiesTab() {
                                                           // Reset DOM select to current state value
                                                           e.target.value =
                                                             sessionMatrix[
-                                                              group._id
+                                                              gId
                                                             ]?.[slotIdx] || "";
                                                           return;
                                                         }
                                                       }
                                                       updateSessionCell(
-                                                        group._id,
+                                                        gId,
                                                         slotIdx,
                                                         newVal,
                                                       );
