@@ -377,11 +377,33 @@ export default function AdminActivitiesTab() {
     setExpandedScheduleId(sch._id);
   };
 
+  /** Get sub-activity IDs already used in a given slot index (by other groups) */
+  const getUsedInSlot = (
+    mx: Record<string, string[]>,
+    slotIdx: number,
+    excludeGroupId: string,
+  ): Set<string> => {
+    const used = new Set<string>();
+    for (const [gId, slots] of Object.entries(mx)) {
+      if (gId !== excludeGroupId && slots[slotIdx]) {
+        used.add(slots[slotIdx]);
+      }
+    }
+    return used;
+  };
+
   const updateSessionCell = (groupId: string, idx: number, val: string) => {
-    setSessionMatrix((prev) => ({
-      ...prev,
-      [groupId]: prev[groupId].map((v, i) => (i === idx ? val : v)),
-    }));
+    setSessionMatrix((prev) => {
+      // Validate: if val is already used by another group in same slot, skip
+      if (val) {
+        const used = getUsedInSlot(prev, idx, groupId);
+        if (used.has(val)) return prev;
+      }
+      return {
+        ...prev,
+        [groupId]: prev[groupId].map((v, i) => (i === idx ? val : v)),
+      };
+    });
   };
 
   const handleDurationChange = (sch: AdminSchedule, newDur: number) => {
@@ -402,10 +424,22 @@ export default function AdminActivitiesTab() {
     const mx: Record<string, string[]> = {};
     sch.groupIds.forEach((g, gi) => {
       mx[g._id] = slots.map((_, si) => {
+        // Circular rotation ensuring no two groups share the same sub in a slot
         const subIdx = (si + gi) % subs.length;
         return subs[subIdx]?._id || "";
       });
     });
+    // Validate no conflicts (each slot column has unique subs)
+    for (let si = 0; si < slots.length; si++) {
+      const usedInSlot = new Set<string>();
+      for (const gId of Object.keys(mx)) {
+        const subId = mx[gId][si];
+        if (subId && usedInSlot.has(subId)) {
+          mx[gId][si] = ""; // clear conflict
+        }
+        if (subId) usedInSlot.add(subId);
+      }
+    }
     setSessionMatrix(mx);
   };
 
@@ -1081,7 +1115,7 @@ export default function AdminActivitiesTab() {
                                     onClick={() => autoRotate(sch, a)}
                                     className="text-xs bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700"
                                   >
-                                    ↻ Auto-rotar
+                                    ↻ Auto
                                   </button>
                                   <button
                                     onClick={() => handleSaveSessions(sch, a)}
@@ -1154,14 +1188,32 @@ export default function AdminActivitiesTab() {
                                                       (x, y) =>
                                                         x.order - y.order,
                                                     )
-                                                    .map((sub) => (
-                                                      <option
-                                                        key={sub._id}
-                                                        value={sub._id}
-                                                      >
-                                                        {sub.name}
-                                                      </option>
-                                                    ))}
+                                                    .map((sub) => {
+                                                      const used =
+                                                        getUsedInSlot(
+                                                          sessionMatrix,
+                                                          slotIdx,
+                                                          group._id,
+                                                        );
+                                                      const taken =
+                                                        used.has(sub._id) &&
+                                                        sessionMatrix[
+                                                          group._id
+                                                        ]?.[slotIdx] !==
+                                                          sub._id;
+                                                      return (
+                                                        <option
+                                                          key={sub._id}
+                                                          value={sub._id}
+                                                          disabled={taken}
+                                                        >
+                                                          {sub.name}
+                                                          {taken
+                                                            ? " (ocupada)"
+                                                            : ""}
+                                                        </option>
+                                                      );
+                                                    })}
                                                 </select>
                                               </td>
                                             ))}
