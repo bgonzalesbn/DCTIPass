@@ -10,6 +10,7 @@ import { GroupsModule } from "./modules/groups/groups.module";
 import { SchedulesModule } from "./modules/schedules/schedules.module";
 import { StickersModule } from "./modules/stickers/stickers.module";
 import { AwardsModule } from "./modules/awards/awards.module";
+import { AdminModule } from "./modules/admin/admin.module";
 import { JwtAuthGuard } from "./modules/auth/guards/jwt.guard";
 
 @Module({
@@ -33,6 +34,7 @@ import { JwtAuthGuard } from "./modules/auth/guards/jwt.guard";
     SchedulesModule,
     StickersModule,
     AwardsModule,
+    AdminModule,
   ],
   providers: [
     DatabaseService,

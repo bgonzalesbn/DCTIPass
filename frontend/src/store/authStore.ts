@@ -10,6 +10,7 @@ interface User {
   position: string;
   points: number;
   level: number;
+  isAdmin: boolean;
 }
 
 interface AuthStore {
@@ -51,6 +52,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         position: "",
         points: 0,
         level: 1,
+        isAdmin: false,
       };
 
       localStorage.setItem("token", accessToken);

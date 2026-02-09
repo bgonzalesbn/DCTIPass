@@ -100,6 +100,7 @@ export class UsersService {
       lastName: user.lastName,
       position: user.position,
       hobbies: user.hobbies || [],
+      isAdmin: user.isAdmin || false,
       group, // Grupo único del usuario
       schedule, // Schedule del grupo con actividad y subactividades
       progress: {

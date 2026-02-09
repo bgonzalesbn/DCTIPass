@@ -13,6 +13,9 @@ const BadgesPage = lazy(() => import("./pages/BadgesPage"));
 const AdminBadgesUpload = lazy(() => import("./pages/AdminBadgesUpload"));
 const ActivitiesPage = lazy(() => import("./pages/ActivitiesPage"));
 const SubActivitiesPage = lazy(() => import("./pages/SubActivitiesPage"));
+const AdminDashboardPage = lazy(
+  () => import("./pages/admin/AdminDashboardPage"),
+);
 
 function App() {
   return (
@@ -73,6 +76,14 @@ function App() {
           element={
             <Suspense fallback={<LoadingSpinner />}>
               <SubActivitiesPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <Suspense fallback={<LoadingSpinner />}>
+              <AdminDashboardPage />
             </Suspense>
           }
         />

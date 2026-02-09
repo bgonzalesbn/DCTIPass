@@ -11,6 +11,7 @@ interface User {
   position: string;
   points: number;
   level: number;
+  isAdmin: boolean;
 }
 
 export default function HomePage() {
@@ -40,6 +41,7 @@ export default function HomePage() {
           position: userDat.position || "",
           points: userDat.points || 0,
           level: userDat.level || 1,
+          isAdmin: userDat.isAdmin || false,
         });
       })
       .catch((error) => {
@@ -54,6 +56,7 @@ export default function HomePage() {
           position: "",
           points: 0,
           level: 1,
+          isAdmin: false,
         };
         setUser(userData);
       });
@@ -144,6 +147,21 @@ export default function HomePage() {
               Gestiona tu información personal
             </p>
           </button>
+
+          {user.isAdmin && (
+            <button
+              onClick={() => navigate("/admin")}
+              className="bg-gradient-to-br from-[#113780] to-[#1e5bb8] rounded-lg shadow hover:shadow-lg p-4 sm:p-6 md:p-8 text-left transition group sm:col-span-2"
+            >
+              <div className="text-3xl sm:text-4xl mb-2 sm:mb-4">⚙️</div>
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
+                Panel de Administración
+              </h2>
+              <p className="text-blue-100 mt-1 sm:mt-2 text-sm sm:text-base">
+                Gestiona horarios, actividades, grupos, stickers y más
+              </p>
+            </button>
+          )}
         </div>
       </main>
     </div>

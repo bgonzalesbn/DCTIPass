@@ -1,0 +1,637 @@
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model, Types } from "mongoose";
+import { User, UserDocument } from "../users/schemas/user.schema";
+import {
+  Activity,
+  ActivityDocument,
+} from "../activities/schemas/activity.schema";
+import {
+  Schedule,
+  ScheduleDocument,
+} from "../schedules/schemas/schedule.schema";
+import {
+  Challenge,
+  ChallengeDocument,
+} from "../challenges/schemas/challenge.schema";
+import { Group, GroupDocument } from "../groups/schemas/group.schema";
+import {
+  GroupMembership,
+  GroupMembershipDocument,
+} from "../groups/schemas/group-membership.schema";
+import {
+  AdminCreateActivityDto,
+  AdminUpdateActivityDto,
+  AdminCreateSubActivityDto,
+  CreateScheduleDto,
+  UpdateScheduleDto,
+  AdminCreateChallengeDto,
+  AdminUpdateChallengeDto,
+  AdminCreateStickerDto,
+  AdminUpdateStickerDto,
+  AdminCreateGroupDto,
+  AdminUpdateGroupDto,
+  AdminCreateAwardDto,
+  AdminUpdateAwardDto,
+  AdminUpdateUserDto,
+} from "./dto/admin.dto";
+
+// Import sticker from the stickers module
+import { Sticker, StickerDocument } from "../stickers/schemas/sticker.schema";
+// Import StickerAward from the awards module
+import {
+  StickerAward,
+  StickerAwardDocument,
+} from "../awards/schemas/sticker-award.schema";
+
+@Injectable()
+export class AdminService {
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(Activity.name) private activityModel: Model<ActivityDocument>,
+    @InjectModel(Schedule.name) private scheduleModel: Model<ScheduleDocument>,
+    @InjectModel(Challenge.name)
+    private challengeModel: Model<ChallengeDocument>,
+    @InjectModel(Group.name) private groupModel: Model<GroupDocument>,
+    @InjectModel(GroupMembership.name)
+    private membershipModel: Model<GroupMembershipDocument>,
+    @InjectModel(Sticker.name) private stickerModel: Model<StickerDocument>,
+    @InjectModel(StickerAward.name)
+    private stickerAwardModel: Model<StickerAwardDocument>,
+  ) {}
+
+  // ==================== USERS ====================
+
+  async getAllUsers() {
+    return this.userModel
+      .find({ deletedAt: null })
+      .select(
+        "employeeNumber firstName lastName email position isAdmin active totalPoints createdAt",
+      )
+      .sort({ createdAt: -1 })
+      .lean();
+  }
+
+  async updateUser(userId: string, data: AdminUpdateUserDto) {
+    const user = await this.userModel
+      .findByIdAndUpdate(userId, { $set: data }, { new: true })
+      .select("employeeNumber firstName lastName email position isAdmin active")
+      .lean();
+
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+    return user;
+  }
+
+  // ==================== SCHEDULES ====================
+
+  async getAllSchedules() {
+    return this.scheduleModel
+      .find({ deletedAt: null })
+      .populate("activityId", "_id name description color")
+      .populate("groupId", "_id name shift")
+      .sort({ date: 1, startTime: 1 })
+      .lean();
+  }
+
+  async createSchedule(data: CreateScheduleDto) {
+    const scheduleData: any = {
+      ...data,
+      activityId: new Types.ObjectId(data.activityId),
+      active: true,
+    };
+
+    if (data.groupId) {
+      scheduleData.groupId = new Types.ObjectId(data.groupId);
+    }
+
+    if (data.subActivitySchedules) {
+      scheduleData.subActivitySchedules = data.subActivitySchedules.map(
+        (s) => ({
+          ...s,
+          subActivityId: new Types.ObjectId(s.subActivityId),
+        }),
+      );
+    }
+
+    const schedule = new this.scheduleModel(scheduleData);
+    const saved = await schedule.save();
+    return this.scheduleModel
+      .findById(saved._id)
+      .populate("activityId", "_id name description color")
+      .populate("groupId", "_id name shift")
+      .lean();
+  }
+
+  async updateSchedule(scheduleId: string, data: UpdateScheduleDto) {
+    const updateData: any = { ...data };
+
+    if (data.activityId) {
+      updateData.activityId = new Types.ObjectId(data.activityId);
+    }
+    if (data.groupId) {
+      updateData.groupId = new Types.ObjectId(data.groupId);
+    }
+    if (data.subActivitySchedules) {
+      updateData.subActivitySchedules = data.subActivitySchedules.map((s) => ({
+        ...s,
+        subActivityId: new Types.ObjectId(s.subActivityId),
+      }));
+    }
+
+    const schedule = await this.scheduleModel
+      .findByIdAndUpdate(scheduleId, { $set: updateData }, { new: true })
+      .populate("activityId", "_id name description color")
+      .populate("groupId", "_id name shift")
+      .lean();
+
+    if (!schedule) {
+      throw new NotFoundException("Schedule not found");
+    }
+    return schedule;
+  }
+
+  async deleteSchedule(scheduleId: string) {
+    const schedule = await this.scheduleModel
+      .findByIdAndUpdate(
+        scheduleId,
+        { active: false, deletedAt: new Date() },
+        { new: true },
+      )
+      .lean();
+
+    if (!schedule) {
+      throw new NotFoundException("Schedule not found");
+    }
+    return { message: "Schedule deleted successfully" };
+  }
+
+  // ==================== ACTIVITIES ====================
+
+  async getAllActivities() {
+    return this.activityModel
+      .find({ deletedAt: null })
+      .populate("stickerId", "_id name imageUrl")
+      .populate("subActivities.stickerId", "_id name imageUrl")
+      .sort({ name: 1 })
+      .lean();
+  }
+
+  async createActivity(data: AdminCreateActivityDto) {
+    const activity = new this.activityModel({
+      ...data,
+      stickerId: data.stickerId
+        ? new Types.ObjectId(data.stickerId)
+        : undefined,
+      active: data.active ?? true,
+    });
+    const saved = await activity.save();
+    return this.activityModel
+      .findById(saved._id)
+      .populate("stickerId", "_id name imageUrl")
+      .lean();
+  }
+
+  async updateActivity(activityId: string, data: AdminUpdateActivityDto) {
+    const updateData: any = { ...data };
+    if (data.stickerId) {
+      updateData.stickerId = new Types.ObjectId(data.stickerId);
+    }
+
+    const activity = await this.activityModel
+      .findByIdAndUpdate(activityId, { $set: updateData }, { new: true })
+      .populate("stickerId", "_id name imageUrl")
+      .populate("subActivities.stickerId", "_id name imageUrl")
+      .lean();
+
+    if (!activity) {
+      throw new NotFoundException("Activity not found");
+    }
+    return activity;
+  }
+
+  async deleteActivity(activityId: string) {
+    const activity = await this.activityModel
+      .findByIdAndUpdate(
+        activityId,
+        { active: false, deletedAt: new Date() },
+        { new: true },
+      )
+      .lean();
+
+    if (!activity) {
+      throw new NotFoundException("Activity not found");
+    }
+    return { message: "Activity deleted successfully" };
+  }
+
+  // ==================== SUB-ACTIVITIES ====================
+
+  async addSubActivity(activityId: string, data: AdminCreateSubActivityDto) {
+    const activity = await this.activityModel.findById(activityId);
+    if (!activity) {
+      throw new NotFoundException("Activity not found");
+    }
+
+    const subActivity: any = {
+      _id: new Types.ObjectId(),
+      name: data.name,
+      description: data.description || "",
+      color: data.color || "from-blue-500 to-blue-600",
+      stickerId: data.stickerId
+        ? new Types.ObjectId(data.stickerId)
+        : undefined,
+      active: data.active ?? true,
+      order: data.order ?? activity.subActivities.length,
+    };
+
+    activity.subActivities.push(subActivity);
+    await activity.save();
+
+    return this.activityModel
+      .findById(activityId)
+      .populate("stickerId", "_id name imageUrl")
+      .populate("subActivities.stickerId", "_id name imageUrl")
+      .lean();
+  }
+
+  async updateSubActivity(
+    activityId: string,
+    subActivityId: string,
+    data: AdminCreateSubActivityDto,
+  ) {
+    const activity = await this.activityModel.findById(activityId);
+    if (!activity) {
+      throw new NotFoundException("Activity not found");
+    }
+
+    const subIdx = activity.subActivities.findIndex(
+      (s: any) => s._id.toString() === subActivityId,
+    );
+    if (subIdx === -1) {
+      throw new NotFoundException("SubActivity not found");
+    }
+
+    const existing = activity.subActivities[subIdx] as any;
+    if (data.name !== undefined) existing.name = data.name;
+    if (data.description !== undefined) existing.description = data.description;
+    if (data.color !== undefined) existing.color = data.color;
+    if (data.stickerId !== undefined)
+      existing.stickerId = new Types.ObjectId(data.stickerId);
+    if (data.order !== undefined) existing.order = data.order;
+    if (data.active !== undefined) existing.active = data.active;
+
+    await activity.save();
+
+    return this.activityModel
+      .findById(activityId)
+      .populate("stickerId", "_id name imageUrl")
+      .populate("subActivities.stickerId", "_id name imageUrl")
+      .lean();
+  }
+
+  async deleteSubActivity(activityId: string, subActivityId: string) {
+    const activity = await this.activityModel.findById(activityId);
+    if (!activity) {
+      throw new NotFoundException("Activity not found");
+    }
+
+    activity.subActivities = activity.subActivities.filter(
+      (s: any) => s._id.toString() !== subActivityId,
+    ) as any;
+
+    await activity.save();
+    return { message: "SubActivity deleted successfully" };
+  }
+
+  // ==================== CHALLENGES ====================
+
+  async getAllChallenges() {
+    return this.challengeModel
+      .find({ deletedAt: null })
+      .sort({ createdAt: -1 })
+      .lean();
+  }
+
+  async createChallenge(data: AdminCreateChallengeDto) {
+    const challenge = new this.challengeModel({
+      ...data,
+      isActive: data.isActive ?? true,
+    });
+    return challenge.save();
+  }
+
+  async updateChallenge(challengeId: string, data: AdminUpdateChallengeDto) {
+    const challenge = await this.challengeModel
+      .findByIdAndUpdate(challengeId, { $set: data }, { new: true })
+      .lean();
+
+    if (!challenge) {
+      throw new NotFoundException("Challenge not found");
+    }
+    return challenge;
+  }
+
+  async deleteChallenge(challengeId: string) {
+    const challenge = await this.challengeModel
+      .findByIdAndUpdate(
+        challengeId,
+        { deletedAt: new Date(), isActive: false },
+        { new: true },
+      )
+      .lean();
+
+    if (!challenge) {
+      throw new NotFoundException("Challenge not found");
+    }
+    return { message: "Challenge deleted successfully" };
+  }
+
+  // ==================== STICKERS ====================
+
+  async getAllStickers() {
+    return this.stickerModel.find({ deletedAt: null }).sort({ name: 1 }).lean();
+  }
+
+  async createSticker(data: AdminCreateStickerDto) {
+    const sticker = new this.stickerModel({
+      ...data,
+      active: data.active ?? true,
+    });
+    return sticker.save();
+  }
+
+  async updateSticker(stickerId: string, data: AdminUpdateStickerDto) {
+    const sticker = await this.stickerModel
+      .findByIdAndUpdate(stickerId, { $set: data }, { new: true })
+      .lean();
+
+    if (!sticker) {
+      throw new NotFoundException("Sticker not found");
+    }
+    return sticker;
+  }
+
+  async deleteSticker(stickerId: string) {
+    const sticker = await this.stickerModel
+      .findByIdAndUpdate(
+        stickerId,
+        { active: false, deletedAt: new Date() },
+        { new: true },
+      )
+      .lean();
+
+    if (!sticker) {
+      throw new NotFoundException("Sticker not found");
+    }
+    return { message: "Sticker deleted successfully" };
+  }
+
+  // ==================== GROUPS ====================
+
+  async getAllGroups() {
+    const groups = await this.groupModel
+      .find({ deletedAt: null })
+      .populate("scheduleId")
+      .sort({ name: 1 })
+      .lean();
+
+    // Add member count for each group
+    const groupsWithCount = await Promise.all(
+      groups.map(async (group) => {
+        const memberCount = await this.membershipModel.countDocuments({
+          groupId: group._id,
+          deletedAt: null,
+        });
+        return { ...group, memberCount };
+      }),
+    );
+
+    return groupsWithCount;
+  }
+
+  async createGroup(data: AdminCreateGroupDto) {
+    const groupData: any = {
+      ...data,
+      active: true,
+    };
+
+    if (data.scheduleId) {
+      groupData.scheduleId = new Types.ObjectId(data.scheduleId);
+    }
+
+    const group = new this.groupModel(groupData);
+    return group.save();
+  }
+
+  async updateGroup(groupId: string, data: AdminUpdateGroupDto) {
+    const updateData: any = { ...data };
+    if (data.scheduleId) {
+      updateData.scheduleId = new Types.ObjectId(data.scheduleId);
+    }
+
+    const group = await this.groupModel
+      .findByIdAndUpdate(groupId, { $set: updateData }, { new: true })
+      .populate("scheduleId")
+      .lean();
+
+    if (!group) {
+      throw new NotFoundException("Group not found");
+    }
+    return group;
+  }
+
+  async deleteGroup(groupId: string) {
+    const group = await this.groupModel
+      .findByIdAndUpdate(
+        groupId,
+        { active: false, deletedAt: new Date() },
+        { new: true },
+      )
+      .lean();
+
+    if (!group) {
+      throw new NotFoundException("Group not found");
+    }
+
+    // Soft delete all memberships
+    await this.membershipModel.updateMany(
+      { groupId: new Types.ObjectId(groupId), deletedAt: null },
+      { deletedAt: new Date() },
+    );
+
+    return { message: "Group deleted successfully" };
+  }
+
+  async getGroupMembers(groupId: string) {
+    return this.membershipModel
+      .find({ groupId: new Types.ObjectId(groupId), deletedAt: null })
+      .populate("userId", "employeeNumber firstName lastName email position")
+      .lean();
+  }
+
+  async assignUserToGroup(groupId: string, employeeNumber: string) {
+    const user = await this.userModel.findOne({ employeeNumber });
+    if (!user) {
+      throw new NotFoundException(
+        `User with employee number ${employeeNumber} not found`,
+      );
+    }
+
+    const group = await this.groupModel.findById(groupId);
+    if (!group || !group.active) {
+      throw new NotFoundException("Group not found");
+    }
+
+    // Remove from current group
+    await this.membershipModel.updateMany(
+      { userId: user._id, deletedAt: null },
+      { deletedAt: new Date() },
+    );
+
+    // Check capacity
+    const memberCount = await this.membershipModel.countDocuments({
+      groupId: new Types.ObjectId(groupId),
+      deletedAt: null,
+    });
+
+    if (memberCount >= group.capacityMax) {
+      throw new BadRequestException(
+        `Group is at full capacity (${group.capacityMax})`,
+      );
+    }
+
+    // Create new membership
+    const membership = new this.membershipModel({
+      userId: user._id,
+      groupId: new Types.ObjectId(groupId),
+      assignedAt: new Date(),
+    });
+
+    await membership.save();
+
+    return {
+      message: `${user.firstName} ${user.lastName} assigned to ${group.name}`,
+      user: {
+        _id: user._id,
+        employeeNumber: user.employeeNumber,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+      group: { _id: group._id, name: group.name },
+    };
+  }
+
+  async removeUserFromGroup(groupId: string, userId: string) {
+    const result = await this.membershipModel.findOneAndUpdate(
+      {
+        groupId: new Types.ObjectId(groupId),
+        userId: new Types.ObjectId(userId),
+        deletedAt: null,
+      },
+      { deletedAt: new Date() },
+      { new: true },
+    );
+
+    if (!result) {
+      throw new NotFoundException("Membership not found");
+    }
+
+    return { message: "User removed from group" };
+  }
+
+  // ==================== AWARDS (Sticker Awards / Retos) ====================
+
+  async getAllAwards() {
+    return this.stickerAwardModel
+      .find({ deletedAt: null })
+      .populate("stickerId", "_id name imageUrl")
+      .populate("activityId", "_id name")
+      .sort({ activityId: 1, subActivityId: 1 })
+      .lean();
+  }
+
+  async createAward(data: AdminCreateAwardDto) {
+    const award = new this.stickerAwardModel({
+      ...data,
+      stickerId: new Types.ObjectId(data.stickerId),
+      activityId: new Types.ObjectId(data.activityId),
+      subActivityId: new Types.ObjectId(data.subActivityId),
+      active: true,
+    });
+    const saved = await award.save();
+    return this.stickerAwardModel
+      .findById(saved._id)
+      .populate("stickerId", "_id name imageUrl")
+      .populate("activityId", "_id name")
+      .lean();
+  }
+
+  async updateAward(awardId: string, data: AdminUpdateAwardDto) {
+    const award = await this.stickerAwardModel
+      .findByIdAndUpdate(awardId, { $set: data }, { new: true })
+      .populate("stickerId", "_id name imageUrl")
+      .populate("activityId", "_id name")
+      .lean();
+
+    if (!award) {
+      throw new NotFoundException("Award not found");
+    }
+    return award;
+  }
+
+  async deleteAward(awardId: string) {
+    const award = await this.stickerAwardModel
+      .findByIdAndUpdate(
+        awardId,
+        { active: false, deletedAt: new Date() },
+        { new: true },
+      )
+      .lean();
+
+    if (!award) {
+      throw new NotFoundException("Award not found");
+    }
+    return { message: "Award deleted successfully" };
+  }
+
+  // ==================== DASHBOARD STATS ====================
+
+  async getDashboardStats() {
+    const [
+      totalUsers,
+      activeUsers,
+      totalActivities,
+      totalSchedules,
+      totalGroups,
+      totalStickers,
+      totalChallenges,
+      totalAwards,
+    ] = await Promise.all([
+      this.userModel.countDocuments({ deletedAt: null }),
+      this.userModel.countDocuments({ active: true, deletedAt: null }),
+      this.activityModel.countDocuments({ deletedAt: null }),
+      this.scheduleModel.countDocuments({ deletedAt: null, active: true }),
+      this.groupModel.countDocuments({ deletedAt: null, active: true }),
+      this.stickerModel.countDocuments({ deletedAt: null }),
+      this.challengeModel.countDocuments({ deletedAt: null }),
+      this.stickerAwardModel.countDocuments({ deletedAt: null }),
+    ]);
+
+    return {
+      totalUsers,
+      activeUsers,
+      totalActivities,
+      totalSchedules,
+      totalGroups,
+      totalStickers,
+      totalChallenges,
+      totalAwards,
+    };
+  }
+}

@@ -209,4 +209,86 @@ export const awardsAPI = {
   getAllAwards: () => apiClient.get("/awards/admin/all"),
 };
 
+// Admin endpoints
+export const adminAPI = {
+  // Dashboard
+  getStats: () => apiClient.get("/admin/stats"),
+
+  // Users
+  getUsers: () => apiClient.get("/admin/users"),
+  updateUser: (id: string, data: Record<string, unknown>) =>
+    apiClient.patch(`/admin/users/${id}`, data),
+
+  // Schedules
+  getSchedules: () => apiClient.get("/admin/schedules"),
+  createSchedule: (data: Record<string, unknown>) =>
+    apiClient.post("/admin/schedules", data),
+  updateSchedule: (id: string, data: Record<string, unknown>) =>
+    apiClient.put(`/admin/schedules/${id}`, data),
+  deleteSchedule: (id: string) => apiClient.delete(`/admin/schedules/${id}`),
+
+  // Activities
+  getActivities: () => apiClient.get("/admin/activities"),
+  createActivity: (data: Record<string, unknown>) =>
+    apiClient.post("/admin/activities", data),
+  updateActivity: (id: string, data: Record<string, unknown>) =>
+    apiClient.put(`/admin/activities/${id}`, data),
+  deleteActivity: (id: string) => apiClient.delete(`/admin/activities/${id}`),
+
+  // Sub-Activities
+  addSubActivity: (activityId: string, data: Record<string, unknown>) =>
+    apiClient.post(`/admin/activities/${activityId}/subactivities`, data),
+  updateSubActivity: (
+    activityId: string,
+    subActivityId: string,
+    data: Record<string, unknown>,
+  ) =>
+    apiClient.put(
+      `/admin/activities/${activityId}/subactivities/${subActivityId}`,
+      data,
+    ),
+  deleteSubActivity: (activityId: string, subActivityId: string) =>
+    apiClient.delete(
+      `/admin/activities/${activityId}/subactivities/${subActivityId}`,
+    ),
+
+  // Challenges
+  getChallenges: () => apiClient.get("/admin/challenges"),
+  createChallenge: (data: Record<string, unknown>) =>
+    apiClient.post("/admin/challenges", data),
+  updateChallenge: (id: string, data: Record<string, unknown>) =>
+    apiClient.put(`/admin/challenges/${id}`, data),
+  deleteChallenge: (id: string) => apiClient.delete(`/admin/challenges/${id}`),
+
+  // Stickers
+  getStickers: () => apiClient.get("/admin/stickers"),
+  createSticker: (data: Record<string, unknown>) =>
+    apiClient.post("/admin/stickers", data),
+  updateSticker: (id: string, data: Record<string, unknown>) =>
+    apiClient.put(`/admin/stickers/${id}`, data),
+  deleteSticker: (id: string) => apiClient.delete(`/admin/stickers/${id}`),
+
+  // Groups
+  getGroups: () => apiClient.get("/admin/groups"),
+  createGroup: (data: Record<string, unknown>) =>
+    apiClient.post("/admin/groups", data),
+  updateGroup: (id: string, data: Record<string, unknown>) =>
+    apiClient.put(`/admin/groups/${id}`, data),
+  deleteGroup: (id: string) => apiClient.delete(`/admin/groups/${id}`),
+  getGroupMembers: (groupId: string) =>
+    apiClient.get(`/admin/groups/${groupId}/members`),
+  assignUserToGroup: (groupId: string, employeeNumber: string) =>
+    apiClient.post(`/admin/groups/${groupId}/assign`, { employeeNumber }),
+  removeUserFromGroup: (groupId: string, userId: string) =>
+    apiClient.delete(`/admin/groups/${groupId}/members/${userId}`),
+
+  // Awards
+  getAwards: () => apiClient.get("/admin/awards"),
+  createAward: (data: Record<string, unknown>) =>
+    apiClient.post("/admin/awards", data),
+  updateAward: (id: string, data: Record<string, unknown>) =>
+    apiClient.put(`/admin/awards/${id}`, data),
+  deleteAward: (id: string) => apiClient.delete(`/admin/awards/${id}`),
+};
+
 export default apiClient;

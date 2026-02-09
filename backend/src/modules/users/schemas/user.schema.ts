@@ -65,6 +65,9 @@ export class User {
   @Prop({ required: true, default: true })
   active: boolean;
 
+  @Prop({ type: Boolean, default: false })
+  isAdmin: boolean;
+
   @Prop({ type: String, default: null })
   authProviderId?: string;
 
