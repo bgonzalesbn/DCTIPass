@@ -1,181 +1,1222 @@
-# IT Experience MVP - Full Stack Gamified Learning Platform
+# DCTIPass - IT Experience Platform
 
-> **Estado**: Fase 2 - Modelo de Datos MongoDB ✅
+> **Plataforma de Gamificación para Aprendizaje IT con Sistema de Insignias y Actividades**
 
 ## 📋 Tabla de Contenidos
 
-- [Descripción General](#descripción-general)
-- [Stack Tecnológico](#stack-tecnológico)
-- [Arquitectura](#arquitectura)
-  - [Frontend (Flutter)](#frontend-flutter)
-  - [Backend (NestJS + MongoDB)](#backend-nestjs--mongodb)
-- [Requerimientos No Funcionales](#requerimientos-no-funcionales)
-- [Setup Local](#setup-local)
-- [Decisiones Técnicas Justificadas](#decisiones-técnicas-justificadas)
-- [Roadmap](#roadmap)
+- [Descripción General](#-descripción-general)
+- [Stack Tecnológico](#-stack-tecnológico)
+- [Arquitectura del Sistema](#-arquitectura-del-sistema)
+- [Backend - Documentación Técnica](#-backend---documentación-técnica)
+- [Frontend - Documentación Técnica](#-frontend---documentación-técnica)
+- [Modelo de Base de Datos](#-modelo-de-base-de-datos)
+- [Diagramas de Flujo](#-diagramas-de-flujo)
+- [Setup y Configuración](#-setup-y-configuración)
+- [Deployment](#-deployment)
 
 ---
 
 ## 🎯 Descripción General
 
-**IT Experience** es una plataforma de gamificación para el aprendizaje de habilidades IT, con soporte multiplataforma:
+**DCTIPass** es una plataforma web de gamificación diseñada para el aprendizaje de habilidades IT. El sistema permite a los usuarios completar actividades, ganar insignias (badges), participar en grupos y seguir un cronograma estructurado de aprendizaje.
 
-- 📱 **Mobile**: Android e iOS (Flutter nativo)
-- 🌐 **Web**: PWA instalable (Flutter Web + Service Worker)
-- 🎮 **Características**: Retos, insignias, puntos, leaderboards, sincronización offline
+### Características Principales
 
-**MVP Scope**:
-
-1. Autenticación segura (JWT + HttpOnly cookies)
-2. Sistema de retos con dificultad progresiva
-3. Gamificación (puntos, insignias, perfiles)
-4. PWA instalable con caché inteligente
-5. Soporte i18n (es-CR por defecto)
+- 🔐 **Autenticación Segura**: JWT con tokens HttpOnly y Argon2id para hash de contraseñas
+- 🎮 **Sistema de Gamificación**: Actividades, insignias, puntos y progreso personalizado
+- 👥 **Gestión de Grupos**: Organización de usuarios en grupos con capacidad máxima
+- 📅 **Cronograma Estructurado**: Sistema de scheduling para actividades programadas
+- 💾 **PWA Optimizada**: Aplicación web progresiva con caché inteligente y offline support
+- 📊 **Dashboard de Progreso**: Visualización en tiempo real del avance del usuario
 
 ---
 
 ## 🛠 Stack Tecnológico
 
+### Frontend
+
 ```
 ┌─────────────────────────────────────────────────────┐
-│         FRONTEND (Flutter + Web PWA)                │
+│         FRONTEND (React + TypeScript + PWA)         │
 ├─────────────────────────────────────────────────────┤
-│ • Flutter 3.16.0+ (Clean Architecture)              │
-│ • Riverpod + riverpod_generator (State Management)  │
-│ • Dio (HTTP Client)                                 │
-│ • flutter_secure_storage (Auth segura)              │
-│ • go_router (Navigation)                            │
-│ • hive_flutter (Cache local)                        │
-│ • PWA: Service Worker + manifest.json               │
-│ • i18n: flutter_localizations + intl                │
+│ • React 19.2.0 (UI Library)                         │
+│ • TypeScript 5.9.3 (Type Safety)                    │
+│ • Vite 7.2.4 (Build Tool & Dev Server)              │
+│ • React Router DOM 7.13.0 (Routing)                 │
+│ • Zustand 5.0.11 (State Management)                 │
+│ • Axios 1.13.4 (HTTP Client)                        │
+│ • Tailwind CSS 4.1.18 (Styling)                     │
+│ • Vite Plugin PWA 1.2.0 (Service Worker)            │
 └─────────────────────────────────────────────────────┘
+```
 
+### Backend
+
+```
 ┌─────────────────────────────────────────────────────┐
-│      BACKEND (NestJS + TypeScript + Express)        │
+│      BACKEND (NestJS + TypeScript + MongoDB)        │
 ├─────────────────────────────────────────────────────┤
-│ • NestJS 10.2.0 (Framework modular)                 │
-│ • MongoDB 8.0 + Mongoose (ODM)                      │
-│ • JWT + Passport (Autenticación)                    │
-│ • class-validator (Validación)                      │
-│ • Jest + Mockito (Testing)                          │
-│ • Deploy: Render                                    │
+│ • NestJS 10.2.0 (Framework)                         │
+│ • TypeScript (Language)                             │
+│ • MongoDB 8.0 + Mongoose 8.0.0 (Database/ODM)       │
+│ • Passport + JWT (Authentication)                   │
+│ • Argon2 0.31.1 (Password Hashing)                  │
+│ • Class Validator 0.14.0 (Input Validation)         │
+│ • Class Transformer 0.5.1 (DTO Mapping)             │
+│ • Cookie Parser 1.4.6 (Session Management)          │
 └─────────────────────────────────────────────────────┘
+```
 
+### Infraestructura
+
+```
 ┌─────────────────────────────────────────────────────┐
 │           INFRAESTRUCTURA & DEVOPS                  │
 ├─────────────────────────────────────────────────────┤
-│ • GitHub Actions (CI/CD)                            │
-│ • MongoDB Atlas (Producción)                        │
-│ • Vercel (Deploy Frontend)                          │
-│ • Render (Deploy Backend)                           │
-│ • PlayStore / AppStore (Deploy Mobile)              │
+│ • MongoDB Atlas (Database Production)               │
+│ • Vercel (Frontend Hosting)                         │
+│ • Render (Backend Hosting)                          │
+│ • GitHub (Version Control)                          │
 └─────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 🏗 Arquitectura
+## 🏗 Arquitectura del Sistema
 
-### Frontend (Flutter)
+### Arquitectura General
 
-#### Clean Architecture - 3 Capas
+```mermaid
+graph TB
+    subgraph "Frontend Layer"
+        A[React App PWA]
+        B[Service Worker]
+        C[Local Cache]
+    end
+
+    subgraph "API Gateway"
+        D[NestJS Backend]
+        E[JWT Auth Guard]
+    end
+
+    subgraph "Business Logic"
+        F[Auth Module]
+        G[Users Module]
+        H[Activities Module]
+        I[Stickers Module]
+        J[Awards Module]
+        K[Groups Module]
+        L[Schedules Module]
+    end
+
+    subgraph "Data Layer"
+        M[(MongoDB Atlas)]
+    end
+
+    A -->|HTTP/REST| D
+    B -->|Cache Strategy| C
+    D --> E
+    E --> F
+    E --> G
+    E --> H
+    E --> I
+    E --> J
+    E --> K
+    E --> L
+    F --> M
+    G --> M
+    H --> M
+    I --> M
+    J --> M
+    K --> M
+    L --> M
+```
+
+---
+
+## 🔧 Backend - Documentación Técnica
+
+### Arquitectura del Backend
+
+El backend está construido con **NestJS** siguiendo principios de arquitectura modular y SOLID:
+
+#### Estructura de Directorios
 
 ```
-lib/
-├── domain/                          # Capa independiente (interfaces, entities)
-│   ├── entities/                   # Modelos puros (sin lógica de BD)
-│   ├── repositories/               # Interfaces (contracts)
-│   └── usecases/                   # Lógica de negocio pura
-│
-├── data/                            # Capa de implementación (BD, API)
-│   ├── datasources/
-│   │   ├── local/                  # Hive, SharedPreferences
-│   │   └── remote/                 # HTTP calls (Dio)
-│   ├── models/                      # Modelos + mapeos (toEntity/toJson)
-│   ├── repositories/                # Implementación de interfaces domain
-│   └── providers/                   # Riverpod providers (datos)
-│
-└── presentation/                    # Capa UI (UI sin lógica)
-    ├── pages/                       # Pantallas
-    ├── widgets/                     # Widgets reutilizables
-    ├── controllers/                 # Riverpod controllers (business logic)
-    └── providers/                   # Riverpod state providers
+backend/
+├── src/
+│   ├── app.module.ts              # Módulo raíz de la aplicación
+│   ├── main.ts                    # Punto de entrada
+│   ├── common/                    # Recursos compartidos
+│   │   ├── decorators/           # Custom decorators (@Public, etc)
+│   │   ├── filters/              # Exception filters
+│   │   └── guards/               # Route guards
+│   ├── config/                   # Configuración
+│   │   ├── config.module.ts
+│   │   └── config.service.ts
+│   ├── database/                 # Database connection
+│   │   ├── database.module.ts
+│   │   └── database.service.ts
+│   └── modules/                  # Módulos de negocio
+│       ├── auth/                 # Autenticación y autorización
+│       ├── users/                # Gestión de usuarios
+│       ├── activities/          # Gestión de actividades
+│       ├── stickers/            # Gestión de insignias
+│       ├── awards/              # Sistema de premios
+│       ├── groups/              # Gestión de grupos
+│       ├── schedules/           # Cronogramas
+│       └── challenges/          # Sistema de desafíos
 ```
 
-**Principio**: UI descartable, lógica portable → cambiar UI sin tocar domain/data.
+### Módulos Principales
 
-#### State Management: Riverpod
+#### 1. Auth Module (`/auth`)
 
-**¿Por qué Riverpod sobre BLoC?**
+**Responsabilidad**: Gestión de autenticación y autorización
 
-- ✅ Más simple para MVP (menos boilerplate)
-- ✅ InheritedWidget nativo + ref.watch/ref.listen
-- ✅ riverpod_generator reduce código repetitivo
-- ✅ Testeable sin contextos complejos
-- ✅ mejor performance (lazy loading)
+**Endpoints**:
 
-**Estructura de providers**:
+- `POST /auth/register` - Registro de nuevos usuarios
+- `POST /auth/login` - Inicio de sesión
+- `POST /auth/logout` - Cierre de sesión
 
-```dart
-// Service provider (singleton)
-@riverpod
-AuthService authService(AuthServiceRef ref) => AuthService(...);
+**Características**:
 
-// Repository provider
-@riverpod
-AuthRepository authRepository(AuthRepositoryRef ref) =>
-    AuthRepository(ref.watch(authServiceProvider));
+- JWT con tokens HttpOnly cookies
+- Password hashing con Argon2id
+- Passport JWT Strategy
+- Guard global para protección de rutas
 
-// State provider (mutable)
-@riverpod
-class AuthController extends _$AuthController {
-  @override
-  Future<AuthState> build() async => AuthState.initial();
+**DTOs**:
 
-  Future<void> login(String email, String password) async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() =>
-      ref.read(authRepositoryProvider).login(email, password)
-    );
-  }
+```typescript
+RegisterDto {
+  employeeNum: string;
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
 }
 
-// UI consumer
-@override
-Widget build(BuildContext context, WidgetRef ref) {
-  final authState = ref.watch(authControllerProvider);
-  return authState.when(
-    data: (auth) => Dashboard(auth: auth),
-    loading: () => LoadingScreen(),
-    error: (e, st) => ErrorScreen(error: e),
-  );
+LoginDto {
+  email: string;
+  password: string;
 }
 ```
 
-#### PWA Web (Flutter Web)
+#### 2. Users Module (`/users`)
 
-**Requisitos PWA**:
+**Responsabilidad**: Gestión de perfiles y datos de usuarios
 
-1. ✅ manifest.json con íconos 192x512, display="standalone"
-2. ✅ Service Worker + caché inteligente
-3. ✅ HTTPS (requisito SW)
-4. ✅ Offline-first (shell cacheado)
+**Endpoints**:
 
-**Estrategia de caché**:
+- `GET /users/me` - Obtener perfil del usuario autenticado
+- `PUT /users/profile` - Actualizar perfil
+- `POST /users/complete-sub-activity` - Completar sub-actividad
+- `GET /users/:id` - Obtener usuario por ID
+- `GET /users/:id/progress` - Obtener progreso del usuario
 
-```javascript
-// SW: stale-while-revalidate para JS/CSS
-// SW: cache-first para imágenes + assets
-// Fallback: último cronograma conocido
+**Características**:
+
+- Gestión de hobbies y posición
+- Tracking de progreso de actividades
+- Relación con grupos y actividades completadas
+
+#### 3. Activities Module (`/activities`)
+
+**Responsabilidad**: Gestión del catálogo de actividades
+
+**Endpoints**:
+
+- `GET /activities` - Listar todas las actividades
+- `GET /activities/:id` - Obtener actividad por ID
+- `POST /activities` - Crear nueva actividad
+- `PUT /activities/:id` - Actualizar actividad
+- `DELETE /activities/:id` - Eliminar actividad
+
+**Modelo**:
+
+```typescript
+Activity {
+  _id: ObjectId;
+  name: string;
+  stickerId: ObjectId;  // Relación 1:1 con Sticker
+  active: boolean;
+}
 ```
 
-**Instalación**:
+#### 4. Stickers Module (`/badges`)
 
-- **Android/Web**: Auto "Add to Home Screen" banner
-- **iOS**: Manual vía Share → Add to Home Screen (limitaciones Apple)
-  - Sin push notifications en background
-  - Sin acceso a cámara/micrófono
-  - Sin sincronización de datos en background
+**Responsabilidad**: Gestión de insignias/badges
+
+**Endpoints**:
+
+- `GET /badges` - Listar todas las insignias
+- `GET /badges/:id` - Obtener insignia por ID
+- `POST /badges` - Crear nueva insignia
+- `PUT /badges/:id` - Actualizar insignia
+
+**Modelo**:
+
+```typescript
+Sticker {
+  _id: ObjectId;
+  name: string;
+  imageUrl: string;
+  active: boolean;
+}
+```
+
+#### 5. Awards Module (`/awards`)
+
+**Responsabilidad**: Sistema de otorgamiento de insignias
+
+**Endpoints**:
+
+- `GET /awards/my-awards` - Obtener awards del usuario
+- `POST /awards` - Otorgar award a usuario
+- `GET /awards/user/:userId` - Awards de un usuario específico
+
+**Modelo**:
+
+```typescript
+StickerAward {
+  userId: ObjectId;
+  stickerId: ObjectId;
+  activityCompletionId: ObjectId;
+  awardedAt: Date;
+}
+```
+
+#### 6. Groups Module (`/groups`)
+
+**Responsabilidad**: Gestión de grupos de usuarios
+
+**Endpoints**:
+
+- `GET /groups` - Listar todos los grupos
+- `GET /groups/:id` - Obtener grupo por ID
+- `POST /groups` - Crear nuevo grupo
+- `POST /groups/:id/members` - Agregar miembro al grupo
+
+**Modelo**:
+
+```typescript
+Group {
+  _id: ObjectId;
+  name: string;
+  capacityMax: number;  // Default: 20
+  shift: 'Morning' | 'Afternoon';
+  active: boolean;
+}
+
+GroupMembership {
+  userId: ObjectId;
+  groupId: ObjectId;
+  assignedAt: Date;
+}
+```
+
+#### 7. Schedules Module (`/schedule`)
+
+**Responsabilidad**: Gestión de cronogramas de actividades
+
+**Endpoints**:
+
+- `GET /schedule` - Obtener cronograma actual
+- `POST /schedule` - Crear nuevo cronograma
+- `PUT /schedule/:id` - Actualizar cronograma
+
+**Modelo**:
+
+```typescript
+Schedule {
+  _id: ObjectId;
+  name: string;
+  startDate: Date;
+  endDate: Date;
+  activities: ObjectId[];
+  active: boolean;
+}
+```
+
+### Seguridad y Middleware
+
+**Guards**:
+
+- `JwtAuthGuard`: Protección global de rutas (excepto las marcadas con `@Public()`)
+- Validación automática de tokens JWT en cada request
+
+**Decorators Personalizados**:
+
+- `@Public()`: Excluye rutas del guard de autenticación
+
+**Validation Pipes**:
+
+- Validación automática de DTOs con `class-validator`
+- Transformación automática con `class-transformer`
+
+---
+
+## 🎨 Frontend - Documentación Técnica
+
+### Arquitectura del Frontend
+
+El frontend está construido con **React 19** y **TypeScript**, siguiendo una arquitectura modular con separación de responsabilidades.
+
+#### Estructura de Directorios
+
+```
+frontend/
+├── src/
+│   ├── App.tsx                    # Componente raíz y routing
+│   ├── main.tsx                   # Punto de entrada
+│   ├── assets/                    # Imágenes, iconos, etc.
+│   ├── components/               # Componentes reutilizables
+│   │   ├── Button.tsx
+│   │   ├── Card.tsx
+│   │   ├── LoadingSpinner.tsx
+│   │   ├── TextField.tsx
+│   │   ├── CompletedModal.tsx
+│   │   ├── QuestionModal.tsx
+│   │   └── SkeletonLoader.tsx
+│   ├── hooks/                    # Custom React hooks
+│   │   ├── useAsync.ts
+│   │   └── usePerformance.ts
+│   ├── pages/                    # Páginas de la aplicación
+│   │   ├── LoginPage.tsx
+│   │   ├── RegisterPage.tsx
+│   │   ├── HomePage.tsx
+│   │   ├── ProfilePage.tsx
+│   │   ├── ActivitiesPage.tsx
+│   │   ├── SubActivitiesPage.tsx
+│   │   ├── BadgesPage.tsx
+│   │   ├── SchedulePage.tsx
+│   │   └── AdminBadgesUpload.tsx
+│   ├── services/                 # Servicios de API
+│   │   └── api.ts
+│   ├── store/                    # Estado global (Zustand)
+│   │   ├── authStore.ts
+│   │   └── cacheStore.ts
+│   └── types/                    # TypeScript types/interfaces
+├── public/                       # Archivos estáticos
+│   ├── manifest.json            # PWA manifest
+│   └── icons/                   # PWA icons
+├── dev-dist/                    # Service Worker generado
+│   ├── sw.js
+│   └── workbox-*.js
+└── vite.config.ts               # Configuración de Vite + PWA
+```
+
+### Páginas Principales
+
+#### 1. LoginPage (`/login`)
+
+- Formulario de inicio de sesión
+- Validación de credenciales
+- Redirección a home después de login exitoso
+
+#### 2. RegisterPage (`/register`)
+
+- Formulario de registro de nuevos usuarios
+- Campos: employeeNum, email, password, firstName, lastName
+- Validación de datos antes de envío
+
+#### 3. HomePage (`/home`)
+
+- Dashboard principal del usuario
+- Resumen de progreso
+- Acceso rápido a actividades y badges
+- Información del grupo asignado
+
+#### 4. ProfilePage (`/profile`)
+
+- Visualización y edición de perfil de usuario
+- Datos personales
+- Hobbies y posición
+- Progreso general
+
+#### 5. ActivitiesPage (`/activities`)
+
+- Listado de todas las actividades disponibles
+- Estado de completado por actividad
+- Acceso a sub-actividades
+
+#### 6. SubActivitiesPage (`/activities/:id/sub`)
+
+- Detalle de sub-actividades de una actividad principal
+- Completar sub-actividades
+- Earned badges al completar
+
+#### 7. BadgesPage (`/badges`)
+
+- Galería de todas las insignias disponibles
+- Insignias ganadas vs. disponibles
+- Detalles de cada insignia
+
+#### 8. SchedulePage (`/schedule`)
+
+- Cronograma de actividades programadas
+- Fechas de inicio y fin
+- Estado de actividades en el schedule
+
+#### 9. AdminBadgesUpload (`/admin/badges`)
+
+- Página administrativa para subir/gestionar badges
+- Solo accesible para administradores
+
+### State Management con Zustand
+
+#### Auth Store (`authStore.ts`)
+
+```typescript
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  login: (credentials) => Promise<void>;
+  logout: () => void;
+  updateUser: (userData) => void;
+}
+```
+
+#### Cache Store (`cacheStore.ts`)
+
+```typescript
+interface CacheState {
+  activities: Activity[];
+  badges: Badge[];
+  updateCache: (key, data) => void;
+  clearCache: () => void;
+}
+```
+
+### Progressive Web App (PWA)
+
+**Características PWA**:
+
+- ✅ Instalable en dispositivos móviles y desktop
+- ✅ Service Worker con estrategia de caché
+- ✅ Soporte offline para assets estáticos
+- ✅ Manifest.json con íconos y metadata
+- ✅ Workbox para gestión avanzada de caché
+
+**Configuración de Caché**:
+
+- **Cache First**: Assets estáticos (CSS, JS, imágenes)
+- **Network First**: API calls (datos dinámicos)
+- **Stale While Revalidate**: Datos que pueden mostrarse en caché mientras se actualizan
+
+### Custom Hooks
+
+#### useAsync
+
+```typescript
+// Hook para manejo de estados asíncronos
+const { data, loading, error, execute } = useAsync(asyncFunction);
+```
+
+#### usePerformance
+
+```typescript
+// Hook para monitoreo de performance
+const { renderTime, interactionTime } = usePerformance();
+```
+
+### Routing
+
+**Lazy Loading**: Todas las páginas (excepto Login y Register) se cargan de forma lazy para optimizar el bundle inicial.
+
+```typescript
+const HomePage = lazy(() => import("./pages/HomePage"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+// ...etc
+```
+
+---
+
+## 💾 Modelo de Base de Datos
+
+### Diagrama Entidad-Relación
+
+```mermaid
+erDiagram
+    USERS ||--|| AUTH_CREDENTIALS : has
+    USERS ||--o{ GROUP_MEMBERSHIPS : belongs
+    GROUPS ||--o{ GROUP_MEMBERSHIPS : contains
+    USERS ||--o{ ACTIVITY_COMPLETIONS : completes
+    ACTIVITIES ||--o{ ACTIVITY_COMPLETIONS : "completed by"
+    ACTIVITIES ||--|| STICKERS : "awards"
+    USERS ||--o{ STICKER_AWARDS : earns
+    STICKERS ||--o{ STICKER_AWARDS : "earned by"
+    ACTIVITY_COMPLETIONS ||--o| STICKER_AWARDS : triggers
+    SCHEDULES ||--o{ ACTIVITIES : includes
+
+    USERS {
+        ObjectId _id PK
+        string employeeNum UK
+        string email UK
+        string firstName
+        string lastName
+        string[] hobbies
+        string position
+        boolean active
+        date createdAt
+        date updatedAt
+    }
+
+    AUTH_CREDENTIALS {
+        ObjectId _id PK
+        ObjectId userId FK
+        string passwordHash
+        string passwordAlgo
+        object passwordParams
+        int passwordVersion
+        int failedAttempts
+        date lockoutUntil
+        date lastLoginAt
+        boolean mfaEnabled
+        string mfaSecret
+    }
+
+    GROUPS {
+        ObjectId _id PK
+        string name UK
+        int capacityMax
+        string shift
+        boolean active
+    }
+
+    GROUP_MEMBERSHIPS {
+        ObjectId _id PK
+        ObjectId userId FK
+        ObjectId groupId FK
+        date assignedAt
+    }
+
+    ACTIVITIES {
+        ObjectId _id PK
+        string name UK
+        ObjectId stickerId FK
+        boolean active
+    }
+
+    STICKERS {
+        ObjectId _id PK
+        string name UK
+        string imageUrl
+        boolean active
+    }
+
+    ACTIVITY_COMPLETIONS {
+        ObjectId _id PK
+        ObjectId userId FK
+        ObjectId activityId FK
+        ObjectId groupId FK
+        ObjectId scheduleId FK
+        date completedAt
+    }
+
+    STICKER_AWARDS {
+        ObjectId _id PK
+        ObjectId userId FK
+        ObjectId stickerId FK
+        ObjectId activityCompletionId FK
+        date awardedAt
+    }
+
+    SCHEDULES {
+        ObjectId _id PK
+        string name
+        date startDate
+        date endDate
+        ObjectId[] activities
+        boolean active
+    }
+```
+
+### Colecciones de MongoDB
+
+#### 1. `users`
+
+**Propósito**: Almacenar información de usuarios/empleados
+
+**Índices**:
+
+- `{ employeeNum: 1 }` UNIQUE
+- `{ email: 1 }` UNIQUE
+- `{ active: 1 }`
+
+#### 2. `auth_credentials`
+
+**Propósito**: Credenciales de autenticación separadas para seguridad
+
+**Índices**:
+
+- `{ userId: 1 }` UNIQUE
+
+**Características de Seguridad**:
+
+- Password hash con Argon2id
+- Tracking de intentos fallidos
+- Sistema de lockout temporal
+- Soporte para MFA (futuro)
+
+#### 3. `groups`
+
+**Propósito**: Organización de usuarios en grupos de trabajo
+
+**Índices**:
+
+- `{ name: 1 }` UNIQUE
+- `{ active: 1, shift: 1 }`
+
+#### 4. `group_memberships`
+
+**Propósito**: Relación muchos a muchos entre usuarios y grupos
+
+**Índices**:
+
+- `{ userId: 1, groupId: 1 }` UNIQUE COMPOUND
+- `{ groupId: 1 }`
+
+#### 5. `activities`
+
+**Propósito**: Catálogo de actividades disponibles
+
+**Índices**:
+
+- `{ name: 1 }` UNIQUE
+- `{ stickerId: 1 }` UNIQUE (relación 1:1)
+- `{ active: 1 }`
+
+#### 6. `stickers` (Badges/Insignias)
+
+**Propósito**: Catálogo de insignias que se pueden ganar
+
+**Índices**:
+
+- `{ name: 1 }` UNIQUE
+- `{ active: 1 }`
+
+#### 7. `activity_completions`
+
+**Propósito**: Registro de actividades completadas por usuarios
+
+**Índices**:
+
+- `{ userId: 1, activityId: 1 }` UNIQUE COMPOUND
+- `{ userId: 1, completedAt: -1 }` (historial)
+- `{ activityId: 1 }` (analíticas)
+- `{ scheduleId: 1 }`
+
+#### 8. `sticker_awards`
+
+**Propósito**: Insignias ganadas por usuarios
+
+**Índices**:
+
+- `{ userId: 1, stickerId: 1 }` UNIQUE COMPOUND
+- `{ userId: 1, awardedAt: -1 }` (historial)
+- `{ activityCompletionId: 1 }`
+
+#### 9. `schedules`
+
+**Propósito**: Cronogramas de actividades programadas
+
+**Índices**:
+
+- `{ active: 1, startDate: 1 }`
+- `{ name: 1 }`
+
+---
+
+## 📊 Diagramas de Flujo
+
+### Flujo de Autenticación
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Frontend
+    participant Backend
+    participant MongoDB
+    participant JWT
+
+    Note over User,JWT: Registro de Usuario
+    User->>Frontend: Completa formulario registro
+    Frontend->>Backend: POST /auth/register
+    Backend->>Backend: Valida datos (DTO)
+    Backend->>Backend: Hash password (Argon2id)
+    Backend->>MongoDB: Crea User + AuthCredentials
+    MongoDB-->>Backend: Usuario creado
+    Backend->>JWT: Genera accessToken
+    Backend-->>Frontend: {user, token}
+    Frontend->>Frontend: Guarda token en memoria
+    Frontend-->>User: Redirige a /home
+
+    Note over User,JWT: Inicio de Sesión
+    User->>Frontend: Ingresa email + password
+    Frontend->>Backend: POST /auth/login
+    Backend->>MongoDB: Busca usuario por email
+    MongoDB-->>Backend: Usuario encontrado
+    Backend->>Backend: Verifica password (Argon2id)
+    Backend->>Backend: Valida intentos fallidos
+    Backend->>JWT: Genera accessToken
+    Backend->>MongoDB: Actualiza lastLoginAt
+    Backend-->>Frontend: {user, token}
+    Frontend->>Frontend: Guarda token en memoria
+    Frontend->>Frontend: Actualiza Zustand store
+    Frontend-->>User: Redirige a /home
+
+    Note over User,JWT: Request Autenticado
+    User->>Frontend: Navega a página protegida
+    Frontend->>Backend: GET /users/me (+ Authorization header)
+    Backend->>JWT: Valida token
+    alt Token válido
+        JWT-->>Backend: Token OK
+        Backend->>MongoDB: Query datos
+        MongoDB-->>Backend: Datos
+        Backend-->>Frontend: Respuesta
+        Frontend-->>User: Muestra datos
+    else Token inválido/expirado
+        JWT-->>Backend: Token inválido
+        Backend-->>Frontend: 401 Unauthorized
+        Frontend->>Frontend: Limpia auth store
+        Frontend-->>User: Redirige a /login
+    end
+```
+
+### Flujo de Actividades y Awards
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Frontend
+    participant Backend
+    participant MongoDB
+
+    Note over User,MongoDB: Usuario ve actividades disponibles
+    User->>Frontend: Navega a /activities
+    Frontend->>Backend: GET /activities
+    Backend->>MongoDB: Query activities WHERE active=true
+    MongoDB-->>Backend: Lista de activities
+    Backend-->>Frontend: Activities[]
+    Frontend-->>User: Muestra grid de actividades
+
+    Note over User,MongoDB: Usuario completa actividad
+    User->>Frontend: Click en "Completar Actividad"
+    Frontend->>Frontend: Muestra modal de confirmación
+    User->>Frontend: Confirma completado
+    Frontend->>Backend: POST /users/complete-sub-activity
+    Note right of Backend: {activityId, subActivityId}
+
+    Backend->>MongoDB: Busca Activity y Sticker
+    MongoDB-->>Backend: Activity + Sticker data
+
+    Backend->>MongoDB: Verifica si ya completó
+    alt Ya completada
+        MongoDB-->>Backend: Completion existente
+        Backend-->>Frontend: 409 Conflict
+        Frontend-->>User: "Ya completaste esta actividad"
+    else No completada
+        Backend->>MongoDB: Crea ActivityCompletion
+        Backend->>MongoDB: Crea StickerAward
+        Backend->>MongoDB: Actualiza progress de User
+        MongoDB-->>Backend: Registros creados
+        Backend-->>Frontend: {completion, award, progress}
+        Frontend->>Frontend: Actualiza cache local
+        Frontend->>Frontend: Muestra modal de felicitación
+        Frontend-->>User: "¡Badge ganado! 🎉"
+    end
+
+    Note over User,MongoDB: Usuario ve su colección
+    User->>Frontend: Navega a /badges
+    Frontend->>Backend: GET /awards/my-awards
+    Backend->>MongoDB: Query StickerAwards WHERE userId
+    Backend->>MongoDB: LEFT JOIN Stickers
+    MongoDB-->>Backend: Awards con Sticker data
+    Backend-->>Frontend: MyAwards[]
+    Frontend-->>User: Muestra badges ganados + bloqueados
+```
+
+### Flujo de Cronograma (Schedule)
+
+```mermaid
+sequenceDiagram
+    actor Admin
+    actor User
+    participant Frontend
+    participant Backend
+    participant MongoDB
+
+    Note over Admin,MongoDB: Admin crea Schedule
+    Admin->>Frontend: Accede a admin panel
+    Frontend->>Backend: POST /schedule
+    Note right of Backend: {name, startDate, endDate, activities[]}
+    Backend->>MongoDB: Crea Schedule document
+    Backend->>MongoDB: Actualiza activities con scheduleId
+    MongoDB-->>Backend: Schedule creado
+    Backend-->>Frontend: {schedule}
+    Frontend-->>Admin: "Cronograma creado"
+
+    Note over User,MongoDB: Usuario consulta Schedule
+    User->>Frontend: Navega a /schedule
+    Frontend->>Backend: GET /schedule (current)
+    Backend->>MongoDB: Query Schedule WHERE active=true
+    Backend->>MongoDB: Populate activities
+    MongoDB-->>Backend: Schedule completo
+    Backend-->>Frontend: {schedule, activities[]}
+    Frontend-->>User: Muestra timeline con fechas
+
+    Note over User,MongoDB: Usuario ve progreso en Schedule
+    Frontend->>Backend: GET /users/me/progress
+    Backend->>MongoDB: Query ActivityCompletions del user
+    Backend->>Backend: Calcula % completado por fecha
+    MongoDB-->>Backend: Progress data
+    Backend-->>Frontend: {completed, total, percentage}
+    Frontend-->>User: Muestra barra de progreso
+```
+
+### Flujo PWA y Caché
+
+```mermaid
+flowchart TB
+    A[Usuario accede a la app] --> B{Conexión?}
+    B -->|Online| C[Service Worker intercepta request]
+    B -->|Offline| D[Service Worker busca en caché]
+
+    C --> E{Tipo de recurso?}
+    E -->|Assets estáticos| F[Cache First Strategy]
+    E -->|API calls| G[Network First Strategy]
+
+    F --> H{En caché?}
+    H -->|Sí| I[Sirve desde caché]
+    H -->|No| J[Fetch de red + guarda en caché]
+
+    G --> K[Intenta fetch de red]
+    K --> L{Respuesta exitosa?}
+    L -->|Sí| M[Actualiza caché + sirve]
+    L -->|No| N[Sirve desde caché si existe]
+
+    D --> O{Asset en caché?}
+    O -->|Sí| P[Sirve desde caché offline]
+    O -->|No| Q[Muestra página offline]
+
+    I --> R[Usuario ve contenido]
+    J --> R
+    M --> R
+    N --> R
+    P --> R
+    Q --> S[Usuario ve mensaje offline]
+```
+
+---
+
+## ⚙️ Setup y Configuración
+
+### Requisitos Previos
+
+- **Node.js**: 18+
+- **npm**: 9+
+- **MongoDB**: Atlas account o local instance
+- **Git**
+
+### Configuración del Backend
+
+1. **Clonar el repositorio**:
+
+```bash
+git clone https://github.com/bgonzalesbn/DCTIPass.git
+cd DCTIPass/backend
+```
+
+2. **Instalar dependencias**:
+
+```bash
+npm install
+```
+
+3. **Configurar variables de entorno**:
+   Crear archivo `.env` en la raíz del backend:
+
+```env
+# MongoDB
+MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/dctipass?retryWrites=true&w=majority
+
+# JWT
+JWT_SECRET=your-super-secret-jwt-key-change-in-production
+JWT_EXPIRES_IN=1h
+
+# Server
+PORT=3000
+NODE_ENV=development
+
+# CORS
+FRONTEND_URL=http://localhost:5173
+```
+
+4. **Iniciar servidor de desarrollo**:
+
+```bash
+npm run start:dev
+```
+
+Backend disponible en: `http://localhost:3000`
+
+### Configuración del Frontend
+
+1. **Navegar al directorio frontend**:
+
+```bash
+cd ../frontend
+```
+
+2. **Instalar dependencias**:
+
+```bash
+npm install
+```
+
+3. **Configurar variables de entorno**:
+   Crear archivo `.env` en la raíz del frontend:
+
+```env
+VITE_API_URL=http://localhost:3000
+VITE_APP_NAME=DCTIPass
+```
+
+4. **Iniciar servidor de desarrollo**:
+
+```bash
+npm run dev
+```
+
+Frontend disponible en: `http://localhost:5173`
+
+### Scripts Útiles
+
+#### Backend Scripts
+
+```bash
+# Desarrollo con hot-reload
+npm run start:dev
+
+# Build para producción
+npm run build
+
+# Producción
+npm run start:prod
+
+# Testing
+npm run test
+npm run test:watch
+npm run test:cov
+
+# Linting
+npm run lint
+
+# Formatear código
+npm run format
+```
+
+#### Frontend Scripts
+
+```bash
+# Desarrollo
+npm run dev
+
+# Build para producción
+npm run build
+
+# Preview build de producción
+npm run preview
+
+# Linting
+npm run lint
+```
+
+#### Utilidades de Base de Datos (Backend)
+
+```bash
+# Crear índices en MongoDB
+node create-indexes.mjs
+
+# Seed de badges
+node seed-badges.js
+
+# Verificar estado de BD
+node verify-db.mjs
+
+# Inspeccionar schedules
+node inspect-schedules.mjs
+
+# Limpiar colecciones (desarrollo)
+node cleanup-db.mjs
+```
+
+### Configuración de MongoDB
+
+#### Índices Requeridos
+
+Ejecutar el script de creación de índices:
+
+```bash
+cd backend
+node create-indexes.mjs
+```
+
+Esto creará todos los índices necesarios listados en la sección de [Modelo de Base de Datos](#-modelo-de-base-de-datos).
+
+#### Seed de Datos Iniciales
+
+1. **Crear badges/stickers**:
+
+```bash
+node seed-badges.js
+```
+
+2. **Crear usuarios de prueba**:
+
+```bash
+node create-test-users.mjs
+```
+
+3. **Verificar datos**:
+
+```bash
+node verify-db.mjs
+```
+
+---
+
+## 🚀 Deployment
+
+### Backend - Render
+
+1. **Crear nuevo Web Service en Render**
+2. **Conectar repositorio de GitHub**
+3. **Configurar Build**:
+   - **Build Command**: `npm install && npm run build`
+   - **Start Command**: `npm run start:prod`
+   - **Environment**: Node
+
+4. **Variables de entorno**:
+
+   ```
+   MONGODB_URI=<MongoDB Atlas URI>
+   JWT_SECRET=<Production JWT Secret>
+   JWT_EXPIRES_IN=1h
+   NODE_ENV=production
+   FRONTEND_URL=<Vercel Frontend URL>
+   ```
+
+5. **Deploy automático**: Push a `main` branch
+
+### Frontend - Vercel
+
+1. **Importar proyecto desde GitHub**
+2. **Configurar Framework**: Vite
+3. **Build Settings**:
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+   - **Install Command**: `npm install`
+
+4. **Variables de entorno**:
+
+   ```
+   VITE_API_URL=<Render Backend URL>
+   VITE_APP_NAME=DCTIPass
+   ```
+
+5. **PWA Configuration**:
+   - Vercel automáticamente sirve el Service Worker
+   - HTTPS automático (requerido para PWA)
+
+6. **Deploy automático**: Push a `main` branch
+
+### MongoDB Atlas
+
+1. **Crear cluster**:
+   - Tier: M0 (Free) para desarrollo
+   - M10+ para producción
+   - Región: Closest to backend
+
+2. **Configurar acceso**:
+   - Database Access: Crear usuario con permisos readWrite
+   - Network Access: Añadir IP de Render o permitir 0.0.0.0/0
+
+3. **Connection String**:
+   ```
+   mongodb+srv://<user>:<password>@cluster.mongodb.net/<dbname>?retryWrites=true&w=majority
+   ```
+
+### Verificación Post-Deploy
+
+#### Health Checks
+
+```bash
+# Backend health
+curl https://your-backend.onrender.com/health
+
+# Frontend
+curl https://your-frontend.vercel.app
+
+# Test login
+curl -X POST https://your-backend.onrender.com/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"test123"}'
+```
+
+#### PWA Lighthouse Audit
+
+1. Abrir DevTools en producción
+2. Lighthouse tab
+3. Run audit (PWA + Performance)
+4. Objetivo: Score ≥ 90
+
+---
+
+## 📝 Documentos Adicionales
+
+- [Modelo de Datos MongoDB](./docs/02_MODELO_DATOS_MONGODB.md)
+- [Guía de Autenticación y Endpoints](./docs/03_FASE3_AUTENTICACION_ENDPOINTS.md)
+- [Roadmap del Proyecto](./docs/ROADMAP.md)
+- [Guía de Performance](./PERFORMANCE_DIAGNOSTICS.md)
+- [Guía de Optimización PWA](./PWA_OPTIMIZATION_GUIDE.md)
+- [Guía de Testing de Carga](./LOAD_TEST_GUIDE.md)
+
+---
+
+## 🤝 Contribución
+
+1. Fork el proyecto
+2. Crear feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a branch (`git push origin feature/AmazingFeature`)
+5. Abrir Pull Request
+
+---
+
+## 📄 Licencia
+
+Este proyecto es privado y pertenece a la organización. Todos los derechos reservados.
+
+---
+
+## 👥 Equipo
+
+Desarrollado por el equipo de DCTI - Banco Nacional de Costa Rica
+
+---
+
+## 📞 Soporte
+
+Para soporte y preguntas, contactar al equipo de desarrollo en: [soporte@bn.cr](mailto:soporte@bn.cr)
+
+---
+
+**Última actualización**: Febrero 2026
 
 **Lighthouse PWA**: Objetivo ≥ 90 (LCP p75 < 2.5s)
 
