@@ -363,6 +363,15 @@ export default function AdminActivitiesTab() {
     for (const g of sch.groupIds) {
       if (!mx[g._id]) mx[g._id] = slots.map(() => "");
     }
+    // Clean column duplicates (data saved before validation existed)
+    for (let si = 0; si < slots.length; si++) {
+      const seen = new Set<string>();
+      for (const gId of Object.keys(mx)) {
+        const v = mx[gId][si];
+        if (v && seen.has(v)) mx[gId][si] = "";
+        if (v) seen.add(v);
+      }
+    }
     return mx;
   };
 
@@ -394,15 +403,18 @@ export default function AdminActivitiesTab() {
 
   const updateSessionCell = (groupId: string, idx: number, val: string) => {
     setSessionMatrix((prev) => {
-      // Validate: if val is already used by another group in same slot, skip
+      const next = { ...prev };
+      // If selecting a sub that another group already has in this slot, clear it from that group
       if (val) {
-        const used = getUsedInSlot(prev, idx, groupId);
-        if (used.has(val)) return prev;
+        for (const gId of Object.keys(next)) {
+          if (gId !== groupId && next[gId][idx] === val) {
+            next[gId] = [...next[gId]];
+            next[gId][idx] = "";
+          }
+        }
       }
-      return {
-        ...prev,
-        [groupId]: prev[groupId].map((v, i) => (i === idx ? val : v)),
-      };
+      next[groupId] = prev[groupId].map((v, i) => (i === idx ? val : v));
+      return next;
     });
   };
 
@@ -1205,12 +1217,9 @@ export default function AdminActivitiesTab() {
                                                         <option
                                                           key={sub._id}
                                                           value={sub._id}
-                                                          disabled={taken}
                                                         >
                                                           {sub.name}
-                                                          {taken
-                                                            ? " (ocupada)"
-                                                            : ""}
+                                                          {taken ? " ⚠" : ""}
                                                         </option>
                                                       );
                                                     })}
