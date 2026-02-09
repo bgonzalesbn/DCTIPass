@@ -60,11 +60,15 @@ export default function SchedulePage() {
         ? scheduleResponse.data
         : scheduleResponse.data.data || [];
 
-      // Obtener todas las actividades
+      // Obtener todas las actividades (con paginación)
       const activitiesResponse = await activitiesAPI.getActivities();
-      const activitiesData = Array.isArray(activitiesResponse.data)
-        ? activitiesResponse.data
-        : activitiesResponse.data.data || [];
+      const activitiesData = activitiesResponse.data?.data
+        ? Array.isArray(activitiesResponse.data.data)
+          ? activitiesResponse.data.data
+          : []
+        : Array.isArray(activitiesResponse.data)
+          ? activitiesResponse.data
+          : [];
 
       const activitiesMap = new Map();
       activitiesData.forEach((activity: Activity) => {
