@@ -141,7 +141,11 @@ export class AuthService {
       await this.authCredentialService.recordSuccessfulLogin(userId, ip);
       timings.loginRecord = Date.now();
 
-      const result = this.generateSessionToken(user._id.toString(), user.email);
+      const result = this.generateSessionToken(
+        user._id.toString(),
+        user.email,
+        user.isAdmin || false,
+      );
 
       // 📊 Log performance metrics
       const totalTime = Date.now() - startTime;
@@ -170,7 +174,11 @@ export class AuthService {
   /**
    * Generate JWT token
    */
-  private generateSessionToken(userId: string, email: string): AuthResponseDto {
+  private generateSessionToken(
+    userId: string,
+    email: string,
+    isAdmin = false,
+  ): AuthResponseDto {
     const payload = { sub: userId, email };
     const accessToken = this.jwtService.sign(payload);
 
@@ -179,6 +187,7 @@ export class AuthService {
       expiresIn: "24h",
       userId,
       email,
+      isAdmin,
     };
   }
 }

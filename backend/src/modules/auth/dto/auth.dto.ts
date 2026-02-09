@@ -59,6 +59,7 @@ export class AuthResponseDto {
   expiresIn: string;
   userId?: string;
   email?: string;
+  isAdmin?: boolean;
 }
 
 export class UserProfileDto {

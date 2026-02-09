@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { authAPI } from "../services/api";
+import { authAPI, usersAPI } from "../services/api";
 
 interface User {
   id: string;
@@ -40,19 +40,19 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const response = await authAPI.login(employeeNumber, password);
-      const { accessToken, userId, email: userEmail } = response.data;
+      const { accessToken, userId, email: userEmail, isAdmin } = response.data;
 
-      // Crear objeto usuario básico con la información disponible
+      // Crear objeto usuario básico con la información del login
       const user: User = {
         id: userId,
-        employeeNumber: "", // Se cargaría desde otro endpoint
+        employeeNumber: employeeNumber,
         firstName: "",
         lastName: "",
         email: userEmail,
         position: "",
         points: 0,
         level: 1,
-        isAdmin: false,
+        isAdmin: isAdmin || false,
       };
 
       localStorage.setItem("token", accessToken);
@@ -65,6 +65,27 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         loading: false,
         error: null,
       });
+
+      // Cargar perfil completo en segundo plano
+      try {
+        const profileRes = await usersAPI.getMe();
+        const profile = profileRes.data;
+        set({
+          user: {
+            id: profile.id || userId,
+            employeeNumber: profile.employeeNumber || employeeNumber,
+            firstName: profile.firstName || "",
+            lastName: profile.lastName || "",
+            email: profile.email || userEmail,
+            position: profile.position || "",
+            points: profile.progress?.activitiesCompleted || 0,
+            level: 1,
+            isAdmin: profile.isAdmin || false,
+          },
+        });
+      } catch {
+        // Si falla el perfil, mantener datos del login
+      }
     } catch (error) {
       const err = error as { response?: { data?: { message?: string } } };
       const errorMessage = err.response?.data?.message || "Error en el login";

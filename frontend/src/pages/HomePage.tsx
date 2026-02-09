@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { usersAPI } from "../services/api";
+import { useAuthStore } from "../store/authStore";
 
 interface User {
   id: string;
@@ -17,6 +18,7 @@ interface User {
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
+  const { setUser: setStoreUser } = useAuthStore();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -32,17 +34,20 @@ export default function HomePage() {
       .getMe()
       .then((response) => {
         const userDat = response.data;
-        setUser({
-          id: userDat._id || userId,
+        const userData: User = {
+          id: userDat.id || userDat._id || userId,
           employeeNumber: userDat.employeeNumber || "",
           firstName: userDat.firstName || "",
           lastName: userDat.lastName || "",
           email: userDat.email || "",
           position: userDat.position || "",
-          points: userDat.points || 0,
+          points: userDat.progress?.activitiesCompleted || userDat.points || 0,
           level: userDat.level || 1,
-          isAdmin: userDat.isAdmin || false,
-        });
+          isAdmin: userDat.isAdmin === true,
+        };
+        setUser(userData);
+        // Sincronizar con el store global
+        setStoreUser(userData);
       })
       .catch((error) => {
         console.error("Error loading user data:", error);
