@@ -352,8 +352,9 @@ export default function AdminActivitiesTab() {
     const mx: Record<string, string[]> = {};
     if (sch.groupSessions?.length) {
       for (const gs of sch.groupSessions) {
-        const gId =
-          typeof gs.groupId === "string" ? gs.groupId : gs.groupId._id;
+        const gId = String(
+          typeof gs.groupId === "string" ? gs.groupId : gs.groupId._id,
+        );
         mx[gId] = slots.map((sl) => {
           const found = gs.sessions.find((s) => s.startTime === sl.startTime);
           return found ? found.subActivityId : "";
@@ -361,7 +362,8 @@ export default function AdminActivitiesTab() {
       }
     }
     for (const g of sch.groupIds) {
-      if (!mx[g._id]) mx[g._id] = slots.map(() => "");
+      const gId = String(g._id);
+      if (!mx[gId]) mx[gId] = slots.map(() => "");
     }
     // Clean column duplicates (data saved before validation existed)
     for (let si = 0; si < slots.length; si++) {
@@ -457,7 +459,7 @@ export default function AdminActivitiesTab() {
     const slots = generateSlots(sch.startTime, sch.endTime, sessionDuration);
     const mx: Record<string, string[]> = {};
     sch.groupIds.forEach((g, gi) => {
-      mx[g._id] = slots.map((_, si) => {
+      mx[String(g._id)] = slots.map((_, si) => {
         // Circular rotation ensuring no two groups share the same sub in a slot
         const subIdx = (si + gi) % subs.length;
         return subs[subIdx]?._id || "";
@@ -1270,19 +1272,18 @@ export default function AdminActivitiesTab() {
                                                           getUsedInSlot(
                                                             sessionMatrix,
                                                             slotIdx,
-                                                            group._id,
+                                                            gId,
                                                           );
                                                         const rowUsed =
                                                           getUsedInRow(
                                                             sessionMatrix,
-                                                            group._id,
+                                                            gId,
                                                             slotIdx,
                                                           );
                                                         const isCurrentVal =
-                                                          sessionMatrix[
-                                                            group._id
-                                                          ]?.[slotIdx] ===
-                                                          sub._id;
+                                                          sessionMatrix[gId]?.[
+                                                            slotIdx
+                                                          ] === sub._id;
                                                         const takenCol =
                                                           !isCurrentVal &&
                                                           colUsed.has(sub._id);
