@@ -354,10 +354,10 @@ export default function AdminSchedulesTab() {
                   <td className="px-4 py-3 text-sm">
                     {s.activityId?.name || "-"}
                   </td>
-                  <td className="px-4 py-3 text-sm">
+                  <td className="px-4 py-3 text-sm text-center">
                     {s.groupIds && s.groupIds.length > 0
-                      ? s.groupIds.map((g) => g.name).join(", ")
-                      : "General"}
+                      ? s.groupIds.length
+                      : 0}
                   </td>
                   <td className="px-4 py-3 text-sm">
                     {formatDateDDMMYYYY(s.date)}
