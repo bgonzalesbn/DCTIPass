@@ -27,6 +27,7 @@ import {
   AdminCreateAwardDto,
   AdminUpdateAwardDto,
   AdminUpdateUserDto,
+  AdminBulkCreateSchedulesDto,
 } from "./dto/admin.dto";
 
 @Controller("admin")
@@ -81,6 +82,21 @@ export class AdminController {
   @Delete("schedules/:id")
   async deleteSchedule(@Param("id") id: string) {
     return this.adminService.deleteSchedule(id);
+  }
+
+  // ==================== ACTIVITY SCHEDULES ====================
+
+  @Get("activities/:activityId/schedules")
+  async getSchedulesByActivity(@Param("activityId") activityId: string) {
+    return this.adminService.getSchedulesByActivity(activityId);
+  }
+
+  @Post("activities/:activityId/schedules/bulk")
+  async bulkCreateSchedules(
+    @Param("activityId") activityId: string,
+    @Body() data: AdminBulkCreateSchedulesDto,
+  ) {
+    return this.adminService.bulkCreateSchedules(activityId, data);
   }
 
   // ==================== ACTIVITIES ====================

@@ -110,6 +110,38 @@ export class UpdateScheduleDto {
   subActivitySchedules?: SubActivityScheduleDto[];
 }
 
+// ==================== BULK SCHEDULES ====================
+export class TimeSlotDto {
+  @IsString()
+  @IsNotEmpty()
+  startTime: string; // HH:mm
+
+  @IsString()
+  @IsNotEmpty()
+  endTime: string; // HH:mm
+}
+
+export class AdminBulkCreateSchedulesDto {
+  @IsString()
+  @IsNotEmpty()
+  title: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsNotEmpty({ each: true })
+  dates: string[]; // array of date strings YYYY-MM-DD
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => TimeSlotDto)
+  timeSlots: TimeSlotDto[];
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  groupIds?: string[];
+}
+
 // ==================== ACTIVITIES ====================
 export class AdminCreateActivityDto {
   @IsString()

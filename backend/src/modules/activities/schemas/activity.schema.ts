@@ -41,7 +41,7 @@ export class Activity {
   @Prop({ type: String, default: "" })
   description: string;
 
-  @Prop({ type: String, default: "from-indigo-600 to-purple-600" })
+  @Prop({ type: String, default: "from-blue-500 to-blue-600" })
   color: string;
 
   @Prop({ type: Types.ObjectId, ref: "Sticker", default: null })

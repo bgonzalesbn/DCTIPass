@@ -29,6 +29,7 @@ import {
   AdminCreateSubActivityDto,
   CreateScheduleDto,
   UpdateScheduleDto,
+  AdminBulkCreateSchedulesDto,
   AdminCreateChallengeDto,
   AdminUpdateChallengeDto,
   AdminCreateStickerDto,
@@ -246,6 +247,69 @@ export class AdminService {
       throw new NotFoundException("Schedule not found");
     }
     return { message: "Schedule deleted successfully" };
+  }
+
+  async getSchedulesByActivity(activityId: string) {
+    return this.scheduleModel
+      .find({ activityId: new Types.ObjectId(activityId), deletedAt: null })
+      .populate("groupIds", "_id name shift")
+      .sort({ date: 1, startTime: 1 })
+      .lean();
+  }
+
+  async bulkCreateSchedules(
+    activityId: string,
+    data: AdminBulkCreateSchedulesDto,
+  ) {
+    const actObjId = new Types.ObjectId(activityId);
+    const groupObjIds = (data.groupIds || []).map(
+      (id) => new Types.ObjectId(id),
+    );
+    const created: any[] = [];
+
+    for (const dateStr of data.dates) {
+      const dateOnly = dateStr.substring(0, 10);
+      const dateObj = new Date(dateOnly + "T00:00:00.000Z");
+      const nextDay = new Date(dateOnly + "T23:59:59.999Z");
+
+      for (const slot of data.timeSlots) {
+        // Validar solapamiento
+        const overlapping = await this.scheduleModel.findOne({
+          activityId: actObjId,
+          date: { $gte: dateObj, $lt: nextDay },
+          deletedAt: null,
+          startTime: { $lt: slot.endTime },
+          endTime: { $gt: slot.startTime },
+        });
+
+        if (overlapping) {
+          throw new BadRequestException(
+            `Solapamiento de horario en fecha ${dateOnly}: ${overlapping.startTime} - ${overlapping.endTime} se cruza con ${slot.startTime} - ${slot.endTime}`,
+          );
+        }
+
+        const schedule = new this.scheduleModel({
+          title: data.title,
+          activityId: actObjId,
+          date: new Date(dateOnly + "T12:00:00.000Z"),
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          groupIds: groupObjIds,
+          active: true,
+        });
+        const saved = await schedule.save();
+        created.push(saved);
+      }
+    }
+
+    // Retornar los horarios creados con populate
+    const ids = created.map((s) => s._id);
+    return this.scheduleModel
+      .find({ _id: { $in: ids } })
+      .populate("activityId", "_id name description color")
+      .populate("groupIds", "_id name shift")
+      .sort({ date: 1, startTime: 1 })
+      .lean();
   }
 
   // ==================== ACTIVITIES ====================
