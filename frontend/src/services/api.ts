@@ -216,6 +216,7 @@ export const adminAPI = {
 
   // Users
   getUsers: () => apiClient.get("/admin/users"),
+  getAvailableUsers: () => apiClient.get("/admin/users/available"),
   updateUser: (id: string, data: Record<string, unknown>) =>
     apiClient.patch(`/admin/users/${id}`, data),
 

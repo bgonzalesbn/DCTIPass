@@ -43,6 +43,11 @@ export class AdminController {
 
   // ==================== USERS ====================
 
+  @Get("users/available")
+  async getAvailableUsers() {
+    return this.adminService.getAvailableUsers();
+  }
+
   @Get("users")
   async getAllUsers() {
     return this.adminService.getAllUsers();

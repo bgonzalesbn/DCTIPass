@@ -111,10 +111,15 @@ export interface AdminSticker {
 export interface AdminGroup {
   _id: string;
   name: string;
-  description?: string;
   capacityMax: number;
   shift: string;
-  scheduleId?: any;
+  scheduleId?: {
+    _id: string;
+    title: string;
+    date?: string;
+    startTime?: string;
+    endTime?: string;
+  };
   active: boolean;
   memberCount: number;
 }

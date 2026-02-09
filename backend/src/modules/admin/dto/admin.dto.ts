@@ -312,10 +312,6 @@ export class AdminCreateGroupDto {
   @IsNotEmpty()
   name: string;
 
-  @IsString()
-  @IsOptional()
-  description?: string;
-
   @IsNumber()
   @IsOptional()
   capacityMax?: number;
@@ -332,10 +328,6 @@ export class AdminUpdateGroupDto {
   @IsString()
   @IsOptional()
   name?: string;
-
-  @IsString()
-  @IsOptional()
-  description?: string;
 
   @IsNumber()
   @IsOptional()

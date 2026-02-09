@@ -66,6 +66,21 @@ export class AdminService {
 
   // ==================== USERS ====================
 
+  async getAvailableUsers() {
+    // Obtener IDs de usuarios que ya tienen membership activa
+    const activeMemberships = await this.membershipModel
+      .find({ deletedAt: null })
+      .select("userId")
+      .lean();
+    const assignedUserIds = activeMemberships.map((m) => m.userId);
+
+    return this.userModel
+      .find({ _id: { $nin: assignedUserIds }, deletedAt: null, active: true })
+      .select("employeeNumber firstName lastName email")
+      .sort({ firstName: 1, lastName: 1 })
+      .lean();
+  }
+
   async getAllUsers() {
     return this.userModel
       .find({ deletedAt: null })
@@ -459,7 +474,7 @@ export class AdminService {
   async getAllGroups() {
     const groups = await this.groupModel
       .find({ deletedAt: null })
-      .populate("scheduleId")
+      .populate("scheduleId", "_id title date startTime endTime")
       .sort({ name: 1 })
       .lean();
 
