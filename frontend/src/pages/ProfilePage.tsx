@@ -81,7 +81,7 @@ export default function ProfilePage() {
         .then((response) => {
           // response.data contiene la data del servidor
           const data = response.data;
-          console.log("Profile data received:", data);
+          // Profile data received
 
           const userData: User = {
             id: userId,
@@ -96,7 +96,7 @@ export default function ProfilePage() {
             points: data.progress?.stickerCount || 0,
             level: 1,
           };
-          console.log("Setting user state:", userData);
+          // User state set
           setUser(userData);
           setEmail(data.email || userEmail || "");
           setHobbies(data.hobbies || []);

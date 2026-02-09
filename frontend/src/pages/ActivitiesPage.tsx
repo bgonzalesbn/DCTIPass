@@ -133,7 +133,7 @@ export default function ActivitiesPage() {
         const completedResponse = await usersAPI.getCompletedSubActivities();
         setCompletedSubActivityIds(completedResponse.data || []);
       } catch (err) {
-        console.log("No completed subactivities found");
+        // Silenciar - sin data
       }
 
       if (userData.group && userData.schedule) {

@@ -184,15 +184,11 @@ export default function SubActivitiesPage() {
     (subActivity: SubActivity, schedule: Schedule | null): boolean => {
       // Primero verificar si estamos en el día correcto
       if (!isScheduleDay(schedule)) {
-        console.log(`No es el día del schedule para ${subActivity.name}`);
         return false;
       }
 
       // Si la subactividad no tiene horario específico, está disponible todo el día del schedule
       if (!subActivity.startTime || !subActivity.endTime) {
-        console.log(
-          `${subActivity.name} no tiene horario específico, disponible todo el día`,
-        );
         return true;
       }
 
@@ -202,10 +198,6 @@ export default function SubActivitiesPage() {
       // Para la subactividad, solo verificamos que ya haya comenzado su horario
       // (no bloqueamos si ya pasó la hora de fin, para permitir completarla tarde)
       const hasStarted = currentTime >= subActivity.startTime;
-      console.log(
-        `${subActivity.name}: hora actual ${currentTime}, inicio ${subActivity.startTime}, ya inició: ${hasStarted}`,
-      );
-
       return hasStarted;
     },
     [isScheduleDay],
@@ -223,10 +215,6 @@ export default function SubActivitiesPage() {
       schedule: Schedule | null,
     ): SubActivityWithStatus[] => {
       let foundFirstUnlocked = false;
-
-      // Verificar si es el día del schedule
-      const isTodayScheduleDay = isScheduleDay(schedule);
-      console.log(`¿Es hoy el día del schedule? ${isTodayScheduleDay}`);
 
       return subActivitiesData.map((sub, index) => {
         const isCompleted =
@@ -429,23 +417,10 @@ export default function SubActivitiesPage() {
       // Si fue correcta, actualizar el estado local usando answeringSubActivity
       if (response.data.isCorrect && answeringSubActivity) {
         const completedId = answeringSubActivity._id;
-        console.log(
-          `[handleSubmitAnswer] Respuesta correcta para subactividad: ${completedId}`,
-        );
-        console.log(
-          `[handleSubmitAnswer] answeringSubActivity:`,
-          answeringSubActivity,
-        );
-        console.log(`[handleSubmitAnswer] userSchedule:`, userSchedule);
 
         // Actualizar completedSubActivityIds
         setCompletedSubActivityIds((prev) => {
-          const newIds = [...prev, completedId];
-          console.log(
-            `[handleSubmitAnswer] completedSubActivityIds actualizado:`,
-            newIds,
-          );
-          return newIds;
+          return [...prev, completedId];
         });
 
         // Actualizar awardsStatus
@@ -454,19 +429,11 @@ export default function SubActivitiesPage() {
           [completedId]: { hasAward: true, completed: true },
         };
         setAwardsStatus(newAwardsStatus);
-        console.log(
-          `[handleSubmitAnswer] awardsStatus actualizado:`,
-          newAwardsStatus,
-        );
 
         // Actualizar directamente las subactividades para reflejar el cambio inmediatamente
         setSubActivities((prevSubActivities) => {
           let foundFirstUnlocked = false;
           const updatedCompletedIds = [...completedSubActivityIds, completedId];
-          console.log(
-            `[setSubActivities] updatedCompletedIds:`,
-            updatedCompletedIds,
-          );
 
           const result = prevSubActivities.map((sub, index) => {
             const isCompleted =

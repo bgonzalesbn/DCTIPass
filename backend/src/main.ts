@@ -86,10 +86,7 @@ async function bootstrap() {
   );
 
   await app.listen(port);
-  console.log(`✅ Application is running on: http://localhost:${port}`);
-  console.log(
-    `🔒 Rate limiting enabled for /auth/login (5 attempts per 15 min)`,
-  );
+  // Application running on specified port with rate limiting enabled
 }
 
 bootstrap();

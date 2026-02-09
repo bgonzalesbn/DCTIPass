@@ -46,7 +46,7 @@ export default function BadgesPage() {
     stickersAPI
       .getUserBadges()
       .then((response) => {
-        console.log("User badges response:", response.data);
+        // Badge data loaded
         const data = response.data;
         setBadges(data.badges || []);
         setEarnedCount(data.earned || 0);
