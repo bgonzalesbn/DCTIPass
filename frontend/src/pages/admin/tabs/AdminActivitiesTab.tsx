@@ -423,10 +423,15 @@ export default function AdminActivitiesTab() {
       if (val) {
         // Block if same sub already used in this group's row (different slot)
         const rowUsed = getUsedInRow(prev, groupId, idx);
-        if (rowUsed.has(val)) return prev;
+        if (rowUsed.has(val)) {
+          // Return new ref to force React re-render and reset <select>
+          return { ...prev };
+        }
         // Block if same sub already used in this column by another group
         const colUsed = getUsedInSlot(prev, idx, groupId);
-        if (colUsed.has(val)) return prev;
+        if (colUsed.has(val)) {
+          return { ...prev };
+        }
       }
       return {
         ...prev,
