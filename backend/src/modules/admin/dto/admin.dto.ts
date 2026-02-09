@@ -317,7 +317,8 @@ export class AdminCreateGroupDto {
   capacityMax?: number;
 
   @IsEnum(["Morning", "Afternoon"])
-  shift: string;
+  @IsOptional()
+  shift?: string;
 
   @IsString()
   @IsOptional()

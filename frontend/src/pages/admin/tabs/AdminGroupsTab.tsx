@@ -38,7 +38,6 @@ export default function AdminGroupsTab() {
   const [form, setForm] = useState({
     name: "",
     capacityMax: 25,
-    shift: "Morning",
     scheduleId: "",
   });
 
@@ -101,7 +100,7 @@ export default function AdminGroupsTab() {
   };
 
   const resetForm = () => {
-    setForm({ name: "", capacityMax: 25, shift: "Morning", scheduleId: "" });
+    setForm({ name: "", capacityMax: 25, scheduleId: "" });
     setEditingId(null);
     setShowForm(false);
   };
@@ -110,7 +109,6 @@ export default function AdminGroupsTab() {
     setForm({
       name: g.name,
       capacityMax: g.capacityMax,
-      shift: g.shift,
       scheduleId: g.scheduleId?._id || "",
     });
     setEditingId(g._id);
@@ -123,7 +121,6 @@ export default function AdminGroupsTab() {
       const data: Record<string, unknown> = {
         name: form.name,
         capacityMax: form.capacityMax,
-        shift: form.shift,
       };
       if (form.scheduleId) data.scheduleId = form.scheduleId;
 
@@ -265,19 +262,6 @@ export default function AdminGroupsTab() {
                 required
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Turno
-              </label>
-              <select
-                value={form.shift}
-                onChange={(e) => setForm({ ...form, shift: e.target.value })}
-                className="w-full border rounded-lg px-3 py-2 text-sm"
-              >
-                <option value="Morning">Mañana</option>
-                <option value="Afternoon">Tarde</option>
-              </select>
-            </div>
             <div className="sm:col-span-2 flex gap-2 justify-end">
               <button
                 type="button"
@@ -314,7 +298,6 @@ export default function AdminGroupsTab() {
                   <div className="min-w-0">
                     <h3 className="font-semibold text-gray-900">{g.name}</h3>
                     <p className="text-xs text-gray-500">
-                      {g.shift === "Morning" ? "🌅 Mañana" : "🌆 Tarde"} ·{" "}
                       {g.memberCount}/{g.capacityMax} miembros
                       {g.scheduleId && ` · 📅 ${g.scheduleId.title}`}
                     </p>
