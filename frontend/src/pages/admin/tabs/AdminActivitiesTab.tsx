@@ -1222,13 +1222,40 @@ export default function AdminActivitiesTab() {
                                                         group._id
                                                       ]?.[slotIdx] || ""
                                                     }
-                                                    onChange={(e) =>
+                                                    onChange={(e) => {
+                                                      const newVal =
+                                                        e.target.value;
+                                                      if (newVal) {
+                                                        const colUsed =
+                                                          getUsedInSlot(
+                                                            sessionMatrix,
+                                                            slotIdx,
+                                                            group._id,
+                                                          );
+                                                        const rowUsed =
+                                                          getUsedInRow(
+                                                            sessionMatrix,
+                                                            group._id,
+                                                            slotIdx,
+                                                          );
+                                                        if (
+                                                          colUsed.has(newVal) ||
+                                                          rowUsed.has(newVal)
+                                                        ) {
+                                                          // Reset DOM select to current state value
+                                                          e.target.value =
+                                                            sessionMatrix[
+                                                              group._id
+                                                            ]?.[slotIdx] || "";
+                                                          return;
+                                                        }
+                                                      }
                                                       updateSessionCell(
                                                         group._id,
                                                         slotIdx,
-                                                        e.target.value,
-                                                      )
-                                                    }
+                                                        newVal,
+                                                      );
+                                                    }}
                                                     className="w-full text-xs p-0.5 border-0 bg-transparent rounded focus:ring-1 focus:ring-blue-400"
                                                   >
                                                     <option value="">—</option>
