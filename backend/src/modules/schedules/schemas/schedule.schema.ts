@@ -26,6 +26,40 @@ export class SubActivitySchedule {
 export const SubActivityScheduleSchema =
   SchemaFactory.createForClass(SubActivitySchedule);
 
+// Schema para una sesión individual dentro de la distribución por grupo
+@Schema({ _id: false })
+export class GroupSessionItem {
+  @Prop({ required: true, type: Types.ObjectId })
+  subActivityId: Types.ObjectId;
+
+  @Prop({ required: true })
+  subActivityName: string;
+
+  @Prop({ required: true })
+  startTime: string; // HH:mm
+
+  @Prop({ required: true })
+  endTime: string; // HH:mm
+
+  @Prop({ required: true, default: 0 })
+  order: number;
+}
+
+export const GroupSessionItemSchema =
+  SchemaFactory.createForClass(GroupSessionItem);
+
+// Schema para la distribución de sesiones de un grupo específico
+@Schema({ _id: false })
+export class GroupSession {
+  @Prop({ required: true, type: Types.ObjectId, ref: "Group" })
+  groupId: Types.ObjectId;
+
+  @Prop({ type: [GroupSessionItemSchema], default: [] })
+  sessions: GroupSessionItem[];
+}
+
+export const GroupSessionSchema = SchemaFactory.createForClass(GroupSession);
+
 @Schema({
   timestamps: { createdAt: true, updatedAt: true },
   collection: "schedule",
@@ -51,6 +85,12 @@ export class Schedule {
 
   @Prop({ type: [SubActivityScheduleSchema], default: [] })
   subActivitySchedules: SubActivitySchedule[]; // Horarios de subtareas
+
+  @Prop({ type: Number, default: 30 })
+  sessionDuration: number; // Duración de cada sesión en minutos
+
+  @Prop({ type: [GroupSessionSchema], default: [] })
+  groupSessions: GroupSession[]; // Distribución de sesiones por grupo
 
   @Prop({ default: 1 })
   order: number; // Order within the day

@@ -253,6 +253,7 @@ export class AdminService {
     return this.scheduleModel
       .find({ activityId: new Types.ObjectId(activityId), deletedAt: null })
       .populate("groupIds", "_id name shift")
+      .populate("groupSessions.groupId", "_id name shift")
       .sort({ date: 1, startTime: 1 })
       .lean();
   }
@@ -310,6 +311,39 @@ export class AdminService {
       .populate("groupIds", "_id name shift")
       .sort({ date: 1, startTime: 1 })
       .lean();
+  }
+
+  async updateGroupSessions(
+    scheduleId: string,
+    data: import("./dto/admin.dto").UpdateGroupSessionsDto,
+  ) {
+    const schedule = await this.scheduleModel.findById(scheduleId);
+    if (!schedule) throw new NotFoundException("Schedule not found");
+
+    const groupSessions = data.groupSessions.map((gs) => ({
+      groupId: new Types.ObjectId(gs.groupId),
+      sessions: gs.sessions.map((s, idx) => ({
+        subActivityId: new Types.ObjectId(s.subActivityId),
+        subActivityName: s.subActivityName,
+        startTime: s.startTime,
+        endTime: s.endTime,
+        order: s.order ?? idx,
+      })),
+    }));
+
+    const updateData: any = { groupSessions };
+    if (data.sessionDuration) {
+      updateData.sessionDuration = data.sessionDuration;
+    }
+
+    const updated = await this.scheduleModel
+      .findByIdAndUpdate(scheduleId, { $set: updateData }, { new: true })
+      .populate("activityId", "_id name description color")
+      .populate("groupIds", "_id name shift")
+      .populate("groupSessions.groupId", "_id name shift")
+      .lean();
+
+    return updated;
   }
 
   // ==================== ACTIVITIES ====================

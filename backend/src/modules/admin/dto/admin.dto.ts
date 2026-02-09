@@ -142,6 +142,51 @@ export class AdminBulkCreateSchedulesDto {
   groupIds?: string[];
 }
 
+// ==================== GROUP SESSIONS (Distribución por grupo) ====================
+export class GroupSessionItemDto {
+  @IsString()
+  @IsNotEmpty()
+  subActivityId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  subActivityName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  startTime: string; // HH:mm
+
+  @IsString()
+  @IsNotEmpty()
+  endTime: string; // HH:mm
+
+  @IsNumber()
+  @IsOptional()
+  order?: number;
+}
+
+export class GroupSessionDto {
+  @IsString()
+  @IsNotEmpty()
+  groupId: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => GroupSessionItemDto)
+  sessions: GroupSessionItemDto[];
+}
+
+export class UpdateGroupSessionsDto {
+  @IsNumber()
+  @IsOptional()
+  sessionDuration?: number;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => GroupSessionDto)
+  groupSessions: GroupSessionDto[];
+}
+
 // ==================== ACTIVITIES ====================
 export class AdminCreateActivityDto {
   @IsString()

@@ -75,12 +75,23 @@ export interface AdminSchedule {
   date: string;
   startTime: string;
   endTime: string;
+  sessionDuration?: number;
   subActivitySchedules: {
     subActivityId: string;
     name: string;
     startTime: string;
     endTime: string;
     order: number;
+  }[];
+  groupSessions?: {
+    groupId: { _id: string; name: string; shift?: string } | string;
+    sessions: {
+      subActivityId: string;
+      subActivityName: string;
+      startTime: string;
+      endTime: string;
+      order: number;
+    }[];
   }[];
   order: number;
   active: boolean;

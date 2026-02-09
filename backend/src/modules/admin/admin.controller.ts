@@ -28,6 +28,7 @@ import {
   AdminUpdateAwardDto,
   AdminUpdateUserDto,
   AdminBulkCreateSchedulesDto,
+  UpdateGroupSessionsDto,
 } from "./dto/admin.dto";
 
 @Controller("admin")
@@ -97,6 +98,14 @@ export class AdminController {
     @Body() data: AdminBulkCreateSchedulesDto,
   ) {
     return this.adminService.bulkCreateSchedules(activityId, data);
+  }
+
+  @Put("schedules/:scheduleId/group-sessions")
+  async updateGroupSessions(
+    @Param("scheduleId") scheduleId: string,
+    @Body() data: UpdateGroupSessionsDto,
+  ) {
+    return this.adminService.updateGroupSessions(scheduleId, data);
   }
 
   // ==================== ACTIVITIES ====================

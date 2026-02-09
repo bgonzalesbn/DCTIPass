@@ -57,6 +57,16 @@ export default function AdminActivitiesTab() {
   const [groupDropdownOpen, setGroupDropdownOpen] = useState(false);
   const groupDropdownRef = useRef<HTMLDivElement>(null);
 
+  // Session matrix state
+  const [expandedScheduleId, setExpandedScheduleId] = useState<string | null>(
+    null,
+  );
+  const [sessionDuration, setSessionDuration] = useState(30);
+  const [sessionMatrix, setSessionMatrix] = useState<Record<string, string[]>>(
+    {},
+  );
+  const [savingSessions, setSavingSessions] = useState(false);
+
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -312,6 +322,126 @@ export default function AdminActivitiesTab() {
       loadActivitySchedules(activityId);
     } catch (err) {
       alert(getErrorMessage(err));
+    }
+  };
+
+  // ---- Time slots & session matrix helpers ----
+  const generateSlots = (
+    start: string,
+    end: string,
+    dur: number,
+  ): { startTime: string; endTime: string }[] => {
+    const slots: { startTime: string; endTime: string }[] = [];
+    const [sh, sm] = start.split(":").map(Number);
+    const [eh, em] = end.split(":").map(Number);
+    let cur = sh * 60 + sm;
+    const endMin = eh * 60 + em;
+    while (cur + dur <= endMin) {
+      const nxt = cur + dur;
+      slots.push({
+        startTime: `${String(Math.floor(cur / 60)).padStart(2, "0")}:${String(cur % 60).padStart(2, "0")}`,
+        endTime: `${String(Math.floor(nxt / 60)).padStart(2, "0")}:${String(nxt % 60).padStart(2, "0")}`,
+      });
+      cur = nxt;
+    }
+    return slots;
+  };
+
+  const initMatrix = (sch: AdminSchedule, dur: number) => {
+    const slots = generateSlots(sch.startTime, sch.endTime, dur);
+    const mx: Record<string, string[]> = {};
+    if (sch.groupSessions?.length) {
+      for (const gs of sch.groupSessions) {
+        const gId =
+          typeof gs.groupId === "string" ? gs.groupId : gs.groupId._id;
+        mx[gId] = slots.map((sl) => {
+          const found = gs.sessions.find((s) => s.startTime === sl.startTime);
+          return found ? found.subActivityId : "";
+        });
+      }
+    }
+    for (const g of sch.groupIds) {
+      if (!mx[g._id]) mx[g._id] = slots.map(() => "");
+    }
+    return mx;
+  };
+
+  const handleExpandSchedule = (sch: AdminSchedule) => {
+    if (expandedScheduleId === sch._id) {
+      setExpandedScheduleId(null);
+      return;
+    }
+    const dur = sch.sessionDuration || 30;
+    setSessionDuration(dur);
+    setSessionMatrix(initMatrix(sch, dur));
+    setExpandedScheduleId(sch._id);
+  };
+
+  const updateSessionCell = (groupId: string, idx: number, val: string) => {
+    setSessionMatrix((prev) => ({
+      ...prev,
+      [groupId]: prev[groupId].map((v, i) => (i === idx ? val : v)),
+    }));
+  };
+
+  const handleDurationChange = (sch: AdminSchedule, newDur: number) => {
+    if (newDur < 5) return;
+    setSessionDuration(newDur);
+    setSessionMatrix(initMatrix(sch, newDur));
+  };
+
+  const autoRotate = (sch: AdminSchedule, act: AdminActivity) => {
+    const subs = [...(act.subActivities || [])].sort(
+      (x, y) => x.order - y.order,
+    );
+    if (subs.length === 0) {
+      alert("Agrega subactividades primero");
+      return;
+    }
+    const slots = generateSlots(sch.startTime, sch.endTime, sessionDuration);
+    const mx: Record<string, string[]> = {};
+    sch.groupIds.forEach((g, gi) => {
+      mx[g._id] = slots.map((_, si) => {
+        const subIdx = (si + gi) % subs.length;
+        return subs[subIdx]?._id || "";
+      });
+    });
+    setSessionMatrix(mx);
+  };
+
+  const handleSaveSessions = async (sch: AdminSchedule, act: AdminActivity) => {
+    setSavingSessions(true);
+    try {
+      const slots = generateSlots(sch.startTime, sch.endTime, sessionDuration);
+      const subs = act.subActivities || [];
+      const groupSessions = Object.entries(sessionMatrix).map(
+        ([groupId, assignments]) => ({
+          groupId,
+          sessions: assignments
+            .map((subId, idx) => {
+              if (!subId) return null;
+              const sub = subs.find((s) => s._id === subId);
+              return {
+                subActivityId: subId,
+                subActivityName: sub?.name || "",
+                startTime: slots[idx].startTime,
+                endTime: slots[idx].endTime,
+                order: idx,
+              };
+            })
+            .filter(Boolean),
+        }),
+      );
+      await adminAPI.updateGroupSessions(sch._id, {
+        sessionDuration,
+        groupSessions,
+      });
+      loadActivitySchedules(act._id);
+      alert("Distribución de sesiones guardada");
+    } catch (err) {
+      alert(getErrorMessage(err));
+    } finally {
+      setSavingSessions(false);
     }
   };
 
@@ -885,32 +1015,175 @@ export default function AdminActivitiesTab() {
                         {activitySchedules.map((sch) => (
                           <div
                             key={sch._id}
-                            className="flex items-center justify-between bg-white rounded border p-2"
+                            className="bg-white rounded border"
                           >
-                            <div className="flex-1 min-w-0">
-                              <span className="text-sm font-medium">
-                                {formatDateDDMMYYYY(sch.date)}
-                              </span>
-                              <span className="text-sm text-gray-600 ml-2">
-                                {sch.startTime} - {sch.endTime}
-                              </span>
-                              {sch.groupIds && sch.groupIds.length > 0 && (
-                                <span className="text-xs text-gray-400 ml-2">
-                                  ·{" "}
-                                  {sch.groupIds.length === 1
-                                    ? sch.groupIds[0].name
-                                    : `${sch.groupIds.length} grupos`}
+                            {/* Schedule header row */}
+                            <div className="flex items-center justify-between p-2">
+                              <div
+                                className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
+                                onClick={() => handleExpandSchedule(sch)}
+                              >
+                                <span className="text-gray-500 text-xs font-mono">
+                                  {expandedScheduleId === sch._id ? "▼" : "▶"}
                                 </span>
-                              )}
+                                <span className="text-sm font-medium">
+                                  {formatDateDDMMYYYY(sch.date)}
+                                </span>
+                                <span className="text-sm text-gray-600">
+                                  {sch.startTime} - {sch.endTime}
+                                </span>
+                                {sch.groupIds && sch.groupIds.length > 0 && (
+                                  <span className="text-xs text-gray-400">
+                                    · {sch.groupIds.length} grupo(s)
+                                  </span>
+                                )}
+                                {sch.groupSessions &&
+                                  sch.groupSessions.length > 0 && (
+                                    <span className="text-xs text-green-600 font-medium">
+                                      ✓ Sesiones
+                                    </span>
+                                  )}
+                              </div>
+                              <button
+                                onClick={() =>
+                                  handleDeleteSchedule(sch._id, a._id)
+                                }
+                                className="text-xs text-red-600 hover:text-red-800 ml-2"
+                              >
+                                Eliminar
+                              </button>
                             </div>
-                            <button
-                              onClick={() =>
-                                handleDeleteSchedule(sch._id, a._id)
-                              }
-                              className="text-xs text-red-600 hover:text-red-800 ml-2"
-                            >
-                              Eliminar
-                            </button>
+
+                            {/* Expanded session matrix editor */}
+                            {expandedScheduleId === sch._id && (
+                              <div className="border-t px-3 py-3 bg-gray-50">
+                                {/* Controls row */}
+                                <div className="flex flex-wrap items-center gap-3 mb-3">
+                                  <div className="flex items-center gap-1">
+                                    <label className="text-xs font-medium text-gray-700">
+                                      Duración (min):
+                                    </label>
+                                    <input
+                                      type="number"
+                                      value={sessionDuration}
+                                      onChange={(e) =>
+                                        handleDurationChange(
+                                          sch,
+                                          +e.target.value,
+                                        )
+                                      }
+                                      className="w-16 border rounded px-2 py-1 text-xs"
+                                      min={5}
+                                      step={5}
+                                    />
+                                  </div>
+                                  <button
+                                    onClick={() => autoRotate(sch, a)}
+                                    className="text-xs bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700"
+                                  >
+                                    ↻ Auto-rotar
+                                  </button>
+                                  <button
+                                    onClick={() => handleSaveSessions(sch, a)}
+                                    disabled={savingSessions}
+                                    className="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 disabled:opacity-50"
+                                  >
+                                    {savingSessions
+                                      ? "Guardando..."
+                                      : "💾 Guardar"}
+                                  </button>
+                                </div>
+
+                                {/* Matrix table */}
+                                {sch.groupIds && sch.groupIds.length > 0 ? (
+                                  <div className="overflow-x-auto">
+                                    <table className="w-full text-xs border-collapse">
+                                      <thead>
+                                        <tr className="bg-gray-100">
+                                          <th className="border border-gray-300 px-2 py-1.5 text-left font-semibold text-gray-700">
+                                            Grupo
+                                          </th>
+                                          {generateSlots(
+                                            sch.startTime,
+                                            sch.endTime,
+                                            sessionDuration,
+                                          ).map((slot) => (
+                                            <th
+                                              key={slot.startTime}
+                                              className="border border-gray-300 px-2 py-1.5 text-center font-semibold text-gray-700 whitespace-nowrap"
+                                            >
+                                              {slot.startTime}
+                                            </th>
+                                          ))}
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {sch.groupIds.map((group) => (
+                                          <tr key={group._id}>
+                                            <td className="border border-gray-300 px-2 py-1.5 font-medium bg-white whitespace-nowrap text-gray-800">
+                                              {group.name}
+                                            </td>
+                                            {generateSlots(
+                                              sch.startTime,
+                                              sch.endTime,
+                                              sessionDuration,
+                                            ).map((_, slotIdx) => (
+                                              <td
+                                                key={slotIdx}
+                                                className="border border-gray-300 px-0.5 py-0.5 bg-white"
+                                              >
+                                                <select
+                                                  value={
+                                                    sessionMatrix[group._id]?.[
+                                                      slotIdx
+                                                    ] || ""
+                                                  }
+                                                  onChange={(e) =>
+                                                    updateSessionCell(
+                                                      group._id,
+                                                      slotIdx,
+                                                      e.target.value,
+                                                    )
+                                                  }
+                                                  className="w-full text-xs p-0.5 border-0 bg-transparent rounded focus:ring-1 focus:ring-blue-400"
+                                                >
+                                                  <option value="">—</option>
+                                                  {a.subActivities
+                                                    ?.slice()
+                                                    .sort(
+                                                      (x, y) =>
+                                                        x.order - y.order,
+                                                    )
+                                                    .map((sub) => (
+                                                      <option
+                                                        key={sub._id}
+                                                        value={sub._id}
+                                                      >
+                                                        {sub.name}
+                                                      </option>
+                                                    ))}
+                                                </select>
+                                              </td>
+                                            ))}
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                    {a.subActivities?.length === 0 && (
+                                      <p className="text-xs text-amber-600 mt-2">
+                                        ⚠ No hay subactividades. Agrégalas en la
+                                        pestaña &quot;Subactividades&quot;.
+                                      </p>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <p className="text-xs text-gray-400 text-center py-2">
+                                    Asigna grupos al horario para configurar
+                                    sesiones
+                                  </p>
+                                )}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>

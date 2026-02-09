@@ -233,6 +233,8 @@ export const adminAPI = {
     apiClient.get(`/admin/activities/${activityId}/schedules`),
   bulkCreateSchedules: (activityId: string, data: Record<string, unknown>) =>
     apiClient.post(`/admin/activities/${activityId}/schedules/bulk`, data),
+  updateGroupSessions: (scheduleId: string, data: Record<string, unknown>) =>
+    apiClient.put(`/admin/schedules/${scheduleId}/group-sessions`, data),
 
   // Activities
   getActivities: () => apiClient.get("/admin/activities"),
