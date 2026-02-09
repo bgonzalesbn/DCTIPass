@@ -5,6 +5,50 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import * as express from "express";
 
+// 🔒 Simple Rate Limiter Middleware
+const loginAttempts = new Map<string, { count: number; resetAt: number }>();
+
+function rateLimitMiddleware(
+  _req: express.Request,
+  _res: express.Response,
+  next: express.NextFunction,
+): void {
+  const path = _req.path;
+
+  if (path === "/auth/login") {
+    const ip = _req.ip || "unknown";
+    const now = Date.now();
+    const limit = loginAttempts.get(ip);
+
+    // Reset if time window expired
+    if (limit && now >= limit.resetAt) {
+      loginAttempts.delete(ip);
+    }
+
+    // Check limits: 5 attempts per 15 minutes
+    if (limit && limit.count >= 5) {
+      console.warn(`⚠️  Rate limit exceeded for IP: ${ip}`);
+      _res.status(429).json({
+        statusCode: 429,
+        message: "Too many login attempts. Try again later.",
+      });
+      return;
+    }
+
+    // Increment counter
+    if (limit) {
+      limit.count++;
+    } else {
+      loginAttempts.set(ip, {
+        count: 1,
+        resetAt: now + 15 * 60 * 1000, // 15 minutes
+      });
+    }
+  }
+
+  next();
+}
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
@@ -17,6 +61,9 @@ async function bootstrap() {
   const expressApp = app.getHttpAdapter().getInstance();
   expressApp.use(express.json({ limit: "50mb" }));
   expressApp.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+  // 🔒 Apply rate limiter BEFORE validation pipes
+  expressApp.use(rateLimitMiddleware);
 
   // Global Pipes
   app.useGlobalPipes(
@@ -39,7 +86,10 @@ async function bootstrap() {
   );
 
   await app.listen(port);
-  console.log(`Application is running on: http://localhost:${port}`);
+  console.log(`✅ Application is running on: http://localhost:${port}`);
+  console.log(
+    `🔒 Rate limiting enabled for /auth/login (5 attempts per 15 min)`,
+  );
 }
 
 bootstrap();
