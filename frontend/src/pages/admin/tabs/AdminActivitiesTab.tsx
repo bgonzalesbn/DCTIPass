@@ -384,7 +384,19 @@ export default function AdminActivitiesTab() {
     }
     const dur = sch.sessionDuration || 30;
     setSessionDuration(dur);
-    setSessionMatrix(initMatrix(sch, dur));
+    const mx = initMatrix(sch, dur);
+    console.log("=== MATRIX DEBUG ===");
+    console.log(
+      "groupIds:",
+      sch.groupIds.map((g) => ({
+        _id: g._id,
+        name: g.name,
+        type: typeof g._id,
+      })),
+    );
+    console.log("matrix keys:", Object.keys(mx));
+    console.log("matrix:", JSON.stringify(mx, null, 2));
+    setSessionMatrix(mx);
     setExpandedScheduleId(sch._id);
   };
 
@@ -421,6 +433,12 @@ export default function AdminActivitiesTab() {
   };
 
   const updateSessionCell = (groupId: string, idx: number, val: string) => {
+    console.log("updateSessionCell called:", {
+      groupId,
+      idx,
+      val,
+      matrixKeys: Object.keys(sessionMatrix),
+    });
     setSessionMatrix((prev) => {
       if (val) {
         // Block if same sub already used in this group's row (different slot)
