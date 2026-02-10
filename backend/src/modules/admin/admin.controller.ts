@@ -256,4 +256,39 @@ export class AdminController {
   ) {
     return this.adminService.removeUserFromGroup(groupId, userId);
   }
+
+  // ==================== QUIZZES ====================
+  @Get("quizzes")
+  async getAllQuizzes() {
+    return this.adminService.getAllQuizzes();
+  }
+
+  @Post("quizzes")
+  async createQuiz(@Body() data: AdminCreateAwardDto) {
+    return this.adminService.createQuiz(data);
+  }
+
+  // ==================== AWARDS ====================
+  @Get("awards")
+  async getAllAwards() {
+    return this.adminService.getAllAwards();
+  }
+
+  @Post("awards")
+  async createAward(@Body() data: AdminCreateAwardDto) {
+    return this.adminService.createAward(data);
+  }
+
+  @Put("awards/:id")
+  async updateAward(
+    @Param("id") id: string,
+    @Body() data: AdminUpdateAwardDto,
+  ) {
+    return this.adminService.updateAward(id, data);
+  }
+
+  @Delete("awards/:id")
+  async deleteAward(@Param("id") id: string) {
+    return this.adminService.deleteAward(id);
+  }
 }
