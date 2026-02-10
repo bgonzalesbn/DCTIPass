@@ -19,10 +19,13 @@ import {
   GroupMembershipSchema,
 } from "../groups/schemas/group-membership.schema";
 import { Sticker, StickerSchema } from "../stickers/schemas/sticker.schema";
+
 import {
   StickerAward,
   StickerAwardSchema,
 } from "../awards/schemas/sticker-award.schema";
+
+import { Quiz, QuizSchema } from "../awards/schemas/quiz.schema";
 
 @Module({
   imports: [
@@ -35,6 +38,7 @@ import {
       { name: GroupMembership.name, schema: GroupMembershipSchema },
       { name: Sticker.name, schema: StickerSchema },
       { name: StickerAward.name, schema: StickerAwardSchema },
+      { name: Quiz.name, schema: QuizSchema },
     ]),
   ],
   controllers: [AdminController],

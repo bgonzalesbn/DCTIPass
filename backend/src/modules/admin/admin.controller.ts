@@ -1,3 +1,24 @@
+  // ==================== QUIZZES ====================
+  @Get("quizzes")
+  async getAllQuizzes() {
+    return this.adminService.getAllQuizzes();
+  }
+
+  @Post("quizzes")
+  async createQuiz(@Body() data: AdminCreateAwardDto) {
+    return this.adminService.createQuiz(data);
+  }
+
+  // ==================== QUIZZES ====================
+  @Get("quizzes")
+  async getAllQuizzes() {
+    return this.adminService.getAllQuizzes();
+  }
+
+  @Post("quizzes")
+  async createQuiz(@Body() data: AdminCreateAwardDto) {
+    return this.adminService.createQuiz(data);
+  }
 import {
   Controller,
   Get,
@@ -257,6 +278,16 @@ export class AdminController {
   }
 
   // ==================== AWARDS ====================
+  // ==================== QUIZZES ====================
+  @Get("quizzes")
+  async getAllQuizzes() {
+    return this.adminService.getAllQuizzes();
+  }
+
+  @Post("quizzes")
+  async createQuiz(@Body() data: AdminCreateAwardDto) {
+    return this.adminService.createQuiz(data);
+  }
 
   @Get("awards")
   async getAllAwards() {

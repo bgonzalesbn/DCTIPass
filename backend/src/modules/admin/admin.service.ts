@@ -1,3 +1,44 @@
+
+
+  // ==================== QUIZZES ====================
+  async getAllQuizzes() {
+    try {
+      return await this.quizModel
+        .find({ deletedAt: null, active: true })
+        .populate("stickerId", "_id name imageUrl")
+        .populate("activityId", "_id name")
+        .sort({ createdAt: -1 })
+        .lean();
+    } catch (error) {
+      console.error("[getAllQuizzes] Error:", error);
+      return [];
+    }
+  }
+
+  async createQuiz(data: AdminCreateAwardDto) {
+    // Prevenir duplicados por sub-actividad
+    const existing = await this.quizModel.findOne({
+      subActivityId: new Types.ObjectId(data.subActivityId),
+      deletedAt: null,
+      active: true,
+    });
+    if (existing) {
+      throw new BadRequestException("Ya existe un reto para esta sub-actividad.");
+    }
+    const quiz = new this.quizModel({
+      ...data,
+      stickerId: new Types.ObjectId(data.stickerId),
+      activityId: new Types.ObjectId(data.activityId),
+      subActivityId: new Types.ObjectId(data.subActivityId),
+      active: true,
+    });
+    const saved = await quiz.save();
+    return this.quizModel
+      .findById(saved._id)
+      .populate("stickerId", "_id name imageUrl")
+      .populate("activityId", "_id name")
+      .lean();
+  }
 import {
   Injectable,
   NotFoundException,
@@ -44,10 +85,13 @@ import {
 // Import sticker from the stickers module
 import { Sticker, StickerDocument } from "../stickers/schemas/sticker.schema";
 // Import StickerAward from the awards module
+
 import {
   StickerAward,
   StickerAwardDocument,
 } from "../awards/schemas/sticker-award.schema";
+
+import { Quiz, QuizDocument } from "../awards/schemas/quiz.schema";
 
 @Injectable()
 export class AdminService {
@@ -63,6 +107,8 @@ export class AdminService {
     @InjectModel(Sticker.name) private stickerModel: Model<StickerDocument>,
     @InjectModel(StickerAward.name)
     private stickerAwardModel: Model<StickerAwardDocument>,
+    @InjectModel(Quiz.name)
+    private quizModel: Model<QuizDocument>,
   ) {}
 
   // ==================== USERS ====================
@@ -724,6 +770,45 @@ export class AdminService {
   }
 
   // ==================== AWARDS (Sticker Awards / Retos) ====================
+  // ==================== QUIZZES ====================
+  async getAllQuizzes() {
+    try {
+      return await this.quizModel
+        .find({ deletedAt: null, active: true })
+        .populate("stickerId", "_id name imageUrl")
+        .populate("activityId", "_id name")
+        .sort({ createdAt: -1 })
+        .lean();
+    } catch (error) {
+      console.error("[getAllQuizzes] Error:", error);
+      return [];
+    }
+  }
+
+  async createQuiz(data: AdminCreateAwardDto) {
+    // Prevenir duplicados por sub-actividad
+    const existing = await this.quizModel.findOne({
+      subActivityId: new Types.ObjectId(data.subActivityId),
+      deletedAt: null,
+      active: true,
+    });
+    if (existing) {
+      throw new BadRequestException("Ya existe un reto para esta sub-actividad.");
+    }
+    const quiz = new this.quizModel({
+      ...data,
+      stickerId: new Types.ObjectId(data.stickerId),
+      activityId: new Types.ObjectId(data.activityId),
+      subActivityId: new Types.ObjectId(data.subActivityId),
+      active: true,
+    });
+    const saved = await quiz.save();
+    return this.quizModel
+      .findById(saved._id)
+      .populate("stickerId", "_id name imageUrl")
+      .populate("activityId", "_id name")
+      .lean();
+  }
 
   async getAllAwards() {
     try {
@@ -741,6 +826,17 @@ export class AdminService {
   }
 
   async createAward(data: AdminCreateAwardDto) {
+    // Prevent duplicate quiz for same sub-activity
+    const existing = await this.stickerAwardModel.findOne({
+      subActivityId: new Types.ObjectId(data.subActivityId),
+      deletedAt: null,
+      active: true,
+    });
+    if (existing) {
+      throw new BadRequestException(
+        "Ya existe un reto para esta sub-actividad.",
+      );
+    }
     const award = new this.stickerAwardModel({
       ...data,
       stickerId: new Types.ObjectId(data.stickerId),
@@ -784,6 +880,45 @@ export class AdminService {
     return { message: "Award deleted successfully" };
   }
 
+  // ==================== QUIZZES ====================
+  async getAllQuizzes() {
+    try {
+      return await this.quizModel
+        .find({ deletedAt: null, active: true })
+        .populate("stickerId", "_id name imageUrl")
+        .populate("activityId", "_id name")
+        .sort({ createdAt: -1 })
+        .lean();
+    } catch (error) {
+      console.error("[getAllQuizzes] Error:", error);
+      return [];
+    }
+  }
+
+  async createQuiz(data: AdminCreateAwardDto) {
+    // Prevenir duplicados por sub-actividad
+    const existing = await this.quizModel.findOne({
+      subActivityId: new Types.ObjectId(data.subActivityId),
+      deletedAt: null,
+      active: true,
+    });
+    if (existing) {
+      throw new BadRequestException("Ya existe un reto para esta sub-actividad.");
+    }
+    const quiz = new this.quizModel({
+      ...data,
+      stickerId: new Types.ObjectId(data.stickerId),
+      activityId: new Types.ObjectId(data.activityId),
+      subActivityId: new Types.ObjectId(data.subActivityId),
+      active: true,
+    });
+    const saved = await quiz.save();
+    return this.quizModel
+      .findById(saved._id)
+      .populate("stickerId", "_id name imageUrl")
+      .populate("activityId", "_id name")
+      .lean();
+  }
   // ==================== DASHBOARD STATS ====================
 
   async getDashboardStats() {
