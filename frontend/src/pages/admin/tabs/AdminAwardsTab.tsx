@@ -25,20 +25,21 @@ export default function AdminAwardsTab() {
     options: ["", ""],
     correctAnswer: "",
     explanation: "",
-    points: 10,
   });
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const [awRes, actRes, stkRes] = await Promise.all([
+      // Load independently so activities/stickers show even if awards fails
+      const [awRes, actRes, stkRes] = await Promise.allSettled([
         adminAPI.getAwards(),
         adminAPI.getActivities(),
         adminAPI.getStickers(),
       ]);
-      setAwards(awRes.data);
-      setActivities(actRes.data);
-      setStickers(stkRes.data);
+      if (awRes.status === "fulfilled") setAwards(awRes.value.data);
+      else console.error("Error loading awards:", awRes.reason);
+      if (actRes.status === "fulfilled") setActivities(actRes.value.data);
+      if (stkRes.status === "fulfilled") setStickers(stkRes.value.data);
     } catch (e) {
       console.error(e);
     } finally {
@@ -59,7 +60,6 @@ export default function AdminAwardsTab() {
       options: ["", ""],
       correctAnswer: "",
       explanation: "",
-      points: 10,
     });
     setEditingId(null);
     setShowForm(false);
@@ -77,7 +77,6 @@ export default function AdminAwardsTab() {
           : [...a.options, "", ""].slice(0, 2),
       correctAnswer: a.correctAnswer,
       explanation: a.explanation || "",
-      points: a.points,
     });
     setEditingId(a._id);
     setShowForm(true);
@@ -102,7 +101,6 @@ export default function AdminAwardsTab() {
           options: filteredOptions,
           correctAnswer: form.correctAnswer,
           explanation: form.explanation,
-          points: form.points,
         });
       } else {
         await adminAPI.createAward({
@@ -113,7 +111,6 @@ export default function AdminAwardsTab() {
           options: filteredOptions,
           correctAnswer: form.correctAnswer,
           explanation: form.explanation,
-          points: form.points,
         });
       }
       resetForm();
@@ -432,39 +429,23 @@ export default function AdminAwardsTab() {
               )}
             </div>
 
-            {/* Points & Explanation */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Puntos
-                </label>
-                <input
-                  type="number"
-                  min={1}
-                  value={form.points}
-                  onChange={(e) =>
-                    setForm({ ...form, points: +e.target.value })
-                  }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#113780] focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Explicación{" "}
-                  <span className="text-xs text-gray-400">
-                    (opcional, se muestra al responder)
-                  </span>
-                </label>
-                <input
-                  type="text"
-                  value={form.explanation}
-                  onChange={(e) =>
-                    setForm({ ...form, explanation: e.target.value })
-                  }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#113780] focus:border-transparent"
-                  placeholder="Explicación de la respuesta..."
-                />
-              </div>
+            {/* Explanation */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Explicación{" "}
+                <span className="text-xs text-gray-400">
+                  (opcional, se muestra al responder)
+                </span>
+              </label>
+              <input
+                type="text"
+                value={form.explanation}
+                onChange={(e) =>
+                  setForm({ ...form, explanation: e.target.value })
+                }
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#113780] focus:border-transparent"
+                placeholder="Explicación de la respuesta..."
+              />
             </div>
 
             {/* Actions */}
@@ -540,9 +521,6 @@ export default function AdminAwardsTab() {
                   Opciones
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Pts
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Acciones
                 </th>
               </tr>
@@ -585,9 +563,6 @@ export default function AdminAwardsTab() {
                   <td className="px-4 py-3 text-sm text-gray-500">
                     {a.options?.length || 0}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600 font-medium">
-                    {a.points}
-                  </td>
                   <td className="px-4 py-3 text-sm">
                     <div className="flex gap-2">
                       <button
@@ -608,7 +583,7 @@ export default function AdminAwardsTab() {
               ))}
               {filteredAwards.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center">
+                  <td colSpan={6} className="px-4 py-12 text-center">
                     <div className="text-gray-400">
                       <span className="text-3xl block mb-2">🎯</span>
                       <p className="font-medium text-gray-500">

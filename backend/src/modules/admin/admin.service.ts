@@ -726,12 +726,18 @@ export class AdminService {
   // ==================== AWARDS (Sticker Awards / Retos) ====================
 
   async getAllAwards() {
-    return this.stickerAwardModel
-      .find({ deletedAt: null })
-      .populate("stickerId", "_id name imageUrl")
-      .populate("activityId", "_id name")
-      .sort({ activityId: 1, subActivityId: 1 })
-      .lean();
+    try {
+      return await this.stickerAwardModel
+        .find({ deletedAt: null, active: true })
+        .populate("stickerId", "_id name imageUrl")
+        .populate("activityId", "_id name")
+        .sort({ createdAt: -1 })
+        .lean();
+    } catch (error) {
+      console.error("[getAllAwards] Error:", error);
+      // Return empty array instead of crashing
+      return [];
+    }
   }
 
   async createAward(data: AdminCreateAwardDto) {
