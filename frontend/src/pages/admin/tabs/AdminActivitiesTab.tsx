@@ -362,7 +362,9 @@ export default function AdminActivitiesTab() {
           typeof gs.groupId === "string" ? gs.groupId : gs.groupId._id,
         );
         // Find which row index this group corresponds to
-        const rowIdx = groupList.findIndex((g) => String(g._id) === gsGroupId);
+        const rowIdx = groupList.findIndex(
+          (g) => (typeof g === "string" ? g : String(g._id)) === gsGroupId,
+        );
         if (rowIdx < 0) continue;
         for (let col = 0; col < slots.length; col++) {
           const found = gs.sessions.find(
@@ -482,7 +484,7 @@ export default function AdminActivitiesTab() {
       const groupList = sch.groupIds || [];
 
       const groupSessions = groupList.map((group, rowIdx) => ({
-        groupId: String(group._id),
+        groupId: typeof group === "string" ? group : String(group._id),
         sessions: slots
           .map((slot, colIdx) => {
             const subId = sessionMatrix[cellKey(rowIdx, colIdx)];
@@ -1186,12 +1188,16 @@ export default function AdminActivitiesTab() {
                                       </thead>
                                       <tbody>
                                         {sch.groupIds.map((group, rowIdx) => {
+                                          const gId =
+                                            typeof group === "string"
+                                              ? group
+                                              : String(group._id);
                                           const groupName =
-                                            group.name ||
-                                            groups.find(
-                                              (g) => g._id === group._id,
-                                            )?.name ||
-                                            group._id;
+                                            (typeof group === "object" &&
+                                              group?.name) ||
+                                            groups.find((g) => g._id === gId)
+                                              ?.name ||
+                                            `Grupo ${rowIdx + 1}`;
                                           const totalRows = sch.groupIds.length;
                                           const slotsArr = generateSlots(
                                             sch.startTime,
