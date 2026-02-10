@@ -46,12 +46,15 @@ export default function HomePage() {
           isAdmin: userDat.isAdmin === true,
         };
         setUser(userData);
-        // Sincronizar con el store global
         setStoreUser(userData);
+
+        // Admin users go directly to admin panel
+        if (userData.isAdmin) {
+          navigate("/admin", { replace: true });
+        }
       })
       .catch((error) => {
         console.error("Error loading user data:", error);
-        // Fallback a datos locales
         const userData: User = {
           id: userId,
           employeeNumber: "",
@@ -99,7 +102,6 @@ export default function HomePage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
-        {/* Navigation Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           <button
             onClick={() => navigate("/schedule")}
@@ -152,21 +154,6 @@ export default function HomePage() {
               Gestiona tu información personal
             </p>
           </button>
-
-          {user.isAdmin && (
-            <button
-              onClick={() => navigate("/admin")}
-              className="bg-gradient-to-br from-[#113780] to-[#1e5bb8] rounded-lg shadow hover:shadow-lg p-4 sm:p-6 md:p-8 text-left transition group sm:col-span-2"
-            >
-              <div className="text-3xl sm:text-4xl mb-2 sm:mb-4">⚙️</div>
-              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
-                Panel de Administración
-              </h2>
-              <p className="text-blue-100 mt-1 sm:mt-2 text-sm sm:text-base">
-                Gestiona horarios, actividades, grupos, stickers y más
-              </p>
-            </button>
-          )}
         </div>
       </main>
     </div>
