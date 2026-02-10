@@ -10,9 +10,9 @@ import {
   ActivityCompletionDocument,
 } from "./schemas/activity-completion.schema";
 import {
-  StickerAward,
-  StickerAwardDocument,
-} from "./schemas/sticker-award.schema";
+  LegacyStickerAward,
+  LegacyStickerAwardDocument,
+} from "./schemas/legacy-sticker-award.schema";
 import { Activity } from "./schemas/activity.schema";
 import { Sticker } from "../stickers/schemas/sticker.schema";
 
@@ -21,8 +21,8 @@ export class ActivityCompletionService {
   constructor(
     @InjectModel(ActivityCompletion.name)
     private completionModel: Model<ActivityCompletionDocument>,
-    @InjectModel(StickerAward.name)
-    private awardModel: Model<StickerAwardDocument>,
+    @InjectModel(LegacyStickerAward.name)
+    private awardModel: Model<LegacyStickerAwardDocument>,
     @InjectModel(Activity.name) private activityModel: Model<any>,
     @InjectModel(Sticker.name) private stickerModel: Model<any>,
   ) {}

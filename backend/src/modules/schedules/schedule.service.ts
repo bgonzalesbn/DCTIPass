@@ -154,7 +154,7 @@ export class ScheduleService {
     // Mapeo de nombres de subtareas a sus IDs
     const subActivityMap = new Map<string, Types.ObjectId>();
     for (const sub of itExperience.subActivities) {
-      subActivityMap.set(sub.name, sub._id as Types.ObjectId);
+      subActivityMap.set(sub.name, sub._id);
     }
 
     // Fecha del primer evento: 18 de febrero de 2026

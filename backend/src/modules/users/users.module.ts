@@ -10,9 +10,9 @@ import {
   ActivityCompletionSchema,
 } from "../activities/schemas/activity-completion.schema";
 import {
-  StickerAward,
-  StickerAwardSchema,
-} from "../activities/schemas/sticker-award.schema";
+  LegacyStickerAward,
+  LegacyStickerAwardSchema,
+} from "../activities/schemas/legacy-sticker-award.schema";
 import { Group, GroupSchema } from "../groups/schemas/group.schema";
 import { UsersService } from "./users.service";
 import { UsersController } from "./users.controller";
@@ -23,7 +23,7 @@ import { UsersController } from "./users.controller";
       { name: User.name, schema: UserSchema },
       { name: GroupMembership.name, schema: GroupMembershipSchema },
       { name: ActivityCompletion.name, schema: ActivityCompletionSchema },
-      { name: StickerAward.name, schema: StickerAwardSchema },
+      { name: LegacyStickerAward.name, schema: LegacyStickerAwardSchema },
       { name: Group.name, schema: GroupSchema },
     ]),
   ],

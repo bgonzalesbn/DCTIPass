@@ -219,7 +219,7 @@ export class AdminService {
           : current.activityId;
         const checkDate = data.date ? data.date.substring(0, 10) : null;
         const baseDateStr =
-          checkDate || (current.date as Date).toISOString().substring(0, 10);
+          checkDate || current.date.toISOString().substring(0, 10);
         const checkStartTime = data.startTime || current.startTime;
         const checkEndTime = data.endTime || current.endTime;
         const dateStart = new Date(baseDateStr + "T00:00:00.000Z");

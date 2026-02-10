@@ -6,9 +6,9 @@ import {
   ActivityCompletionSchema,
 } from "./schemas/activity-completion.schema";
 import {
-  StickerAward,
-  StickerAwardSchema,
-} from "./schemas/sticker-award.schema";
+  LegacyStickerAward,
+  LegacyStickerAwardSchema,
+} from "./schemas/legacy-sticker-award.schema";
 import { Sticker, StickerSchema } from "./schemas/sticker.schema";
 import {
   GroupMembership,
@@ -26,7 +26,7 @@ import { StickersController } from "./stickers.controller";
     MongooseModule.forFeature([
       { name: Activity.name, schema: ActivitySchema },
       { name: ActivityCompletion.name, schema: ActivityCompletionSchema },
-      { name: StickerAward.name, schema: StickerAwardSchema },
+      { name: LegacyStickerAward.name, schema: LegacyStickerAwardSchema },
       { name: Sticker.name, schema: StickerSchema },
       { name: GroupMembership.name, schema: GroupMembershipSchema },
       { name: User.name, schema: UserSchema },

@@ -1,20 +1,24 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { HydratedDocument, Types } from "mongoose";
 
-export type StickerAwardDocument = HydratedDocument<StickerAward>;
+export type LegacyStickerAwardDocument = HydratedDocument<LegacyStickerAward>;
 
 @Schema({
   timestamps: { createdAt: true, updatedAt: true },
   collection: "sticker_awards",
 })
-export class StickerAward {
+export class LegacyStickerAward {
   @Prop({ required: true, type: Types.ObjectId, ref: "User" })
   userId: Types.ObjectId;
 
   @Prop({ required: true, type: Types.ObjectId, ref: "Sticker" })
   stickerId: Types.ObjectId;
 
-  @Prop({ required: true, type: Types.ObjectId, ref: "ActivityCompletion" })
+  @Prop({
+    required: true,
+    type: Types.ObjectId,
+    ref: "ActivityCompletion",
+  })
   activityCompletionId: Types.ObjectId;
 
   @Prop({ required: true, type: Date })
@@ -24,10 +28,10 @@ export class StickerAward {
   deletedAt?: Date;
 }
 
-export const StickerAwardSchema = SchemaFactory.createForClass(StickerAward);
+export const LegacyStickerAwardSchema =
+  SchemaFactory.createForClass(LegacyStickerAward);
 
-// Índices
-StickerAwardSchema.index({ userId: 1, stickerId: 1 }, { unique: true });
-StickerAwardSchema.index({ userId: 1, awardedAt: -1 });
-StickerAwardSchema.index({ stickerId: 1 });
-StickerAwardSchema.index({ awardedAt: -1 });
+LegacyStickerAwardSchema.index({ userId: 1, stickerId: 1 }, { unique: true });
+LegacyStickerAwardSchema.index({ userId: 1, awardedAt: -1 });
+LegacyStickerAwardSchema.index({ stickerId: 1 });
+LegacyStickerAwardSchema.index({ awardedAt: -1 });

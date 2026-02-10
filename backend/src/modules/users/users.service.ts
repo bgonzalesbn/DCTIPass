@@ -11,9 +11,9 @@ import {
   ActivityCompletionDocument,
 } from "../activities/schemas/activity-completion.schema";
 import {
-  StickerAward,
-  StickerAwardDocument,
-} from "../activities/schemas/sticker-award.schema";
+  LegacyStickerAward,
+  LegacyStickerAwardDocument,
+} from "../activities/schemas/legacy-sticker-award.schema";
 import { Group, GroupDocument } from "../groups/schemas/group.schema";
 
 @Injectable()
@@ -24,8 +24,8 @@ export class UsersService {
     private groupMembershipModel: Model<GroupMembershipDocument>,
     @InjectModel(ActivityCompletion.name)
     private activityCompletionModel: Model<ActivityCompletionDocument>,
-    @InjectModel(StickerAward.name)
-    private stickerAwardModel: Model<StickerAwardDocument>,
+    @InjectModel(LegacyStickerAward.name)
+    private stickerAwardModel: Model<LegacyStickerAwardDocument>,
     @InjectModel(Group.name)
     private groupModel: Model<GroupDocument>,
   ) {}

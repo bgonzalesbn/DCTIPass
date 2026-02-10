@@ -3,17 +3,17 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
 import { Sticker, StickerDocument } from "../stickers/schemas/sticker.schema";
 import {
-  StickerAward,
-  StickerAwardDocument,
-} from "./schemas/sticker-award.schema";
+  LegacyStickerAward,
+  LegacyStickerAwardDocument,
+} from "./schemas/legacy-sticker-award.schema";
 import { User, UserDocument } from "../users/schemas/user.schema";
 
 @Injectable()
 export class StickersService {
   constructor(
     @InjectModel(Sticker.name) private stickerModel: Model<StickerDocument>,
-    @InjectModel(StickerAward.name)
-    private awardModel: Model<StickerAwardDocument>,
+    @InjectModel(LegacyStickerAward.name)
+    private awardModel: Model<LegacyStickerAwardDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
   ) {}
 
