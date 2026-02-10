@@ -54,7 +54,7 @@ export class User {
   email: string;
 
   @Prop({ type: String, default: null })
-  position?: string;
+  direction?: string;
 
   @Prop({ type: [String], default: [] })
   hobbies: string[];

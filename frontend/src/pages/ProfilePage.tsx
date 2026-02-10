@@ -40,7 +40,7 @@ interface User {
   firstName: string;
   lastName: string;
   email: string;
-  position?: string;
+  direction?: string;
   group?: Group;
   schedule?: Schedule;
   hobbies?: string[];
@@ -89,7 +89,7 @@ export default function ProfilePage() {
             firstName: data.firstName || "",
             lastName: data.lastName || "",
             email: data.email || userEmail || "",
-            position: data.position || "",
+            direction: data.direction || "",
             group: data.group || undefined,
             schedule: data.schedule || undefined,
             hobbies: data.hobbies || [],
@@ -110,7 +110,7 @@ export default function ProfilePage() {
             firstName: "",
             lastName: "",
             email: userEmail || "",
-            position: "",
+            direction: "",
             group: {} as Group,
             hobbies: [],
             points: 0,

@@ -2,12 +2,21 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authAPI } from "../services/api";
 
+const DIRECTION_OPTIONS = [
+  "Operación de Soluciones",
+  "Entrega de Soluciones",
+  "Gestión y Mejora",
+  "Arquitectura",
+  "Estrategia Digital",
+  "Supervisión y Control Digital",
+];
+
 export default function RegisterPage() {
   const [employeeNumber, setEmployeeNumber] = useState("");
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [position, setPosition] = useState("");
+  const [direction, setDirection] = useState("");
   const [hobbies, setHobbies] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -34,6 +43,10 @@ export default function RegisterPage() {
     }
     if (!lastName.trim()) {
       setError("Apellido es requerido");
+      return false;
+    }
+    if (!direction.trim()) {
+      setError("Dirección es requerida");
       return false;
     }
     if (password.length < 6) {
@@ -68,7 +81,7 @@ export default function RegisterPage() {
         email,
         firstName,
         lastName,
-        position,
+        direction,
         hobbies: hobbiesArray,
         password,
       });
@@ -92,7 +105,7 @@ export default function RegisterPage() {
       <div className="bg-white rounded-lg shadow-2xl w-full max-w-md p-5 sm:p-8 max-h-[95vh] overflow-y-auto">
         <div className="text-center mb-5 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#113780] mb-1 sm:mb-2">
-            IT Experience
+            DCTI Pass
           </h1>
           <p className="text-gray-600 text-sm sm:text-base">
             Crear Nueva Cuenta
@@ -166,15 +179,21 @@ export default function RegisterPage() {
 
           <div>
             <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-              Posición
+              Dirección
             </label>
-            <input
-              type="text"
-              value={position}
-              onChange={(e) => setPosition(e.target.value)}
-              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#113780] focus:border-transparent outline-none transition text-sm sm:text-base"
-              placeholder="Ej: Desarrollador, Diseñador..."
-            />
+            <select
+              value={direction}
+              onChange={(e) => setDirection(e.target.value)}
+              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#113780] focus:border-transparent outline-none transition text-sm sm:text-base bg-white"
+              required
+            >
+              <option value="">Selecciona una dirección</option>
+              {DIRECTION_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>

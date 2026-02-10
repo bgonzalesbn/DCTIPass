@@ -9,7 +9,7 @@ interface User {
   firstName: string;
   lastName: string;
   email: string;
-  position: string;
+  direction: string;
   points: number;
   level: number;
   isAdmin: boolean;
@@ -40,7 +40,7 @@ export default function HomePage() {
           firstName: userDat.firstName || "",
           lastName: userDat.lastName || "",
           email: userDat.email || "",
-          position: userDat.position || "",
+          direction: userDat.direction || "",
           points: userDat.progress?.activitiesCompleted || userDat.points || 0,
           level: userDat.level || 1,
           isAdmin: userDat.isAdmin === true,
@@ -61,7 +61,7 @@ export default function HomePage() {
           firstName: "",
           lastName: "",
           email: localStorage.getItem("userEmail") || "",
-          position: "",
+          direction: "",
           points: 0,
           level: 1,
           isAdmin: false,

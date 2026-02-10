@@ -27,7 +27,7 @@ export class AuthService {
    * Register new user with auth credentials
    */
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
-    const { email, employeeNumber, firstName, lastName, password } =
+    const { email, employeeNumber, firstName, lastName, password, direction } =
       registerDto;
 
     // Check for existing user
@@ -47,6 +47,7 @@ export class AuthService {
       employeeNumber,
       firstName,
       lastName: lastName || null,
+      direction: direction || null,
       active: true,
       createdAt: new Date(),
     });

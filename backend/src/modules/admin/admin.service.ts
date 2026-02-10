@@ -128,7 +128,7 @@ export class AdminService {
     return this.userModel
       .find({ deletedAt: null })
       .select(
-        "employeeNumber firstName lastName email position isAdmin active totalPoints createdAt",
+        "employeeNumber firstName lastName email direction isAdmin active totalPoints createdAt",
       )
       .sort({ createdAt: -1 })
       .lean();
@@ -137,7 +137,9 @@ export class AdminService {
   async updateUser(userId: string, data: AdminUpdateUserDto) {
     const user = await this.userModel
       .findByIdAndUpdate(userId, { $set: data }, { new: true })
-      .select("employeeNumber firstName lastName email position isAdmin active")
+      .select(
+        "employeeNumber firstName lastName email direction isAdmin active",
+      )
       .lean();
 
     if (!user) {
@@ -691,7 +693,7 @@ export class AdminService {
   async getGroupMembers(groupId: string) {
     return this.membershipModel
       .find({ groupId: new Types.ObjectId(groupId), deletedAt: null })
-      .populate("userId", "employeeNumber firstName lastName email position")
+      .populate("userId", "employeeNumber firstName lastName email direction")
       .lean();
   }
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { adminAPI } from "../../../services/api";
 import type { AdminUser } from "../../../types";
 
@@ -11,6 +11,7 @@ export default function AdminUsersTab() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [directionFilter, setDirectionFilter] = useState("");
 
   const loadData = async () => {
     setLoading(true);
@@ -50,15 +51,34 @@ export default function AdminUsersTab() {
     }
   };
 
+  const availableDirections = useMemo(() => {
+    const values = new Set<string>();
+    users.forEach((u) => {
+      if (u.direction) {
+        values.add(u.direction);
+      }
+    });
+    return Array.from(values).sort();
+  }, [users]);
+
   const filteredUsers = users.filter((u) => {
-    if (!search) return true;
-    const s = search.toLowerCase();
-    return (
-      u.firstName.toLowerCase().includes(s) ||
-      u.lastName.toLowerCase().includes(s) ||
-      u.employeeNumber.includes(s) ||
-      u.email.toLowerCase().includes(s)
-    );
+    const matchesSearch = (() => {
+      if (!search) return true;
+      const s = search.toLowerCase();
+      return (
+        u.firstName.toLowerCase().includes(s) ||
+        u.lastName.toLowerCase().includes(s) ||
+        u.employeeNumber.includes(s) ||
+        u.email.toLowerCase().includes(s) ||
+        (u.direction ? u.direction.toLowerCase().includes(s) : false)
+      );
+    })();
+
+    const matchesDirection = directionFilter
+      ? u.direction === directionFilter
+      : true;
+
+    return matchesSearch && matchesDirection;
   });
 
   if (loading) return <div className="text-center py-8">Cargando...</div>;
@@ -75,6 +95,18 @@ export default function AdminUsersTab() {
             onChange={(e) => setSearch(e.target.value)}
             className="border rounded-lg px-3 py-2 text-sm w-48"
           />
+          <select
+            value={directionFilter}
+            onChange={(e) => setDirectionFilter(e.target.value)}
+            className="border rounded-lg px-3 py-2 text-sm"
+          >
+            <option value="">Todas las direcciones</option>
+            {availableDirections.map((direction) => (
+              <option key={direction} value={direction}>
+                {direction}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -91,6 +123,9 @@ export default function AdminUsersTab() {
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Email
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Dirección
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Puntos
@@ -116,6 +151,17 @@ export default function AdminUsersTab() {
                     {u.firstName} {u.lastName}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-500">{u.email}</td>
+                  <td className="px-4 py-3 text-sm">
+                    {u.direction ? (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-50 text-blue-700">
+                        {u.direction}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-gray-500">
+                        Sin dirección
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-sm">{u.totalPoints}</td>
                   <td className="px-4 py-3 text-sm">
                     <span
@@ -150,7 +196,7 @@ export default function AdminUsersTab() {
               {filteredUsers.length === 0 && (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-4 py-8 text-center text-gray-500"
                   >
                     No se encontraron usuarios

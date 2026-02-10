@@ -98,7 +98,7 @@ export class UsersService {
       employeeNumber: user.employeeNumber,
       firstName: user.firstName,
       lastName: user.lastName,
-      position: user.position,
+      direction: user.direction,
       hobbies: user.hobbies || [],
       isAdmin: user.isAdmin || false,
       group, // Grupo único del usuario
@@ -155,7 +155,7 @@ export class UsersService {
 
   async updateProfile(
     userId: string,
-    updateData: { email?: string; hobbies?: string[]; position?: string },
+    updateData: { email?: string; hobbies?: string[]; direction?: string },
   ) {
     const objectId = new Types.ObjectId(userId);
 
@@ -172,8 +172,8 @@ export class UsersService {
     if (updateData.hobbies !== undefined) {
       updateFields.hobbies = updateData.hobbies;
     }
-    if (updateData.position !== undefined) {
-      updateFields.position = updateData.position;
+    if (updateData.direction !== undefined) {
+      updateFields.direction = updateData.direction;
     }
 
     const updatedUser = await this.userModel
@@ -189,7 +189,7 @@ export class UsersService {
         employeeNumber: updatedUser.employeeNumber,
         firstName: updatedUser.firstName,
         lastName: updatedUser.lastName,
-        position: updatedUser.position,
+        direction: updatedUser.direction,
         hobbies: updatedUser.hobbies || [],
       },
     };

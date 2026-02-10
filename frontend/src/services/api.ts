@@ -48,7 +48,7 @@ interface RegisterData {
   email: string;
   firstName: string;
   lastName: string;
-  position?: string;
+  direction: string;
   hobbies?: string[];
   password: string;
 }
@@ -56,6 +56,7 @@ interface RegisterData {
 interface UpdateProfileData {
   email?: string;
   hobbies?: string[];
+  direction?: string;
 }
 
 interface ActivityData {

@@ -31,8 +31,7 @@ export class RegisterDto {
 
   @IsString()
   @MinLength(3)
-  @IsOptional()
-  position?: string;
+  direction: string;
 
   @IsArray()
   @IsOptional()

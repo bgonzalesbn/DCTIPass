@@ -15,7 +15,7 @@ class UpdateProfileDto {
 
   @IsOptional()
   @IsString()
-  position?: string;
+  direction?: string;
 }
 
 class CompleteSubActivityDto {

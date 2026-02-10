@@ -33,7 +33,7 @@ export interface AdminUser {
   firstName: string;
   lastName: string;
   email: string;
-  position?: string;
+  direction?: string;
   isAdmin: boolean;
   active: boolean;
   totalPoints: number;

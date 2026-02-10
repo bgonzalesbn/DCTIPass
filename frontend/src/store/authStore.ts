@@ -7,7 +7,7 @@ interface User {
   firstName: string;
   lastName: string;
   email: string;
-  position: string;
+  direction: string;
   points: number;
   level: number;
   isAdmin: boolean;
@@ -49,7 +49,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         firstName: "",
         lastName: "",
         email: userEmail,
-        position: "",
+        direction: "",
         points: 0,
         level: 1,
         isAdmin: isAdmin || false,
@@ -77,7 +77,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
             firstName: profile.firstName || "",
             lastName: profile.lastName || "",
             email: profile.email || userEmail,
-            position: profile.position || "",
+            direction: profile.direction || "",
             points: profile.progress?.activitiesCompleted || 0,
             level: 1,
             isAdmin: profile.isAdmin || false,
