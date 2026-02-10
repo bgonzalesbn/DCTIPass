@@ -62,7 +62,7 @@ export default function AdminActivitiesTab() {
     null,
   );
   const [sessionDuration, setSessionDuration] = useState(30);
-  const [sessionMatrix, setSessionMatrix] = useState<Record<string, string[]>>(
+  const [sessionMatrix, setSessionMatrix] = useState<Record<string, string>>(
     {},
   );
   const [savingSessions, setSavingSessions] = useState(false);
@@ -347,34 +347,48 @@ export default function AdminActivitiesTab() {
     return slots;
   };
 
+  // --- Cell key: "rowIndex_colIndex" => subActivityId ---
+  const cellKey = (row: number, col: number) => `${row}_${col}`;
+
   const initMatrix = (sch: AdminSchedule, dur: number) => {
     const slots = generateSlots(sch.startTime, sch.endTime, dur);
-    const mx: Record<string, string[]> = {};
+    const cells: Record<string, string> = {};
+    const groupList = sch.groupIds || [];
+
+    // Load saved groupSessions if they exist
     if (sch.groupSessions?.length) {
       for (const gs of sch.groupSessions) {
-        const gId = String(
+        const gsGroupId = String(
           typeof gs.groupId === "string" ? gs.groupId : gs.groupId._id,
         );
-        mx[gId] = slots.map((sl) => {
-          const found = gs.sessions.find((s) => s.startTime === sl.startTime);
-          return found ? found.subActivityId : "";
-        });
+        // Find which row index this group corresponds to
+        const rowIdx = groupList.findIndex((g) => String(g._id) === gsGroupId);
+        if (rowIdx < 0) continue;
+        for (let col = 0; col < slots.length; col++) {
+          const found = gs.sessions.find(
+            (s) => s.startTime === slots[col].startTime,
+          );
+          if (found) {
+            cells[cellKey(rowIdx, col)] = found.subActivityId;
+          }
+        }
       }
     }
-    for (const g of sch.groupIds) {
-      const gId = String(g._id);
-      if (!mx[gId]) mx[gId] = slots.map(() => "");
-    }
+
     // Clean column duplicates (data saved before validation existed)
-    for (let si = 0; si < slots.length; si++) {
+    for (let col = 0; col < slots.length; col++) {
       const seen = new Set<string>();
-      for (const gId of Object.keys(mx)) {
-        const v = mx[gId][si];
-        if (v && seen.has(v)) mx[gId][si] = "";
+      for (let row = 0; row < groupList.length; row++) {
+        const k = cellKey(row, col);
+        const v = cells[k];
+        if (v && seen.has(v)) {
+          delete cells[k]; // remove duplicate
+        }
         if (v) seen.add(v);
       }
     }
-    return mx;
+
+    return cells;
   };
 
   const handleExpandSchedule = (sch: AdminSchedule) => {
@@ -384,79 +398,52 @@ export default function AdminActivitiesTab() {
     }
     const dur = sch.sessionDuration || 30;
     setSessionDuration(dur);
-    const mx = initMatrix(sch, dur);
-    console.log("=== MATRIX DEBUG ===");
-    console.log(
-      "groupIds:",
-      sch.groupIds.map((g) => ({
-        _id: g._id,
-        name: g.name,
-        type: typeof g._id,
-      })),
-    );
-    console.log("matrix keys:", Object.keys(mx));
-    console.log("matrix:", JSON.stringify(mx, null, 2));
-    setSessionMatrix(mx);
+    setSessionMatrix(initMatrix(sch, dur));
     setExpandedScheduleId(sch._id);
   };
 
-  /** Get sub-activity IDs already used in a given slot index (by other groups) */
-  const getUsedInSlot = (
-    mx: Record<string, string[]>,
-    slotIdx: number,
-    excludeGroupId: string,
+  /** Get sub-activity IDs used in a column (excluding one row) */
+  const getUsedInCol = (
+    cells: Record<string, string>,
+    col: number,
+    excludeRow: number,
+    totalRows: number,
   ): Set<string> => {
     const used = new Set<string>();
-    for (const [gId, slots] of Object.entries(mx)) {
-      if (gId !== excludeGroupId && slots[slotIdx]) {
-        used.add(slots[slotIdx]);
-      }
+    for (let r = 0; r < totalRows; r++) {
+      if (r === excludeRow) continue;
+      const v = cells[cellKey(r, col)];
+      if (v) used.add(v);
     }
     return used;
   };
 
-  /** Get sub-activity IDs already used in a given group's row (other slots) */
+  /** Get sub-activity IDs used in a row (excluding one column) */
   const getUsedInRow = (
-    mx: Record<string, string[]>,
-    groupId: string,
-    excludeSlotIdx: number,
+    cells: Record<string, string>,
+    row: number,
+    excludeCol: number,
+    totalCols: number,
   ): Set<string> => {
     const used = new Set<string>();
-    const row = mx[groupId];
-    if (!row) return used;
-    for (let i = 0; i < row.length; i++) {
-      if (i !== excludeSlotIdx && row[i]) {
-        used.add(row[i]);
-      }
+    for (let c = 0; c < totalCols; c++) {
+      if (c === excludeCol) continue;
+      const v = cells[cellKey(row, c)];
+      if (v) used.add(v);
     }
     return used;
   };
 
-  const updateSessionCell = (groupId: string, idx: number, val: string) => {
-    console.log("updateSessionCell called:", {
-      groupId,
-      idx,
-      val,
-      matrixKeys: Object.keys(sessionMatrix),
-    });
+  const updateSessionCell = (row: number, col: number, val: string) => {
     setSessionMatrix((prev) => {
-      if (val) {
-        // Block if same sub already used in this group's row (different slot)
-        const rowUsed = getUsedInRow(prev, groupId, idx);
-        if (rowUsed.has(val)) {
-          // Return new ref to force React re-render and reset <select>
-          return { ...prev };
-        }
-        // Block if same sub already used in this column by another group
-        const colUsed = getUsedInSlot(prev, idx, groupId);
-        if (colUsed.has(val)) {
-          return { ...prev };
-        }
+      const k = cellKey(row, col);
+      if (!val) {
+        // Clearing a cell
+        const next = { ...prev };
+        delete next[k];
+        return next;
       }
-      return {
-        ...prev,
-        [groupId]: prev[groupId].map((v, i) => (i === idx ? val : v)),
-      };
+      return { ...prev, [k]: val };
     });
   };
 
@@ -475,26 +462,16 @@ export default function AdminActivitiesTab() {
       return;
     }
     const slots = generateSlots(sch.startTime, sch.endTime, sessionDuration);
-    const mx: Record<string, string[]> = {};
-    sch.groupIds.forEach((g, gi) => {
-      mx[String(g._id)] = slots.map((_, si) => {
-        // Circular rotation ensuring no two groups share the same sub in a slot
+    const cells: Record<string, string> = {};
+    const groupList = sch.groupIds || [];
+    groupList.forEach((_, gi) => {
+      slots.forEach((_, si) => {
         const subIdx = (si + gi) % subs.length;
-        return subs[subIdx]?._id || "";
+        const subId = subs[subIdx]?._id || "";
+        if (subId) cells[cellKey(gi, si)] = subId;
       });
     });
-    // Validate no conflicts (each slot column has unique subs)
-    for (let si = 0; si < slots.length; si++) {
-      const usedInSlot = new Set<string>();
-      for (const gId of Object.keys(mx)) {
-        const subId = mx[gId][si];
-        if (subId && usedInSlot.has(subId)) {
-          mx[gId][si] = ""; // clear conflict
-        }
-        if (subId) usedInSlot.add(subId);
-      }
-    }
-    setSessionMatrix(mx);
+    setSessionMatrix(cells);
   };
 
   const handleSaveSessions = async (sch: AdminSchedule, act: AdminActivity) => {
@@ -502,24 +479,26 @@ export default function AdminActivitiesTab() {
     try {
       const slots = generateSlots(sch.startTime, sch.endTime, sessionDuration);
       const subs = act.subActivities || [];
-      const groupSessions = Object.entries(sessionMatrix).map(
-        ([groupId, assignments]) => ({
-          groupId,
-          sessions: assignments
-            .map((subId, idx) => {
-              if (!subId) return null;
-              const sub = subs.find((s) => s._id === subId);
-              return {
-                subActivityId: subId,
-                subActivityName: sub?.name || "",
-                startTime: slots[idx].startTime,
-                endTime: slots[idx].endTime,
-                order: idx,
-              };
-            })
-            .filter(Boolean),
-        }),
-      );
+      const groupList = sch.groupIds || [];
+
+      const groupSessions = groupList.map((group, rowIdx) => ({
+        groupId: String(group._id),
+        sessions: slots
+          .map((slot, colIdx) => {
+            const subId = sessionMatrix[cellKey(rowIdx, colIdx)];
+            if (!subId) return null;
+            const sub = subs.find((s) => s._id === subId);
+            return {
+              subActivityId: subId,
+              subActivityName: sub?.name || "",
+              startTime: slot.startTime,
+              endTime: slot.endTime,
+              order: colIdx,
+            };
+          })
+          .filter(Boolean),
+      }));
+
       await adminAPI.updateGroupSessions(sch._id, {
         sessionDuration,
         groupSessions,
@@ -1206,129 +1185,107 @@ export default function AdminActivitiesTab() {
                                         </tr>
                                       </thead>
                                       <tbody>
-                                        {sch.groupIds.map((group) => {
+                                        {sch.groupIds.map((group, rowIdx) => {
                                           const groupName =
                                             group.name ||
                                             groups.find(
                                               (g) => g._id === group._id,
                                             )?.name ||
-                                            (typeof group === "string"
-                                              ? groups.find(
-                                                  (g) => g._id === group,
-                                                )?.name || group
-                                              : group._id);
-                                          const gId = String(group._id);
+                                            group._id;
+                                          const totalRows = sch.groupIds.length;
+                                          const slotsArr = generateSlots(
+                                            sch.startTime,
+                                            sch.endTime,
+                                            sessionDuration,
+                                          );
+                                          const totalCols = slotsArr.length;
                                           return (
-                                            <tr
-                                              key={
-                                                gId ||
-                                                (group as unknown as string)
-                                              }
-                                            >
+                                            <tr key={rowIdx}>
                                               <td className="border border-gray-300 px-2 py-1.5 font-medium bg-white whitespace-nowrap text-gray-800">
                                                 {groupName}
                                               </td>
-                                              {generateSlots(
-                                                sch.startTime,
-                                                sch.endTime,
-                                                sessionDuration,
-                                              ).map((_, slotIdx) => (
-                                                <td
-                                                  key={slotIdx}
-                                                  className="border border-gray-300 px-0.5 py-0.5 bg-white"
-                                                >
-                                                  <select
-                                                    value={
-                                                      sessionMatrix[gId]?.[
-                                                        slotIdx
-                                                      ] || ""
-                                                    }
-                                                    onChange={(e) => {
-                                                      const newVal =
-                                                        e.target.value;
-                                                      if (newVal) {
-                                                        const colUsed =
-                                                          getUsedInSlot(
-                                                            sessionMatrix,
-                                                            slotIdx,
-                                                            gId,
-                                                          );
-                                                        const rowUsed =
-                                                          getUsedInRow(
-                                                            sessionMatrix,
-                                                            gId,
-                                                            slotIdx,
-                                                          );
-                                                        if (
-                                                          colUsed.has(newVal) ||
-                                                          rowUsed.has(newVal)
-                                                        ) {
-                                                          // Reset DOM select to current state value
-                                                          e.target.value =
-                                                            sessionMatrix[
-                                                              gId
-                                                            ]?.[slotIdx] || "";
-                                                          return;
-                                                        }
-                                                      }
-                                                      updateSessionCell(
-                                                        gId,
-                                                        slotIdx,
-                                                        newVal,
-                                                      );
-                                                    }}
-                                                    className="w-full text-xs p-0.5 border-0 bg-transparent rounded focus:ring-1 focus:ring-blue-400"
+                                              {slotsArr.map((_, colIdx) => {
+                                                const ck = cellKey(
+                                                  rowIdx,
+                                                  colIdx,
+                                                );
+                                                const currentVal =
+                                                  sessionMatrix[ck] || "";
+                                                const colUsed = getUsedInCol(
+                                                  sessionMatrix,
+                                                  colIdx,
+                                                  rowIdx,
+                                                  totalRows,
+                                                );
+                                                const rowUsed = getUsedInRow(
+                                                  sessionMatrix,
+                                                  rowIdx,
+                                                  colIdx,
+                                                  totalCols,
+                                                );
+                                                return (
+                                                  <td
+                                                    key={colIdx}
+                                                    className="border border-gray-300 px-0.5 py-0.5 bg-white"
                                                   >
-                                                    <option value="">—</option>
-                                                    {a.subActivities
-                                                      ?.slice()
-                                                      .sort(
-                                                        (x, y) =>
-                                                          x.order - y.order,
-                                                      )
-                                                      .map((sub) => {
-                                                        const colUsed =
-                                                          getUsedInSlot(
-                                                            sessionMatrix,
-                                                            slotIdx,
-                                                            gId,
-                                                          );
-                                                        const rowUsed =
-                                                          getUsedInRow(
-                                                            sessionMatrix,
-                                                            gId,
-                                                            slotIdx,
-                                                          );
-                                                        const isCurrentVal =
-                                                          sessionMatrix[gId]?.[
-                                                            slotIdx
-                                                          ] === sub._id;
-                                                        const takenCol =
-                                                          !isCurrentVal &&
-                                                          colUsed.has(sub._id);
-                                                        const takenRow =
-                                                          !isCurrentVal &&
-                                                          rowUsed.has(sub._id);
-                                                        const disabled =
-                                                          takenCol || takenRow;
-                                                        return (
-                                                          <option
-                                                            key={sub._id}
-                                                            value={sub._id}
-                                                            disabled={disabled}
-                                                          >
-                                                            {sub.name}
-                                                            {takenCol
-                                                              ? " (columna)"
-                                                              : takenRow
-                                                                ? " (fila)"
-                                                                : ""}
-                                                          </option>
+                                                    <select
+                                                      value={currentVal}
+                                                      onChange={(e) => {
+                                                        updateSessionCell(
+                                                          rowIdx,
+                                                          colIdx,
+                                                          e.target.value,
                                                         );
-                                                      })}
-                                                  </select>
-                                                </td>
-                                              ))}
+                                                      }}
+                                                      className="w-full text-xs p-0.5 border-0 bg-transparent rounded focus:ring-1 focus:ring-blue-400"
+                                                    >
+                                                      <option value="">
+                                                        —
+                                                      </option>
+                                                      {a.subActivities
+                                                        ?.slice()
+                                                        .sort(
+                                                          (x, y) =>
+                                                            x.order - y.order,
+                                                        )
+                                                        .map((sub) => {
+                                                          const isCurrentVal =
+                                                            currentVal ===
+                                                            sub._id;
+                                                          const takenCol =
+                                                            !isCurrentVal &&
+                                                            colUsed.has(
+                                                              sub._id,
+                                                            );
+                                                          const takenRow =
+                                                            !isCurrentVal &&
+                                                            rowUsed.has(
+                                                              sub._id,
+                                                            );
+                                                          const disabled =
+                                                            takenCol ||
+                                                            takenRow;
+                                                          return (
+                                                            <option
+                                                              key={sub._id}
+                                                              value={sub._id}
+                                                              disabled={
+                                                                disabled
+                                                              }
+                                                            >
+                                                              {sub.name}
+                                                              {takenCol
+                                                                ? " (columna)"
+                                                                : takenRow
+                                                                  ? " (fila)"
+                                                                  : ""}
+                                                            </option>
+                                                          );
+                                                        })}
+                                                    </select>
+                                                  </td>
+                                                );
+                                              })}
                                             </tr>
                                           );
                                         })}
