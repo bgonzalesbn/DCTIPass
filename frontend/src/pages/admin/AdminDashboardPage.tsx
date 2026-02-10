@@ -17,7 +17,7 @@ type TabKey = (typeof tabs)[number]["key"];
 
 import AdminSchedulesTab from "./tabs/AdminSchedulesTab";
 import AdminActivitiesTab from "./tabs/AdminActivitiesTab";
-import AdminChallengesTab from "./tabs/AdminChallengesTab";
+import AdminAwardsTab from "./tabs/AdminAwardsTab";
 import AdminStickersTab from "./tabs/AdminStickersTab";
 import AdminGroupsTab from "./tabs/AdminGroupsTab";
 import AdminUsersTab from "./tabs/AdminUsersTab";
@@ -50,7 +50,7 @@ export default function AdminDashboardPage() {
       case "activities":
         return <AdminActivitiesTab />;
       case "challenges":
-        return <AdminChallengesTab />;
+        return <AdminAwardsTab />;
       case "stickers":
         return <AdminStickersTab />;
       case "groups":
@@ -67,7 +67,7 @@ export default function AdminDashboardPage() {
         { label: "Grupos", value: stats.totalGroups, icon: "👥" },
         { label: "Horarios", value: stats.totalSchedules, icon: "📅" },
         { label: "Stickers", value: stats.totalStickers, icon: "🏆" },
-        { label: "Retos", value: stats.totalChallenges, icon: "🎯" },
+        { label: "Retos", value: stats.totalAwards, icon: "🎯" },
       ]
     : [];
 
