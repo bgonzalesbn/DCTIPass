@@ -181,6 +181,10 @@ export class UpdateGroupSessionsDto {
   @IsOptional()
   sessionDuration?: number;
 
+  @IsString()
+  @IsOptional()
+  sessionStartTime?: string;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => GroupSessionDto)

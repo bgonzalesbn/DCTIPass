@@ -76,6 +76,7 @@ export interface AdminSchedule {
   startTime: string;
   endTime: string;
   sessionDuration?: number;
+  sessionStartTime?: string;
   subActivitySchedules: {
     subActivityId: string;
     name: string;

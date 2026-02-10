@@ -62,6 +62,7 @@ export default function AdminActivitiesTab() {
     null,
   );
   const [sessionDuration, setSessionDuration] = useState(30);
+  const [sessionStartTime, setSessionStartTime] = useState<string | null>(null);
   const [sessionMatrix, setSessionMatrix] = useState<Record<string, string>>(
     {},
   );
@@ -350,8 +351,13 @@ export default function AdminActivitiesTab() {
   // --- Cell key: "rowIndex_colIndex" => subActivityId ---
   const cellKey = (row: number, col: number) => `${row}_${col}`;
 
-  const initMatrix = (sch: AdminSchedule, dur: number) => {
-    const slots = generateSlots(sch.startTime, sch.endTime, dur);
+  const initMatrix = (
+    sch: AdminSchedule,
+    dur: number,
+    customStart?: string,
+  ) => {
+    const start = customStart || sch.sessionStartTime || sch.startTime;
+    const slots = generateSlots(start, sch.endTime, dur);
     const cells: Record<string, string> = {};
     const groupList = sch.groupIds || [];
 
@@ -399,8 +405,10 @@ export default function AdminActivitiesTab() {
       return;
     }
     const dur = sch.sessionDuration || 30;
+    const startT = sch.sessionStartTime || sch.startTime;
     setSessionDuration(dur);
-    setSessionMatrix(initMatrix(sch, dur));
+    setSessionStartTime(startT);
+    setSessionMatrix(initMatrix(sch, dur, startT));
     setExpandedScheduleId(sch._id);
   };
 
@@ -452,7 +460,7 @@ export default function AdminActivitiesTab() {
   const handleDurationChange = (sch: AdminSchedule, newDur: number) => {
     if (newDur < 5) return;
     setSessionDuration(newDur);
-    setSessionMatrix(initMatrix(sch, newDur));
+    setSessionMatrix(initMatrix(sch, newDur, sessionStartTime || undefined));
   };
 
   const autoRotate = (sch: AdminSchedule, act: AdminActivity) => {
@@ -463,7 +471,8 @@ export default function AdminActivitiesTab() {
       alert("Agrega subactividades primero");
       return;
     }
-    const slots = generateSlots(sch.startTime, sch.endTime, sessionDuration);
+    const start = sessionStartTime || sch.startTime;
+    const slots = generateSlots(start, sch.endTime, sessionDuration);
     const cells: Record<string, string> = {};
     const groupList = sch.groupIds || [];
     groupList.forEach((_, gi) => {
@@ -479,7 +488,8 @@ export default function AdminActivitiesTab() {
   const handleSaveSessions = async (sch: AdminSchedule, act: AdminActivity) => {
     setSavingSessions(true);
     try {
-      const slots = generateSlots(sch.startTime, sch.endTime, sessionDuration);
+      const start = sessionStartTime || sch.startTime;
+      const slots = generateSlots(start, sch.endTime, sessionDuration);
       const subs = act.subActivities || [];
       const groupList = sch.groupIds || [];
 
@@ -503,6 +513,7 @@ export default function AdminActivitiesTab() {
 
       await adminAPI.updateGroupSessions(sch._id, {
         sessionDuration,
+        sessionStartTime: sessionStartTime || sch.startTime,
         groupSessions,
       });
       loadActivitySchedules(act._id);
@@ -1130,6 +1141,29 @@ export default function AdminActivitiesTab() {
                                 <div className="flex flex-wrap items-center gap-3 mb-3">
                                   <div className="flex items-center gap-1">
                                     <label className="text-xs font-medium text-gray-700">
+                                      Inicio:
+                                    </label>
+                                    <input
+                                      type="time"
+                                      value={sessionStartTime || sch.startTime}
+                                      onChange={(e) => {
+                                        const newStart = e.target.value;
+                                        setSessionStartTime(newStart);
+                                        setSessionMatrix(
+                                          initMatrix(
+                                            sch,
+                                            sessionDuration,
+                                            newStart,
+                                          ),
+                                        );
+                                      }}
+                                      min={sch.startTime}
+                                      max={sch.endTime}
+                                      className="w-24 border rounded px-2 py-1 text-xs"
+                                    />
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <label className="text-xs font-medium text-gray-700">
                                       Duración (min):
                                     </label>
                                     <input
@@ -1173,7 +1207,7 @@ export default function AdminActivitiesTab() {
                                             Grupo
                                           </th>
                                           {generateSlots(
-                                            sch.startTime,
+                                            sessionStartTime || sch.startTime,
                                             sch.endTime,
                                             sessionDuration,
                                           ).map((slot) => (
@@ -1200,7 +1234,7 @@ export default function AdminActivitiesTab() {
                                             `Grupo ${rowIdx + 1}`;
                                           const totalRows = sch.groupIds.length;
                                           const slotsArr = generateSlots(
-                                            sch.startTime,
+                                            sessionStartTime || sch.startTime,
                                             sch.endTime,
                                             sessionDuration,
                                           );

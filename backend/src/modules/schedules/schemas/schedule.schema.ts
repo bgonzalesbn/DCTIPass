@@ -89,6 +89,9 @@ export class Schedule {
   @Prop({ type: Number, default: 30 })
   sessionDuration: number; // Duración de cada sesión en minutos
 
+  @Prop({ type: String, default: null })
+  sessionStartTime: string; // HH:mm - hora de inicio de subactividades (puede ser diferente al inicio del horario)
+
   @Prop({ type: [GroupSessionSchema], default: [] })
   groupSessions: GroupSession[]; // Distribución de sesiones por grupo
 

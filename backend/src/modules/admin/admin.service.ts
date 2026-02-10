@@ -335,6 +335,9 @@ export class AdminService {
     if (data.sessionDuration) {
       updateData.sessionDuration = data.sessionDuration;
     }
+    if (data.sessionStartTime !== undefined) {
+      updateData.sessionStartTime = data.sessionStartTime;
+    }
 
     const updated = await this.scheduleModel
       .findByIdAndUpdate(scheduleId, { $set: updateData }, { new: true })
