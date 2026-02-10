@@ -90,7 +90,9 @@ export default function AdminSchedulesTab() {
     setForm({
       title: s.title,
       activityId: s.activityId?._id || "",
-      groupIds: (s.groupIds || []).map((g) => g._id),
+      groupIds: (s.groupIds || []).map((g) =>
+        typeof g === "string" ? g : String(g._id),
+      ),
       date: s.date ? s.date.split("T")[0] : "",
       startTime: s.startTime,
       endTime: s.endTime,
