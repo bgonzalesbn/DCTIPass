@@ -8,10 +8,15 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "apple-touch-icon.svg", "mask-icon.svg"],
+      includeAssets: [
+        "favicon.ico",
+        "apple-touch-icon.svg",
+        "mask-icon.svg",
+        "dcti-pass-icon.jpg",
+      ],
       manifest: {
-        name: "IT Experience",
-        short_name: "ITExp",
+        name: "DCTI Pass",
+        short_name: "DCTIPass",
         description: "Plataforma de Aprendizaje Gamificada",
         theme_color: "#1e3a5f",
         background_color: "#1e3a5f",
@@ -21,19 +26,19 @@ export default defineConfig({
         start_url: "/",
         icons: [
           {
-            src: "pwa-192x192.svg",
+            src: "dcti-pass-icon.jpg",
             sizes: "192x192",
-            type: "image/svg+xml",
+            type: "image/jpeg",
           },
           {
-            src: "pwa-512x512.svg",
+            src: "dcti-pass-icon.jpg",
             sizes: "512x512",
-            type: "image/svg+xml",
+            type: "image/jpeg",
           },
           {
-            src: "pwa-512x512.svg",
+            src: "dcti-pass-icon.jpg",
             sizes: "512x512",
-            type: "image/svg+xml",
+            type: "image/jpeg",
             purpose: "any maskable",
           },
         ],

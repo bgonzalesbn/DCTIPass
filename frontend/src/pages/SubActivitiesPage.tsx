@@ -569,13 +569,13 @@ export default function SubActivitiesPage() {
             </button>
           </div>
           <p className="text-blue-200 text-sm">
-            {activity?.description || "Explora las subactividades y completa desafÃ­os"}
+            {activity?.description ||
+              "Explora las subactividades y completa desafÃ­os"}
           </p>
         </div>
       </div>
 
       <main className="max-w-2xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 -mt-12 pb-8 relative z-20">
-
         {/* Activity Header Card */}
         <div className="bg-gradient-to-r from-[#113780] to-[#0C2A5C] rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-8 mb-6 sm:mb-8 text-white">
           <div className="flex items-center gap-3 sm:gap-4 mb-4">
@@ -589,7 +589,7 @@ export default function SubActivitiesPage() {
             </div>
             <div className="min-w-0">
               <h2 className="text-xl sm:text-3xl font-bold text-white truncate">
-                {activity?.name || "IT Experience"}
+                {activity?.name || "DCTI Pass"}
               </h2>
               <p className="text-blue-200 mt-1 text-sm sm:text-base line-clamp-2">
                 {activity?.description ||
