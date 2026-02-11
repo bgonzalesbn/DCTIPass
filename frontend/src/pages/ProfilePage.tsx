@@ -178,36 +178,31 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      {/* Hero Header */}
-      <div className="bg-gradient-to-r from-blue-500 to-blue-600 relative overflow-hidden">
-        {/* Decorative circles */}
-        <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4" />
-        <div className="absolute bottom-0 left-10 w-24 h-24 bg-white/10 rounded-full translate-y-1/2" />
-        <div className="absolute top-6 left-1/3 w-16 h-16 bg-white/5 rounded-full" />
-
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-20 relative z-10">
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-xl sm:text-2xl font-bold text-white">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-500 to-blue-600">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-16">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-lg sm:text-xl font-semibold text-white">
               Mi Perfil
             </h1>
             <button
               onClick={() => navigate("/home")}
-              className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200"
+              className="bg-white/15 hover:bg-white/25 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
             >
               ← Volver
             </button>
           </div>
 
           {/* Avatar + Name */}
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/40 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold shadow-lg">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-white text-lg sm:text-xl font-bold">
               {initials}
             </div>
             <div className="text-white">
-              <h2 className="text-xl sm:text-2xl font-bold">
+              <h2 className="text-lg sm:text-xl font-semibold">
                 {user.firstName} {user.lastName}
               </h2>
-              <p className="text-blue-100 text-sm sm:text-base">{user.email}</p>
+              <p className="text-blue-100 text-sm">{user.email}</p>
             </div>
           </div>
         </div>
