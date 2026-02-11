@@ -4,6 +4,9 @@ import {
   MinLength,
   IsOptional,
   IsArray,
+  IsInt,
+  Min,
+  Max,
 } from "class-validator";
 import { Transform } from "class-transformer";
 
@@ -36,6 +39,21 @@ export class RegisterDto {
   @IsArray()
   @IsOptional()
   hobbies?: string[];
+
+  @IsInt()
+  @Min(1)
+  @Max(5)
+  survey_question_1: number;
+
+  @IsInt()
+  @Min(1)
+  @Max(5)
+  survey_question_2: number;
+
+  @IsInt()
+  @Min(1)
+  @Max(5)
+  survey_question_3: number;
 }
 
 export class LoginDto {

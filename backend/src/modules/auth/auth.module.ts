@@ -8,6 +8,10 @@ import {
   AuthCredential,
   AuthCredentialSchema,
 } from "./schemas/auth-credential.schema";
+import {
+  GeneralSurvey,
+  GeneralSurveySchema,
+} from "./schemas/general-survey.schema";
 import { AuthService } from "./auth.service";
 import { AuthController } from "./auth.controller";
 import { AuthCredentialService } from "./auth-credential.service";
@@ -19,6 +23,7 @@ import { JwtAuthGuard } from "./guards/jwt.guard";
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: AuthCredential.name, schema: AuthCredentialSchema },
+      { name: GeneralSurvey.name, schema: GeneralSurveySchema },
     ]),
     PassportModule,
     JwtModule.registerAsync({

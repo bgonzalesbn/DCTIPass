@@ -8,6 +8,10 @@ import { Model, Types } from "mongoose";
 import { InjectModel } from "@nestjs/mongoose";
 import { JwtService } from "@nestjs/jwt";
 import { User, UserDocument } from "../users/schemas/user.schema";
+import {
+  GeneralSurvey,
+  GeneralSurveyDocument,
+} from "./schemas/general-survey.schema";
 import { AuthCredentialService } from "./auth-credential.service";
 import { RegisterDto, LoginDto, AuthResponseDto } from "./dto/auth.dto";
 
@@ -19,6 +23,8 @@ export class AuthService {
 
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(GeneralSurvey.name)
+    private generalSurveyModel: Model<GeneralSurveyDocument>,
     private authCredentialService: AuthCredentialService,
     private jwtService: JwtService,
   ) {}
@@ -35,6 +41,9 @@ export class AuthService {
       password,
       direction,
       hobbies,
+      survey_question_1,
+      survey_question_2,
+      survey_question_3,
     } = registerDto;
 
     // Check for existing user
@@ -77,6 +86,20 @@ export class AuthService {
       // Rollback user creation if credentials fail
       await this.userModel.deleteOne({ _id: savedUser._id });
       throw new BadRequestException("Failed to create credentials");
+    }
+
+    // Save general survey responses
+    try {
+      await new this.generalSurveyModel({
+        employeeNumber,
+        question_1: survey_question_1,
+        question_2: survey_question_2,
+        question_3: survey_question_3,
+        timestamp: new Date(),
+      }).save();
+    } catch (surveyError) {
+      console.error("Failed to save survey:", surveyError);
+      // Non-critical: don't rollback user creation for survey failure
     }
 
     return this.generateSessionToken(

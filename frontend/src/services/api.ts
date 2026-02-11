@@ -51,6 +51,9 @@ interface RegisterData {
   direction: string;
   hobbies?: string[];
   password: string;
+  survey_question_1: number;
+  survey_question_2: number;
+  survey_question_3: number;
 }
 
 interface UpdateProfileData {
