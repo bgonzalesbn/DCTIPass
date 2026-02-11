@@ -129,13 +129,18 @@ export default function LoginPage() {
         />
       </svg>
 
-      {/* Logo DCTI Pass - directamente sobre el fondo */}
-      <div className="relative z-10 mb-6">
-        <img
-          src="/dcti-pass-logo.jpg"
-          alt="DCTI Pass"
-          className="w-48 h-48 object-contain drop-shadow-lg"
-        />
+      {/* Logo DCTI Pass - círculo con ilustración + texto */}
+      <div className="relative z-10 mb-6 flex flex-col items-center">
+        <div className="w-28 h-28 rounded-full overflow-hidden shadow-xl border-4 border-white/20 bg-[#2B4C8C]">
+          <img
+            src="/dcti-pass-logo.jpg"
+            alt="DCTI Pass"
+            className="w-[200%] h-[200%] object-cover -ml-[50%] -mt-[15%]"
+          />
+        </div>
+        <h2 className="text-white text-2xl font-bold mt-3 tracking-wider drop-shadow-md">
+          DCTI Pass
+        </h2>
       </div>
 
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md relative z-10 p-8">
