@@ -27,8 +27,15 @@ export class AuthService {
    * Register new user with auth credentials
    */
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
-    const { email, employeeNumber, firstName, lastName, password, direction } =
-      registerDto;
+    const {
+      email,
+      employeeNumber,
+      firstName,
+      lastName,
+      password,
+      direction,
+      hobbies,
+    } = registerDto;
 
     // Check for existing user
     const userExists = await this.userModel.findOne({
@@ -42,12 +49,18 @@ export class AuthService {
     }
 
     // Create user
+    const normalizedHobbies = (hobbies || [])
+      .filter((hobby) => typeof hobby === "string")
+      .map((hobby) => hobby.trim())
+      .filter((hobby) => hobby.length > 0);
+
     const user = new this.userModel({
       email: email.toLowerCase(),
       employeeNumber,
       firstName,
       lastName: lastName || null,
       direction: direction || null,
+      hobbies: normalizedHobbies,
       active: true,
       createdAt: new Date(),
     });

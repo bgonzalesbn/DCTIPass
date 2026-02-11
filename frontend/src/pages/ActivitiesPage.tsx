@@ -99,12 +99,12 @@ const StickerIcon = ({
 export default function ActivitiesPage() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [userGroup, setUserGroup] = useState<Group | null>(null);
-  const [userSchedule, setUserSchedule] = useState<Schedule | null>(null);
   const [completedSubActivityIds, setCompletedSubActivityIds] = useState<
     string[]
   >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [noGroupAssigned, setNoGroupAssigned] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -123,6 +123,7 @@ export default function ActivitiesPage() {
     try {
       setLoading(true);
       setError("");
+      setNoGroupAssigned(false);
 
       // Obtener perfil del usuario con su grupo y schedule
       const profileResponse = await usersAPI.getProfile();
@@ -138,7 +139,6 @@ export default function ActivitiesPage() {
 
       if (userData.group && userData.schedule) {
         setUserGroup(userData.group);
-        setUserSchedule(userData.schedule);
 
         // Si el schedule tiene una actividad asignada, mostrar solo esa
         if (userData.schedule.activityId) {
@@ -148,13 +148,16 @@ export default function ActivitiesPage() {
           setActivities([]);
         }
       } else {
+        setUserGroup(null);
         // Si el usuario no tiene grupo asignado, mostrar mensaje
         setActivities([]);
-        setError("No tienes un grupo asignado. Contacta al administrador.");
+        setError("No tienes un grupo asignado");
+        setNoGroupAssigned(true);
       }
     } catch (err) {
       console.error("Error loading user activities:", err);
       setError("Error cargando las actividades");
+      setNoGroupAssigned(false);
     } finally {
       setLoading(false);
     }
@@ -191,15 +194,23 @@ export default function ActivitiesPage() {
   }
 
   if (error) {
+    const handleErrorAction = () => {
+      if (noGroupAssigned) {
+        navigate("/home");
+        return;
+      }
+      loadUserActivities();
+    };
+
     return (
       <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
           <p className="text-lg text-red-600 mb-4">{error}</p>
           <button
-            onClick={loadUserActivities}
+            onClick={handleErrorAction}
             className="bg-[#113780] hover:bg-[#0C2A5C] text-white px-6 py-2 rounded-lg"
           >
-            Reintentar
+            {noGroupAssigned ? "Volver al menu principal" : "Reintentar"}
           </button>
         </div>
       </div>
@@ -228,38 +239,21 @@ export default function ActivitiesPage() {
           </button>
         </div>
 
-        {/* Información del Grupo y Horario */}
-        {userGroup && userSchedule && (
+        {/* Información del Grupo */}
+        {userGroup && (
           <div className="bg-white rounded-xl shadow-md p-3 sm:p-4 mb-4 sm:mb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className="bg-[#113780]/10 rounded-full p-2 sm:p-3 flex-shrink-0">
-                  <span className="text-xl sm:text-2xl">👥</span>
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs sm:text-sm text-gray-500">Tu Grupo</p>
-                  <p className="text-base sm:text-lg font-bold text-gray-800 truncate">
-                    {userGroup.name}
-                  </p>
-                  <p className="text-xs sm:text-sm text-[#113780]">
-                    {userGroup.shift}
-                  </p>
-                </div>
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="bg-[#113780]/10 rounded-full p-2 sm:p-3 flex-shrink-0">
+                <span className="text-xl sm:text-2xl">👥</span>
               </div>
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className="bg-green-100 rounded-full p-2 sm:p-3 flex-shrink-0">
-                  <span className="text-xl sm:text-2xl">📅</span>
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs sm:text-sm text-gray-500">Tu Horario</p>
-                  <p className="text-base sm:text-lg font-bold text-gray-800 truncate">
-                    {userSchedule.title}
-                  </p>
-                  <p className="text-xs sm:text-sm text-green-600">
-                    {new Date(userSchedule.date).toLocaleDateString("es-CR")} •{" "}
-                    {userSchedule.startTime} - {userSchedule.endTime}
-                  </p>
-                </div>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-gray-500">Tu Grupo</p>
+                <p className="text-base sm:text-lg font-bold text-gray-800 truncate">
+                  {userGroup.name}
+                </p>
+                <p className="text-xs sm:text-sm text-[#113780]">
+                  {userGroup.shift}
+                </p>
               </div>
             </div>
           </div>
