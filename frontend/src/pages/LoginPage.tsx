@@ -135,7 +135,7 @@ export default function LoginPage() {
           <img
             src="/dcti-pass-logo.png"
             alt="DCTI Pass"
-            className="w-full h-full object-contain"
+            className="w-full h-full object-contain scale-125"
           />
         </div>
       </div>
