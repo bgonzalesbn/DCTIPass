@@ -184,7 +184,7 @@ export default function ActivitiesPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#113780] mx-auto mb-4"></div>
           <p className="text-lg text-gray-600">Cargando actividades...</p>
@@ -203,7 +203,7 @@ export default function ActivitiesPage() {
     };
 
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="text-center">
           <p className="text-lg text-red-600 mb-4">{error}</p>
           <button
@@ -218,56 +218,59 @@ export default function ActivitiesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-3 sm:p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
-          <div>
-            <h1 className="text-2xl sm:text-4xl font-bold text-gray-800 mb-1 sm:mb-2">
-              🎮 Actividades
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-[#113780] to-[#0C2A5C]">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-16">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-lg sm:text-xl font-semibold text-white">
+              Actividades
             </h1>
-            <p className="text-sm sm:text-base text-gray-600">
-              Explora las actividades y completa desafíos para ganar puntos e
-              insignias
-            </p>
+            <button
+              onClick={() => navigate("/")}
+              className="bg-white/15 hover:bg-white/25 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+            >
+              ← Volver
+            </button>
           </div>
-          <button
-            onClick={() => navigate("/")}
-            className="text-[#113780] hover:text-[#0C2A5C] font-semibold flex items-center gap-2 text-sm sm:text-base self-start sm:self-auto"
-          >
-            ← Volver
-          </button>
+          <p className="text-blue-200 text-sm">
+            Explora las actividades y completa desafíos para ganar puntos e
+            insignias
+          </p>
         </div>
+      </div>
 
+      {/* Main Content */}
+      <main className="max-w-2xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 -mt-12 pb-8 relative z-20">
         {/* Información del Grupo */}
         {userGroup && (
-          <div className="bg-white rounded-xl shadow-md p-3 sm:p-4 mb-4 sm:mb-6">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="bg-[#113780]/10 rounded-full p-2 sm:p-3 flex-shrink-0">
-                <span className="text-xl sm:text-2xl">👥</span>
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs sm:text-sm text-gray-500">Tu Grupo</p>
-                <p className="text-base sm:text-lg font-bold text-gray-800 truncate">
-                  {userGroup.name}
-                </p>
-                <p className="text-xs sm:text-sm text-[#113780]">
-                  {userGroup.shift}
-                </p>
-              </div>
+          <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-4 sm:p-5 mb-4 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-[#113780]/10 flex items-center justify-center text-xl flex-shrink-0">
+              👥
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                Tu Grupo
+              </p>
+              <p className="text-base sm:text-lg font-bold text-gray-900 truncate">
+                {userGroup.name}
+              </p>
+              <p className="text-xs sm:text-sm text-[#113780]">
+                {userGroup.shift}
+              </p>
             </div>
           </div>
         )}
 
         {/* Activities Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="space-y-4">
           {activities.map((activity) => {
             const progress = calculateProgress(activity);
             return (
               <div
                 key={activity._id}
                 onClick={() => handleActivityClick(activity)}
-                className="bg-white rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-2 overflow-hidden group"
+                className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 group"
               >
                 {/* Card Header con gradiente */}
                 <div
@@ -280,7 +283,7 @@ export default function ActivitiesPage() {
                       className="text-4xl sm:text-5xl"
                       imgClassName="w-12 h-12 sm:w-16 sm:h-16"
                     />
-                    <div className="bg-white/20 rounded-full px-3 py-1 sm:px-4 sm:py-2 text-white text-xs sm:text-sm font-semibold whitespace-nowrap">
+                    <div className="bg-white/20 rounded-lg px-3 py-1.5 text-white text-xs sm:text-sm font-semibold whitespace-nowrap">
                       {activity.subActivities?.length || 0} sub-actividades
                     </div>
                   </div>
@@ -288,24 +291,24 @@ export default function ActivitiesPage() {
 
                 {/* Card Body */}
                 <div className="p-4 sm:p-6">
-                  <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2 group-hover:text-[#113780] transition-colors">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 group-hover:text-[#113780] transition-colors">
                     {activity.name}
                   </h3>
-                  <p className="text-gray-600 mb-4 line-clamp-2 text-sm sm:text-base">
+                  <p className="text-gray-500 mb-4 line-clamp-2 text-sm">
                     {activity.description}
                   </p>
 
                   {/* Progress Bar */}
                   <div className="mb-4">
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-500">Progreso</span>
+                      <span className="text-gray-400">Progreso</span>
                       <span className="font-semibold text-[#113780]">
                         {progress}%
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div className="w-full bg-gray-100 rounded-full h-2">
                       <div
-                        className={`bg-gradient-to-r ${activity.color || "from-[#113780] to-[#0C2A5C]"} h-2.5 rounded-full transition-all duration-500`}
+                        className={`bg-gradient-to-r ${activity.color || "from-[#113780] to-[#0C2A5C]"} h-2 rounded-full transition-all duration-500`}
                         style={{ width: `${progress}%` }}
                       ></div>
                     </div>
@@ -313,11 +316,11 @@ export default function ActivitiesPage() {
 
                   {/* Footer */}
                   <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                    <div className="flex items-center gap-2 text-gray-500 text-sm">
+                    <div className="flex items-center gap-2 text-gray-400 text-sm">
                       <span>🏆</span>
                       <span>Insignias disponibles</span>
                     </div>
-                    <span className="text-[#113780] font-semibold group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                    <span className="text-[#113780] font-semibold group-hover:translate-x-1 transition-transform flex items-center gap-1 text-sm">
                       Explorar
                       <svg
                         className="w-4 h-4"
@@ -342,17 +345,17 @@ export default function ActivitiesPage() {
 
         {/* Empty State */}
         {activities.length === 0 && (
-          <div className="text-center py-16">
-            <div className="text-6xl mb-4">📭</div>
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">
+          <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-12 text-center">
+            <div className="text-5xl mb-4">📭</div>
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">
               No hay actividades disponibles
             </h3>
-            <p className="text-gray-500">
+            <p className="text-gray-400 text-sm">
               Las actividades aparecerán aquí cuando estén disponibles.
             </p>
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }

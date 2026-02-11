@@ -179,7 +179,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-500 to-blue-600">
+      <div className="bg-gradient-to-r from-[#113780] to-[#0C2A5C]">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-16">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-lg sm:text-xl font-semibold text-white">
@@ -242,8 +242,8 @@ export default function ProfilePage() {
             <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
               {/* Personal Info Section */}
               <div className="p-4 sm:p-6">
-                <h3 className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                <h3 className="text-xs font-bold text-[#113780] uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#113780]"></span>
                   Información Personal
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -289,13 +289,13 @@ export default function ProfilePage() {
               {/* Group Section */}
               {user.group && (
                 <div className="border-t border-gray-100 p-4 sm:p-6">
-                  <h3 className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                  <h3 className="text-xs font-bold text-[#113780] uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#113780]"></span>
                     Grupo Asignado
                   </h3>
-                  <div className="bg-gradient-to-r from-blue-500/10 to-blue-600/10 rounded-xl p-4 border border-blue-100">
+                  <div className="bg-[#113780]/5 rounded-xl p-4 border border-[#113780]/10">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-lg shadow-sm">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#113780] to-[#0C2A5C] flex items-center justify-center text-white text-lg shadow-sm">
                         👥
                       </div>
                       <div className="min-w-0">
@@ -324,11 +324,11 @@ export default function ProfilePage() {
               {/* Schedule Section */}
               {user.schedule && (
                 <div className="border-t border-gray-100 p-4 sm:p-6">
-                  <h3 className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                  <h3 className="text-xs font-bold text-[#113780] uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#113780]"></span>
                     Cronograma Asignado
                   </h3>
-                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-4 text-white shadow-md">
+                  <div className="bg-gradient-to-r from-[#113780] to-[#0C2A5C] rounded-xl p-4 text-white shadow-md">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
                       <h4 className="font-bold text-base sm:text-lg">
                         {user.schedule.title}
@@ -389,8 +389,8 @@ export default function ProfilePage() {
 
               {/* Hobbies Section */}
               <div className="border-t border-gray-100 p-4 sm:p-6">
-                <h3 className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                <h3 className="text-xs font-bold text-[#113780] uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#113780]"></span>
                   Hobbies
                 </h3>
                 {user.hobbies && user.hobbies.length > 0 ? (
@@ -398,7 +398,7 @@ export default function ProfilePage() {
                     {user.hobbies.map((hobby, idx) => (
                       <span
                         key={idx}
-                        className="inline-block bg-gradient-to-r from-blue-500/10 to-blue-600/10 text-blue-700 text-sm font-semibold px-4 py-1.5 rounded-full border border-blue-200"
+                        className="inline-block bg-[#113780]/10 text-[#113780] text-sm font-semibold px-4 py-1.5 rounded-full border border-[#113780]/20"
                       >
                         {hobby}
                       </span>
@@ -419,7 +419,7 @@ export default function ProfilePage() {
                   setIsEditing(true);
                   setHobbies(user.hobbies || []);
                 }}
-                className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-md hover:shadow-lg"
+                className="flex-1 bg-[#113780] hover:bg-[#0C2A5C] text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-md hover:shadow-lg"
               >
                 ✏️ Editar Perfil
               </button>
@@ -446,7 +446,7 @@ export default function ProfilePage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-gray-50 focus:bg-white"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#113780] focus:border-transparent outline-none transition bg-gray-50 focus:bg-white"
                   required
                 />
               </div>
@@ -467,13 +467,13 @@ export default function ProfilePage() {
                         handleAddHobby();
                       }
                     }}
-                    className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-gray-50 focus:bg-white"
+                    className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#113780] focus:border-transparent outline-none transition bg-gray-50 focus:bg-white"
                     placeholder="Escribe un hobby y presiona Enter"
                   />
                   <button
                     type="button"
                     onClick={handleAddHobby}
-                    className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-5 py-3 rounded-xl font-semibold transition-all duration-200 shadow-sm"
+                    className="bg-[#113780] hover:bg-[#0C2A5C] text-white px-5 py-3 rounded-xl font-semibold transition-all duration-200 shadow-sm"
                   >
                     Agregar
                   </button>
@@ -484,13 +484,13 @@ export default function ProfilePage() {
                     {hobbies.map((hobby, idx) => (
                       <span
                         key={idx}
-                        className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500/10 to-blue-600/10 text-blue-700 text-sm font-semibold px-4 py-1.5 rounded-full border border-blue-200"
+                        className="inline-flex items-center gap-2 bg-[#113780]/10 text-[#113780] text-sm font-semibold px-4 py-1.5 rounded-full border border-[#113780]/20"
                       >
                         {hobby}
                         <button
                           type="button"
                           onClick={() => handleRemoveHobby(hobby)}
-                          className="ml-1 hover:text-blue-900 font-bold text-blue-400"
+                          className="ml-1 hover:text-[#0C2A5C] font-bold text-[#113780]/50"
                         >
                           ×
                         </button>
@@ -505,7 +505,7 @@ export default function ProfilePage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 shadow-md"
+                  className="flex-1 bg-[#113780] hover:bg-[#0C2A5C] text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 shadow-md"
                 >
                   {loading ? "Guardando..." : "💾 Guardar Cambios"}
                 </button>

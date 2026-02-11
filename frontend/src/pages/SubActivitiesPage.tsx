@@ -527,7 +527,7 @@ export default function SubActivitiesPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#113780] mx-auto mb-4"></div>
           <p className="text-lg text-gray-600">Cargando subactividades...</p>
@@ -538,7 +538,7 @@ export default function SubActivitiesPage() {
 
   if (error) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="text-center">
           <p className="text-lg text-red-600 mb-4">{error}</p>
           <button
@@ -553,26 +553,28 @@ export default function SubActivitiesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-3 sm:p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
-          <div>
-            <h1 className="text-2xl sm:text-4xl font-bold text-gray-800 mb-1 sm:mb-2">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-[#113780] to-[#0C2A5C]">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-16">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-lg sm:text-xl font-semibold text-white truncate">
               {activity?.name || "Actividad"}
             </h1>
-            <p className="text-sm sm:text-base text-gray-600">
-              {activity?.description ||
-                "Explora las subactividades y completa desafíos"}
-            </p>
+            <button
+              onClick={() => navigate("/activities")}
+              className="bg-white/15 hover:bg-white/25 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex-shrink-0"
+            >
+              ← Volver
+            </button>
           </div>
-          <button
-            onClick={() => navigate("/activities")}
-            className="text-[#113780] hover:text-[#0C2A5C] font-semibold flex items-center gap-2 text-sm sm:text-base self-start sm:self-auto"
-          >
-            ← Volver
-          </button>
+          <p className="text-blue-200 text-sm">
+            {activity?.description || "Explora las subactividades y completa desafíos"}
+          </p>
         </div>
+      </div>
+
+      <main className="max-w-2xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 -mt-12 pb-8 relative z-20">
 
         {/* Activity Header Card */}
         <div className="bg-gradient-to-r from-[#113780] to-[#0C2A5C] rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-8 mb-6 sm:mb-8 text-white">

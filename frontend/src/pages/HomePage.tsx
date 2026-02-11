@@ -82,64 +82,127 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#113780] truncate">
-            Hola, {user.firstName}
-          </h1>
-          <div className="flex items-center gap-4">
+      <div className="bg-gradient-to-r from-[#113780] to-[#0C2A5C]">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-16">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-lg sm:text-xl font-semibold text-white truncate">
+              DCTI Pass
+            </h1>
             <button
               onClick={handleLogout}
-              className="bg-[#113780] hover:bg-[#0C2A5C] text-white px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base w-full sm:w-auto"
+              className="bg-white/15 hover:bg-white/25 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
             >
               Cerrar Sesión
             </button>
           </div>
-        </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-white text-lg sm:text-xl font-bold">
+              {`${user.firstName?.charAt(0) || ""}${user.lastName?.charAt(0) || ""}`.toUpperCase()}
+            </div>
+            <div className="text-white">
+              <h2 className="text-lg sm:text-xl font-semibold">
+                Hola, {user.firstName}
+              </h2>
+              <p className="text-blue-200 text-sm">Bienvenido de vuelta</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content — overlaps the hero */}
+      <main className="max-w-2xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 -mt-12 pb-8 relative z-20">
+        <div className="space-y-3">
           <button
             onClick={() => navigate("/activities")}
-            className="bg-white rounded-lg shadow hover:shadow-lg p-4 sm:p-6 md:p-8 text-left transition group"
+            className="w-full bg-white rounded-2xl shadow-md border border-gray-100 p-5 sm:p-6 text-left transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 group flex items-center gap-4"
           >
-            <div className="text-3xl sm:text-4xl mb-2 sm:mb-4">✅</div>
-            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 group-hover:text-[#113780]">
-              Actividades
-            </h2>
-            <p className="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">
-              Completa actividades y gana puntos
-            </p>
+            <div className="w-12 h-12 rounded-xl bg-[#113780]/10 flex items-center justify-center text-2xl flex-shrink-0 group-hover:bg-[#113780]/15 transition">
+              ✅
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900 group-hover:text-[#113780] transition">
+                Actividades
+              </h2>
+              <p className="text-gray-500 text-sm">
+                Completa actividades y gana puntos
+              </p>
+            </div>
+            <svg
+              className="w-5 h-5 text-gray-300 group-hover:text-[#113780] transition ml-auto flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
           </button>
 
           <button
             onClick={() => navigate("/badges")}
-            className="bg-white rounded-lg shadow hover:shadow-lg p-4 sm:p-6 md:p-8 text-left transition group"
+            className="w-full bg-white rounded-2xl shadow-md border border-gray-100 p-5 sm:p-6 text-left transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 group flex items-center gap-4"
           >
-            <div className="text-3xl sm:text-4xl mb-2 sm:mb-4">🏆</div>
-            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 group-hover:text-[#113780]">
-              Insignias
-            </h2>
-            <p className="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">
-              Obtén insignias y reconocimiento
-            </p>
+            <div className="w-12 h-12 rounded-xl bg-[#113780]/10 flex items-center justify-center text-2xl flex-shrink-0 group-hover:bg-[#113780]/15 transition">
+              🏆
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900 group-hover:text-[#113780] transition">
+                Insignias
+              </h2>
+              <p className="text-gray-500 text-sm">
+                Obtén insignias y reconocimiento
+              </p>
+            </div>
+            <svg
+              className="w-5 h-5 text-gray-300 group-hover:text-[#113780] transition ml-auto flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
           </button>
 
           <button
             onClick={() => navigate("/profile")}
-            className="bg-white rounded-lg shadow hover:shadow-lg p-4 sm:p-6 md:p-8 text-left transition group"
+            className="w-full bg-white rounded-2xl shadow-md border border-gray-100 p-5 sm:p-6 text-left transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 group flex items-center gap-4"
           >
-            <div className="text-3xl sm:text-4xl mb-2 sm:mb-4">👤</div>
-            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 group-hover:text-[#113780]">
-              Perfil
-            </h2>
-            <p className="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">
-              Gestiona tu información personal
-            </p>
+            <div className="w-12 h-12 rounded-xl bg-[#113780]/10 flex items-center justify-center text-2xl flex-shrink-0 group-hover:bg-[#113780]/15 transition">
+              👤
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900 group-hover:text-[#113780] transition">
+                Perfil
+              </h2>
+              <p className="text-gray-500 text-sm">
+                Gestiona tu información personal
+              </p>
+            </div>
+            <svg
+              className="w-5 h-5 text-gray-300 group-hover:text-[#113780] transition ml-auto flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
           </button>
         </div>
       </main>
