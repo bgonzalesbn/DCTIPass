@@ -261,19 +261,19 @@ export default function RegisterPage() {
                 key: 1,
                 value: surveyQ1,
                 setter: setSurveyQ1,
-                text: "Entiendo cómo las direcciones de TI se conectan para generar valor",
+                text: "¿Entiendo cómo las direcciones de TI se conectan para generar valor?",
               },
               {
                 key: 2,
                 value: surveyQ2,
                 setter: setSurveyQ2,
-                text: "Tengo claridad de cómo mi trabajo impacta a otras áreas dentro de TI",
+                text: "¿Tengo claridad de cómo mi trabajo impacta a otras áreas dentro de TI?",
               },
               {
                 key: 3,
                 value: surveyQ3,
                 setter: setSurveyQ3,
-                text: "Me siento parte de un sistema integrado dentro de TI",
+                text: "¿Me siento parte de un sistema integrado dentro de TI?",
               },
             ].map((q) => (
               <div key={q.key} className="mb-5">
