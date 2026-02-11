@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+﻿import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { activitiesAPI, usersAPI, awardsAPI } from "../services/api";
 import QuestionModal from "../components/QuestionModal";
@@ -74,7 +74,7 @@ interface SubActivityWithStatus extends SubActivity {
 // Helper para obtener el icono/imagen del sticker
 const getStickerDisplay = (
   stickerId?: Sticker | string,
-  defaultIcon: string = "🎯",
+  defaultIcon: string = "ðŸŽ¯",
 ) => {
   if (!stickerId || typeof stickerId === "string") {
     return { type: "emoji" as const, value: defaultIcon };
@@ -91,7 +91,7 @@ const getStickerDisplay = (
 // Componente para mostrar el sticker
 const StickerIcon = ({
   stickerId,
-  defaultIcon = "🎯",
+  defaultIcon = "ðŸŽ¯",
   className = "text-4xl",
   imgClassName = "",
 }: {
@@ -156,22 +156,22 @@ export default function SubActivitiesPage() {
   const [awardsStatus, setAwardsStatus] = useState<
     Record<string, { hasAward: boolean; completed: boolean }>
   >({});
-  // Referencia a la subactividad que está respondiendo (no se limpia al abrir modal de pregunta)
+  // Referencia a la subactividad que estÃ¡ respondiendo (no se limpia al abrir modal de pregunta)
   const [answeringSubActivity, setAnsweringSubActivity] =
     useState<SubActivityWithStatus | null>(null);
 
   const navigate = useNavigate();
 
-  // Función para verificar si estamos en el día correcto del schedule
+  // FunciÃ³n para verificar si estamos en el dÃ­a correcto del schedule
   const isScheduleDay = useCallback((schedule: Schedule | null): boolean => {
     if (!schedule?.date) {
-      return true; // Si no hay schedule, asumimos que es válido
+      return true; // Si no hay schedule, asumimos que es vÃ¡lido
     }
 
     const today = new Date();
     const scheduleDate = new Date(schedule.date);
 
-    // Comparar solo año, mes y día
+    // Comparar solo aÃ±o, mes y dÃ­a
     return (
       today.getFullYear() === scheduleDate.getFullYear() &&
       today.getMonth() === scheduleDate.getMonth() &&
@@ -179,15 +179,15 @@ export default function SubActivitiesPage() {
     );
   }, []);
 
-  // Función para verificar si una subactividad está dentro de su horario
+  // FunciÃ³n para verificar si una subactividad estÃ¡ dentro de su horario
   const isWithinSchedule = useCallback(
     (subActivity: SubActivity, schedule: Schedule | null): boolean => {
-      // Primero verificar si estamos en el día correcto
+      // Primero verificar si estamos en el dÃ­a correcto
       if (!isScheduleDay(schedule)) {
         return false;
       }
 
-      // Si la subactividad no tiene horario específico, está disponible todo el día del schedule
+      // Si la subactividad no tiene horario especÃ­fico, estÃ¡ disponible todo el dÃ­a del schedule
       if (!subActivity.startTime || !subActivity.endTime) {
         return true;
       }
@@ -196,14 +196,14 @@ export default function SubActivitiesPage() {
       const currentTime = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
 
       // Para la subactividad, solo verificamos que ya haya comenzado su horario
-      // (no bloqueamos si ya pasó la hora de fin, para permitir completarla tarde)
+      // (no bloqueamos si ya pasÃ³ la hora de fin, para permitir completarla tarde)
       const hasStarted = currentTime >= subActivity.startTime;
       return hasStarted;
     },
     [isScheduleDay],
   );
 
-  // Función para determinar el estado de cada subactividad
+  // FunciÃ³n para determinar el estado de cada subactividad
   const calculateSubActivityStatus = useCallback(
     (
       subActivitiesData: SubActivity[],
@@ -221,15 +221,15 @@ export default function SubActivitiesPage() {
           completedIds.includes(sub._id) ||
           awardsStatusData[sub._id]?.completed;
 
-        // La primera subactividad siempre puede estar desbloqueada si es el día del schedule
-        // Las siguientes solo si la anterior está completada Y está en horario
+        // La primera subactividad siempre puede estar desbloqueada si es el dÃ­a del schedule
+        // Las siguientes solo si la anterior estÃ¡ completada Y estÃ¡ en horario
         let isUnlocked = false;
 
         if (index === 0) {
-          // Primera subactividad: desbloqueada si es el día del schedule y está en horario (o no tiene horario específico)
+          // Primera subactividad: desbloqueada si es el dÃ­a del schedule y estÃ¡ en horario (o no tiene horario especÃ­fico)
           isUnlocked = isWithinSchedule(sub, schedule);
         } else {
-          // Verificar si la subactividad anterior está completada
+          // Verificar si la subactividad anterior estÃ¡ completada
           const previousSub = subActivitiesData[index - 1];
           const previousCompleted =
             completedIds.includes(previousSub._id) ||
@@ -237,12 +237,12 @@ export default function SubActivitiesPage() {
           isUnlocked = previousCompleted && isWithinSchedule(sub, schedule);
         }
 
-        // Una subactividad completada siempre está "desbloqueada"
+        // Una subactividad completada siempre estÃ¡ "desbloqueada"
         if (isCompleted) {
           isUnlocked = true;
         }
 
-        // Solo la primera subactividad desbloqueada y no completada está "activa"
+        // Solo la primera subactividad desbloqueada y no completada estÃ¡ "activa"
         let isActive = false;
         if (isUnlocked && !isCompleted && !foundFirstUnlocked) {
           isActive = true;
@@ -385,7 +385,7 @@ export default function SubActivitiesPage() {
     setSelectedActivity(null);
   };
 
-  // Función para abrir el modal de pregunta
+  // FunciÃ³n para abrir el modal de pregunta
   const handleAnswerQuestion = async (subActivity: SubActivityWithStatus) => {
     try {
       const response = await awardsAPI.getAwardBySubActivity(subActivity._id);
@@ -403,7 +403,7 @@ export default function SubActivitiesPage() {
     }
   };
 
-  // Función para enviar respuesta
+  // FunciÃ³n para enviar respuesta
   const handleSubmitAnswer = async (answer: string) => {
     if (!currentAward) return;
 
@@ -516,7 +516,7 @@ export default function SubActivitiesPage() {
     return `${hour12}:${minutes} ${ampm}`;
   };
 
-  // Calcular estadísticas
+  // Calcular estadÃ­sticas
   const completedCount = subActivities.filter((s) => s.isCompleted).length;
   const totalCount = subActivities.length;
   const progressPercentage =
@@ -565,11 +565,11 @@ export default function SubActivitiesPage() {
               onClick={() => navigate("/activities")}
               className="bg-white/15 hover:bg-white/25 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex-shrink-0"
             >
-              ← Volver
+              â† Volver
             </button>
           </div>
           <p className="text-blue-200 text-sm">
-            {activity?.description || "Explora las subactividades y completa desafíos"}
+            {activity?.description || "Explora las subactividades y completa desafÃ­os"}
           </p>
         </div>
       </div>
@@ -582,7 +582,7 @@ export default function SubActivitiesPage() {
             <div className="text-4xl sm:text-5xl flex-shrink-0">
               <StickerIcon
                 stickerId={activity?.stickerId}
-                defaultIcon="🏢"
+                defaultIcon="ðŸ¢"
                 className="text-4xl sm:text-5xl"
                 imgClassName="w-12 h-12 sm:w-16 sm:h-16"
               />
@@ -593,7 +593,7 @@ export default function SubActivitiesPage() {
               </h2>
               <p className="text-blue-200 mt-1 text-sm sm:text-base line-clamp-2">
                 {activity?.description ||
-                  "Programa principal de desarrollo tecnológico"}
+                  "Programa principal de desarrollo tecnolÃ³gico"}
               </p>
             </div>
           </div>
@@ -624,7 +624,7 @@ export default function SubActivitiesPage() {
             </div>
             <div className="bg-white/20 rounded-lg p-3 sm:p-4 text-center">
               <div className="text-lg sm:text-2xl font-bold text-white">
-                {earnedBadgesCount} 🏆
+                {earnedBadgesCount} ðŸ†
               </div>
               <div className="text-xs sm:text-sm text-blue-200">
                 Insignias Ganadas
@@ -654,7 +654,7 @@ export default function SubActivitiesPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="bg-[#113780]/10 rounded-full p-2 sm:p-3 flex-shrink-0">
-                  <span className="text-xl sm:text-2xl">👥</span>
+                  <span className="text-xl sm:text-2xl">ðŸ‘¥</span>
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-gray-500">Tu Grupo</p>
@@ -668,7 +668,7 @@ export default function SubActivitiesPage() {
               </div>
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="bg-green-100 rounded-full p-2 sm:p-3 flex-shrink-0">
-                  <span className="text-xl sm:text-2xl">📅</span>
+                  <span className="text-xl sm:text-2xl">ðŸ“…</span>
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-gray-500">Tu Horario</p>
@@ -676,7 +676,7 @@ export default function SubActivitiesPage() {
                     {userSchedule.title}
                   </p>
                   <p className="text-xs sm:text-sm text-green-600">
-                    {formatDate(userSchedule.date)} •{" "}
+                    {formatDate(userSchedule.date)} â€¢{" "}
                     {formatTime(userSchedule.startTime)} -{" "}
                     {formatTime(userSchedule.endTime)}
                   </p>
@@ -688,7 +688,7 @@ export default function SubActivitiesPage() {
 
         {/* Sub-Activities Grid */}
         <h3 className="text-lg sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">
-          📋 Sub-actividades del día
+          ðŸ“‹ Sub-actividades del dÃ­a
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {subActivities.map((subActivity) => (
@@ -710,12 +710,12 @@ export default function SubActivitiesPage() {
               {/* Banner de estado */}
               {subActivity.isCompleted && (
                 <div className="absolute top-0 right-0 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg z-10">
-                  ✅ COMPLETADO
+                  âœ… COMPLETADO
                 </div>
               )}
               {subActivity.isActive && !subActivity.isCompleted && (
                 <div className="absolute top-0 right-0 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg z-10 animate-bounce shadow-lg">
-                  🔔 ACTIVO
+                  ðŸ”” ACTIVO
                 </div>
               )}
 
@@ -731,12 +731,12 @@ export default function SubActivitiesPage() {
                   <div className={subActivity.isUnlocked ? "" : "grayscale"}>
                     <StickerIcon
                       stickerId={subActivity.stickerId}
-                      defaultIcon="🎯"
+                      defaultIcon="ðŸŽ¯"
                       imgClassName="w-8 h-8 sm:w-10 sm:h-10"
                     />
                   </div>
 
-                  {/* Mostrar candado si está bloqueada */}
+                  {/* Mostrar candado si estÃ¡ bloqueada */}
                   {!subActivity.isUnlocked && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-t-xl">
                       <div className="bg-white/90 rounded-full p-3">
@@ -749,7 +749,7 @@ export default function SubActivitiesPage() {
                     subActivity.endTime &&
                     subActivity.isUnlocked && (
                       <span className="bg-white/90 text-gray-800 text-xs sm:text-sm font-semibold px-2 sm:px-3 py-1 rounded-full flex items-center gap-1 whitespace-nowrap">
-                        🕐 {formatTime(subActivity.startTime)} -{" "}
+                        ðŸ• {formatTime(subActivity.startTime)} -{" "}
                         {formatTime(subActivity.endTime)}
                       </span>
                     )}
@@ -798,14 +798,14 @@ export default function SubActivitiesPage() {
                     {subActivity.isCompleted
                       ? "Completado"
                       : subActivity.isActive
-                        ? "🎯 ¡Tu turno!"
+                        ? "ðŸŽ¯ Â¡Tu turno!"
                         : subActivity.isUnlocked
-                          ? "🔓 Disponible"
-                          : "🔒 Bloqueado"}
+                          ? "ðŸ”“ Disponible"
+                          : "ðŸ”’ Bloqueado"}
                   </span>
                   {subActivity.isActive && !subActivity.isCompleted && (
                     <span className="text-orange-500 font-bold hover:text-orange-600 flex items-center gap-1 animate-pulse">
-                      Iniciar →
+                      Iniciar â†’
                     </span>
                   )}
                 </div>
@@ -814,7 +814,7 @@ export default function SubActivitiesPage() {
                 {subActivity.isActive && !subActivity.isCompleted && (
                   <div className="mt-4 bg-gradient-to-r from-orange-500 to-red-500 text-white text-center py-2 px-3 rounded-lg animate-pulse shadow-md">
                     <span className="text-sm font-bold">
-                      🎯 ¡Responde la pregunta para completar!
+                      ðŸŽ¯ Â¡Responde la pregunta para completar!
                     </span>
                   </div>
                 )}
@@ -827,7 +827,7 @@ export default function SubActivitiesPage() {
         {selectedActivity && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden max-h-[90vh] overflow-y-auto">
-              {/* Si está completado, mostrar solo la insignia ganada */}
+              {/* Si estÃ¡ completado, mostrar solo la insignia ganada */}
               {selectedActivity.isCompleted ? (
                 <>
                   <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 text-white">
@@ -844,22 +844,22 @@ export default function SubActivitiesPage() {
                         onClick={closeModal}
                         className="text-white/80 hover:text-white text-2xl"
                       >
-                        ✕
+                        âœ•
                       </button>
                     </div>
                   </div>
                   <div className="p-6 text-center">
                     <div className="mb-4">
-                      <span className="text-6xl">🏆</span>
+                      <span className="text-6xl">ðŸ†</span>
                     </div>
                     <h4 className="text-xl font-bold text-gray-800 mb-2">
-                      ¡Insignia Ganada!
+                      Â¡Insignia Ganada!
                     </h4>
                     <div className="flex justify-center my-6">
                       <div className="bg-gradient-to-br from-yellow-100 to-yellow-200 p-6 rounded-2xl shadow-lg border-4 border-yellow-400">
                         <StickerIcon
                           stickerId={selectedActivity.stickerId}
-                          defaultIcon="🏅"
+                          defaultIcon="ðŸ…"
                           className="text-7xl"
                           imgClassName="w-24 h-24"
                         />
@@ -872,7 +872,7 @@ export default function SubActivitiesPage() {
                       onClick={closeModal}
                       className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-lg transition"
                     >
-                      ¡Genial! Cerrar
+                      Â¡Genial! Cerrar
                     </button>
                   </div>
                 </>
@@ -885,7 +885,7 @@ export default function SubActivitiesPage() {
                       <div className="flex items-center gap-4">
                         <StickerIcon
                           stickerId={selectedActivity.stickerId}
-                          defaultIcon="🎯"
+                          defaultIcon="ðŸŽ¯"
                           className="text-5xl"
                           imgClassName="w-12 h-12"
                         />
@@ -899,7 +899,7 @@ export default function SubActivitiesPage() {
                         onClick={closeModal}
                         className="text-white/80 hover:text-white text-2xl"
                       >
-                        ✕
+                        âœ•
                       </button>
                     </div>
                   </div>
@@ -911,7 +911,7 @@ export default function SubActivitiesPage() {
                     {selectedActivity.startTime && selectedActivity.endTime && (
                       <div className="bg-blue-50 rounded-lg p-4 mb-4">
                         <div className="flex items-center gap-2 text-[#113780]">
-                          <span>🕐</span>
+                          <span>ðŸ•</span>
                           <span className="font-semibold">
                             Horario: {formatTime(selectedActivity.startTime)} -{" "}
                             {formatTime(selectedActivity.endTime)}
@@ -923,7 +923,7 @@ export default function SubActivitiesPage() {
                     {awardsStatus[selectedActivity._id]?.hasAward && (
                       <div className="mt-2 p-4 bg-yellow-50 rounded-lg border-2 border-yellow-300">
                         <div className="flex items-center gap-2 text-yellow-700">
-                          <span className="text-2xl">⭐</span>
+                          <span className="text-2xl">â­</span>
                           <span className="font-semibold">
                             Contesta la pregunta para completar esta
                             subactividad y ganar tu insignia
@@ -941,7 +941,7 @@ export default function SubActivitiesPage() {
                             }
                             className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-4 rounded-lg transition flex items-center justify-center gap-2 shadow-lg animate-pulse"
                           >
-                            <span className="text-xl">🎯</span>
+                            <span className="text-xl">ðŸŽ¯</span>
                             <span className="text-lg">
                               Contestar Pregunta y Completar
                             </span>
@@ -989,7 +989,7 @@ export default function SubActivitiesPage() {
           subActivityName={answeringSubActivity?.name || ""}
           alreadyCompleted={answerResult?.alreadyCompleted}
         />
-      </div>
+      </main>
     </div>
   );
 }

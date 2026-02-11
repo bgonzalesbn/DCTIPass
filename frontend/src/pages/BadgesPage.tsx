@@ -243,7 +243,6 @@ export default function BadgesPage() {
             </p>
           </div>
         )}
-        </div>
       </main>
     </div>
   );
