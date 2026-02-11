@@ -131,11 +131,11 @@ export default function LoginPage() {
 
       {/* Logo DCTI Pass - círculo con ilustración + texto */}
       <div className="relative z-10 mb-6 flex flex-col items-center">
-        <div className="w-44 h-44 rounded-full overflow-hidden shadow-xl border-4 border-white/20 bg-[#2B4C8C] flex items-center justify-center">
+        <div className="w-52 h-52 rounded-full overflow-hidden shadow-xl border-4 border-white/20 bg-[#2B4C8C] flex items-center justify-center">
           <img
             src="/dcti-pass-logo.png"
             alt="DCTI Pass"
-            className="w-[95%] h-[95%] object-contain"
+            className="w-full h-full object-contain"
           />
         </div>
       </div>
