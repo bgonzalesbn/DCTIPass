@@ -43,7 +43,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-[#1a2d5a] via-[#2B4C8C] to-[#1a2d5a] flex items-center justify-center p-4 relative overflow-hidden">
       {/* SVG Pattern de nodos de red y tecnología */}
       <svg
         className="absolute inset-0 w-full h-full"
@@ -138,7 +138,7 @@ export default function LoginPage() {
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 relative z-10">
         {/* Header con Logo DCTI Pass */}
         <div className="flex flex-col items-center mb-6">
-          <div className="w-24 h-24 rounded-full overflow-hidden shadow-lg border-4 border-[#1A3A7A]/20">
+          <div className="w-32 h-32 rounded-full overflow-hidden shadow-lg border-4 border-[#2B4C8C]/30">
             <img
               src="/dcti-pass-logo.jpg"
               alt="DCTI Pass"
