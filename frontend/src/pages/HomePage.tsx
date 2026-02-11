@@ -104,19 +104,6 @@ export default function HomePage() {
       <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           <button
-            onClick={() => navigate("/schedule")}
-            className="bg-white rounded-lg shadow hover:shadow-lg p-4 sm:p-6 md:p-8 text-left transition group"
-          >
-            <div className="text-3xl sm:text-4xl mb-2 sm:mb-4">📅</div>
-            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 group-hover:text-[#113780]">
-              Horario
-            </h2>
-            <p className="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">
-              Visualiza tu horario de clases y actividades
-            </p>
-          </button>
-
-          <button
             onClick={() => navigate("/activities")}
             className="bg-white rounded-lg shadow hover:shadow-lg p-4 sm:p-6 md:p-8 text-left transition group"
           >
