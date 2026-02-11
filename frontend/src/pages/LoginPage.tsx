@@ -135,7 +135,7 @@ export default function LoginPage() {
           <img
             src="/dcti-pass-logo.jpg"
             alt="DCTI Pass"
-            className="w-[200%] h-[200%] object-cover -ml-[50%] -mt-[15%]"
+            className="w-full h-full object-cover"
           />
         </div>
         <h2 className="text-white text-2xl font-bold mt-3 tracking-wider drop-shadow-md">
