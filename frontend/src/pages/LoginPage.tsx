@@ -24,8 +24,19 @@ export default function LoginPage() {
 
       navigate("/home");
     } catch (err) {
-      const error = err as { response?: { data?: { message?: string } } };
-      setError(error.response?.data?.message || "Error en el login");
+      const error = err as {
+        response?: { data?: { message?: string }; status?: number };
+      };
+      if (error.response?.status === 401) {
+        setError(
+          "Credenciales incorrectas. Verifica tu número de empleado y contraseña.",
+        );
+      } else {
+        setError(
+          error.response?.data?.message ||
+            "Error en el login. Intenta de nuevo.",
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -125,11 +136,45 @@ export default function LoginPage() {
       <div className="absolute bottom-16 right-32 w-12 h-12 bg-purple-400 rounded-full opacity-20 blur-lg"></div>
 
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 relative z-10">
-        {/* Header con Logo Circular */}
-        <div className="flex justify-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-[#1A3A7A] to-[#0F2456] rounded-full flex items-center justify-center shadow-lg">
-            <span className="text-white text-3xl font-bold">◯</span>
+        {/* Header con Logo Pasaporte + Boleto */}
+        <div className="flex flex-col items-center mb-6">
+          <div className="w-20 h-20 bg-gradient-to-br from-[#1A3A7A] to-[#0F2456] rounded-2xl flex items-center justify-center shadow-lg relative">
+            {/* Pasaporte */}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-10 h-10 text-white"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418"
+              />
+            </svg>
+            {/* Boleto de avión pequeño */}
+            <div className="absolute -bottom-1 -right-1 bg-white rounded-md p-1 shadow-md">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4 text-[#1A3A7A]"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"
+                />
+              </svg>
+            </div>
           </div>
+          <h2 className="text-xl font-bold text-[#0F2456] mt-3 tracking-wide">
+            DCTI Pass
+          </h2>
         </div>
 
         {/* Título */}
@@ -139,8 +184,20 @@ export default function LoginPage() {
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 text-red-600 text-sm">
-            {error}
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 text-red-600 text-sm flex items-center gap-3">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 flex-shrink-0"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <span>{error}</span>
           </div>
         )}
 
