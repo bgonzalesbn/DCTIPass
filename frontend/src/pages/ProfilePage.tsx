@@ -193,10 +193,6 @@ export default function ProfilePage() {
       {/* Main Content */}
       <main className="max-w-2xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         <div className="bg-white rounded-lg shadow p-4 sm:p-6 md:p-8">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 md:mb-8">
-            Mi Perfil
-          </h2>
-
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-600 text-sm mb-6">
               {error}
@@ -251,6 +247,17 @@ export default function ProfilePage() {
                       {user.email}
                     </p>
                   </div>
+
+                  {user.direction && (
+                    <div className="pb-4 border-b">
+                      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                        Dirección
+                      </label>
+                      <p className="text-base sm:text-lg font-medium text-gray-900">
+                        {user.direction}
+                      </p>
+                    </div>
+                  )}
 
                   {user.group && (
                     <div className="pb-4 border-b">
