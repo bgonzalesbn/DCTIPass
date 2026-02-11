@@ -138,9 +138,6 @@ export default function LoginPage() {
             className="w-[95%] h-[95%] object-contain"
           />
         </div>
-        <h2 className="text-white text-2xl font-bold mt-3 tracking-wider drop-shadow-md">
-          DCTI Pass
-        </h2>
       </div>
 
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md relative z-10 p-8">
