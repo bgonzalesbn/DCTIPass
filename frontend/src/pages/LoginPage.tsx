@@ -133,7 +133,7 @@ export default function LoginPage() {
       <div className="relative z-10 mb-6 flex flex-col items-center">
         <div className="w-28 h-28 rounded-full overflow-hidden shadow-xl border-4 border-white/20 bg-[#2B4C8C] flex items-center justify-center">
           <img
-            src="/dcti-pass-logo.jpg"
+            src="/dcti-pass-logo.png"
             alt="DCTI Pass"
             className="w-[70%] h-[70%] object-contain"
           />
