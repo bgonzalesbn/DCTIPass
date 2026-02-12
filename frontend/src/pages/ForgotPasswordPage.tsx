@@ -20,6 +20,112 @@ type Step =
   | "set-question"
   | "success";
 
+function PageWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-[#2B4C8C] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      <svg
+        className="absolute inset-0 w-full h-full"
+        preserveAspectRatio="none"
+      >
+        <defs>
+          <linearGradient
+            id="networkGradient"
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="100%"
+          >
+            <stop offset="0%" stopColor="rgba(255, 255, 255, 0.03)" />
+            <stop offset="100%" stopColor="rgba(255, 255, 255, 0.01)" />
+          </linearGradient>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#networkGradient)" />
+      </svg>
+
+      <div className="relative z-10 mb-6 flex flex-col items-center">
+        <div className="w-32 h-32 rounded-full overflow-hidden shadow-xl border-4 border-white/20 bg-[#2B4C8C] flex items-center justify-center">
+          <img
+            src="/dcti-pass-logo.png"
+            alt="DCTI Pass"
+            className="w-full h-full object-contain scale-125"
+          />
+        </div>
+      </div>
+
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md relative z-10 p-8">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function ErrorAlert({ error }: { error: string }) {
+  if (!error) return null;
+  return (
+    <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 text-red-600 text-sm flex items-center gap-3">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-5 w-5 flex-shrink-0"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+      >
+        <path
+          fillRule="evenodd"
+          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+          clipRule="evenodd"
+        />
+      </svg>
+      <span>{error}</span>
+    </div>
+  );
+}
+
+function SubmitButton({
+  text,
+  loadingText,
+  loading,
+}: {
+  text: string;
+  loadingText: string;
+  loading: boolean;
+}) {
+  return (
+    <button
+      type="submit"
+      disabled={loading}
+      className="w-full bg-gradient-to-r from-[#1A3A7A] to-[#0F2456] hover:from-[#0F2456] hover:to-[#091A3F] text-white font-bold py-3 px-4 rounded-xl transition duration-300 disabled:opacity-60 disabled:cursor-not-allowed text-lg shadow-lg hover:shadow-xl"
+    >
+      {loading ? (
+        <span className="flex items-center justify-center">
+          <svg
+            className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
+          </svg>
+          {loadingText}
+        </span>
+      ) : (
+        text
+      )}
+    </button>
+  );
+}
+
 export default function ForgotPasswordPage() {
   const [step, setStep] = useState<Step>("verify");
   const [employeeNumber, setEmployeeNumber] = useState("");
@@ -157,104 +263,6 @@ export default function ForgotPasswordPage() {
     }
   };
 
-  const PageWrapper = ({ children }: { children: React.ReactNode }) => (
-    <div className="min-h-screen bg-[#2B4C8C] flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      <svg
-        className="absolute inset-0 w-full h-full"
-        preserveAspectRatio="none"
-      >
-        <defs>
-          <linearGradient
-            id="networkGradient"
-            x1="0%"
-            y1="0%"
-            x2="100%"
-            y2="100%"
-          >
-            <stop offset="0%" stopColor="rgba(255, 255, 255, 0.03)" />
-            <stop offset="100%" stopColor="rgba(255, 255, 255, 0.01)" />
-          </linearGradient>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#networkGradient)" />
-      </svg>
-
-      <div className="relative z-10 mb-6 flex flex-col items-center">
-        <div className="w-32 h-32 rounded-full overflow-hidden shadow-xl border-4 border-white/20 bg-[#2B4C8C] flex items-center justify-center">
-          <img
-            src="/dcti-pass-logo.png"
-            alt="DCTI Pass"
-            className="w-full h-full object-contain scale-125"
-          />
-        </div>
-      </div>
-
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md relative z-10 p-8">
-        {children}
-      </div>
-    </div>
-  );
-
-  const ErrorAlert = () =>
-    error ? (
-      <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 text-red-600 text-sm flex items-center gap-3">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5 flex-shrink-0"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fillRule="evenodd"
-            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-            clipRule="evenodd"
-          />
-        </svg>
-        <span>{error}</span>
-      </div>
-    ) : null;
-
-  const SubmitButton = ({
-    text,
-    loadingText,
-  }: {
-    text: string;
-    loadingText: string;
-  }) => (
-    <button
-      type="submit"
-      disabled={loading}
-      className="w-full bg-gradient-to-r from-[#1A3A7A] to-[#0F2456] hover:from-[#0F2456] hover:to-[#091A3F] text-white font-bold py-3 px-4 rounded-xl transition duration-300 disabled:opacity-60 disabled:cursor-not-allowed text-lg shadow-lg hover:shadow-xl"
-    >
-      {loading ? (
-        <span className="flex items-center justify-center">
-          <svg
-            className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            />
-          </svg>
-          {loadingText}
-        </span>
-      ) : (
-        text
-      )}
-    </button>
-  );
-
   // === SUCCESS SCREEN ===
   if (step === "success") {
     return (
@@ -323,7 +331,7 @@ export default function ForgotPasswordPage() {
           Configura una pregunta de seguridad para poder recuperar tu contraseña
           en el futuro.
         </p>
-        <ErrorAlert />
+        <ErrorAlert error={error} />
         <form onSubmit={handleSetQuestion} className="space-y-5">
           <div>
             <label className="block text-sm font-semibold text-[#0F2456] mb-2">
@@ -356,7 +364,11 @@ export default function ForgotPasswordPage() {
               required
             />
           </div>
-          <SubmitButton text="Guardar pregunta" loadingText="Guardando..." />
+          <SubmitButton
+            text="Guardar pregunta"
+            loadingText="Guardando..."
+            loading={loading}
+          />
         </form>
       </PageWrapper>
     );
@@ -390,7 +402,7 @@ export default function ForgotPasswordPage() {
         <p className="text-gray-500 text-center text-sm mb-6">
           Crea una contraseña segura para tu cuenta.
         </p>
-        <ErrorAlert />
+        <ErrorAlert error={error} />
         <form onSubmit={handleResetPassword} className="space-y-5">
           <div>
             <label className="block text-sm font-semibold text-[#0F2456] mb-2">
@@ -448,6 +460,7 @@ export default function ForgotPasswordPage() {
           <SubmitButton
             text="Restablecer contraseña"
             loadingText="Actualizando..."
+            loading={loading}
           />
         </form>
         <div className="text-center mt-4">
@@ -498,7 +511,7 @@ export default function ForgotPasswordPage() {
             {securityQuestion}
           </p>
         </div>
-        <ErrorAlert />
+        <ErrorAlert error={error} />
         <form onSubmit={handleAnswerQuestion} className="space-y-5">
           <div>
             <label className="block text-sm font-semibold text-[#0F2456] mb-2">
@@ -516,6 +529,7 @@ export default function ForgotPasswordPage() {
           <SubmitButton
             text="Verificar respuesta"
             loadingText="Verificando..."
+            loading={loading}
           />
         </form>
         <div className="text-center mt-4">
@@ -562,7 +576,7 @@ export default function ForgotPasswordPage() {
         Ingresa tu número de empleado y correo electrónico registrado para
         verificar tu identidad.
       </p>
-      <ErrorAlert />
+      <ErrorAlert error={error} />
       <form onSubmit={handleVerify} className="space-y-5">
         <div>
           <label className="block text-sm font-semibold text-[#0F2456] mb-2">
@@ -590,7 +604,11 @@ export default function ForgotPasswordPage() {
             required
           />
         </div>
-        <SubmitButton text="Verificar identidad" loadingText="Verificando..." />
+        <SubmitButton
+          text="Verificar identidad"
+          loadingText="Verificando..."
+          loading={loading}
+        />
       </form>
       <div className="text-center mt-6">
         <a
