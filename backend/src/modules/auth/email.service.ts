@@ -1,21 +1,18 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import * as nodemailer from "nodemailer";
+import { Resend } from "resend";
 
 @Injectable()
 export class EmailService {
-  private transporter: nodemailer.Transporter;
+  private resend: Resend;
+  private readonly logger = new Logger(EmailService.name);
 
   constructor(private configService: ConfigService) {
-    this.transporter = nodemailer.createTransport({
-      host: this.configService.get<string>("SMTP_HOST", "smtp.gmail.com"),
-      port: this.configService.get<number>("SMTP_PORT", 587),
-      secure: false,
-      auth: {
-        user: this.configService.get<string>("SMTP_USER"),
-        pass: this.configService.get<string>("SMTP_PASS"),
-      },
-    });
+    const apiKey = this.configService.get<string>("RESEND_API_KEY");
+    if (!apiKey) {
+      this.logger.warn("RESEND_API_KEY no está configurada");
+    }
+    this.resend = new Resend(apiKey);
   }
 
   async sendPasswordResetEmail(
@@ -26,7 +23,7 @@ export class EmailService {
     const fromName =
       this.configService.get<string>("SMTP_FROM_NAME") || "DCTI Pass";
     const fromEmail =
-      this.configService.get<string>("SMTP_USER") || "noreply@dctipass.com";
+      this.configService.get<string>("EMAIL_FROM") || "onboarding@resend.dev";
 
     const html = `
       <!DOCTYPE html>
@@ -84,11 +81,23 @@ export class EmailService {
       </html>
     `;
 
-    await this.transporter.sendMail({
-      from: `"${fromName}" <${fromEmail}>`,
-      to,
-      subject: "🔑 Restablecer tu contraseña - DCTI Pass",
-      html,
-    });
+    try {
+      const { data, error } = await this.resend.emails.send({
+        from: `${fromName} <${fromEmail}>`,
+        to: [to],
+        subject: "🔑 Restablecer tu contraseña - DCTI Pass",
+        html,
+      });
+
+      if (error) {
+        this.logger.error("Error enviando email con Resend:", error);
+        throw new Error(`Error al enviar email: ${error.message}`);
+      }
+
+      this.logger.log(`Email enviado exitosamente. ID: ${data?.id}`);
+    } catch (err) {
+      this.logger.error("Error enviando email:", err);
+      throw err;
+    }
   }
 }
