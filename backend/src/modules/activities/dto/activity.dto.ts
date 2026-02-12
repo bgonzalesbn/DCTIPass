@@ -41,6 +41,10 @@ export class CreateSubActivityDto {
   @IsNumber()
   @IsOptional()
   order?: number;
+
+  @IsString()
+  @IsOptional()
+  location?: string;
 }
 
 export class CreateActivityDto {
