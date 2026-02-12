@@ -204,6 +204,36 @@ export default function HomePage() {
               />
             </svg>
           </button>
+
+          <button
+            onClick={() => navigate("/suggestions")}
+            className="w-full bg-white rounded-2xl shadow-md border border-gray-100 p-5 sm:p-6 text-left transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 group flex items-center gap-4"
+          >
+            <div className="w-12 h-12 rounded-xl bg-[#113780]/10 flex items-center justify-center text-2xl flex-shrink-0 group-hover:bg-[#113780]/15 transition">
+              📬
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900 group-hover:text-[#113780] transition">
+                Buzón de sugerencias
+              </h2>
+              <p className="text-gray-500 text-sm">
+                Envía tus sugerencias y comentarios
+              </p>
+            </div>
+            <svg
+              className="w-5 h-5 text-gray-300 group-hover:text-[#113780] transition ml-auto flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </button>
         </div>
       </main>
     </div>

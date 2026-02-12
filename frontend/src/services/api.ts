@@ -345,4 +345,11 @@ export const adminAPI = {
   deleteAward: (id: string) => apiClient.delete(`/admin/awards/${id}`),
 };
 
+// Suggestions endpoints
+export const suggestionsAPI = {
+  create: (suggestion: string) =>
+    apiClient.post("/suggestions", { suggestion }),
+  getAll: () => apiClient.get("/suggestions"),
+};
+
 export default apiClient;

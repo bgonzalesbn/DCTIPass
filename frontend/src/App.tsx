@@ -18,6 +18,7 @@ const SubActivitiesPage = lazy(() => import("./pages/SubActivitiesPage"));
 const AdminDashboardPage = lazy(
   () => import("./pages/admin/AdminDashboardPage"),
 );
+const SuggestionsPage = lazy(() => import("./pages/SuggestionsPage"));
 
 function App() {
   return (
@@ -87,6 +88,14 @@ function App() {
           element={
             <Suspense fallback={<LoadingSpinner />}>
               <AdminDashboardPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/suggestions"
+          element={
+            <Suspense fallback={<LoadingSpinner />}>
+              <SuggestionsPage />
             </Suspense>
           }
         />

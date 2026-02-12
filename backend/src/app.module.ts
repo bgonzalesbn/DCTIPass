@@ -11,6 +11,7 @@ import { SchedulesModule } from "./modules/schedules/schedules.module";
 import { StickersModule } from "./modules/stickers/stickers.module";
 import { AwardsModule } from "./modules/awards/awards.module";
 import { AdminModule } from "./modules/admin/admin.module";
+import { SuggestionsModule } from "./modules/suggestions/suggestions.module";
 import { JwtAuthGuard } from "./modules/auth/guards/jwt.guard";
 
 @Module({
@@ -35,6 +36,7 @@ import { JwtAuthGuard } from "./modules/auth/guards/jwt.guard";
     StickersModule,
     AwardsModule,
     AdminModule,
+    SuggestionsModule,
   ],
   providers: [
     DatabaseService,
