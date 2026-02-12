@@ -28,20 +28,20 @@ export class PasswordResetService {
    * Request a password reset. Generates a secure token, stores it,
    * and sends an email with the reset link.
    */
-  async requestPasswordReset(email: string): Promise<{ message: string }> {
-    const normalizedEmail = email.toLowerCase().trim();
-
-    // Find user by their registered email
+  async requestPasswordReset(
+    employeeNumber: string,
+  ): Promise<{ message: string }> {
+    // Find user by their employeeNumber
     const user = await this.userModel.findOne({
-      email: normalizedEmail,
+      employeeNumber,
       active: true,
     });
 
-    // Always return success message to avoid email enumeration attacks
+    // Always return success message to avoid user enumeration attacks
     if (!user) {
       return {
         message:
-          "Si existe una cuenta con ese correo electrónico, recibirás un enlace para restablecer tu contraseña.",
+          "Si existe una cuenta con ese número de empleado, recibirás un enlace para restablecer tu contraseña en tu correo registrado.",
       };
     }
 
@@ -80,7 +80,7 @@ export class PasswordResetService {
         user.firstName,
       );
       console.log(
-        `✅ Password reset email sent to ${normalizedEmail} for user ${user.employeeNumber}`,
+        `✅ Password reset email sent to ${user.email} for employee ${employeeNumber}`,
       );
     } catch (error) {
       console.error("❌ Failed to send password reset email:", error.message);
@@ -91,7 +91,7 @@ export class PasswordResetService {
 
     return {
       message:
-        "Si existe una cuenta con ese correo electrónico, recibirás un enlace para restablecer tu contraseña.",
+        "Si existe una cuenta con ese número de empleado, recibirás un enlace para restablecer tu contraseña en tu correo registrado.",
     };
   }
 

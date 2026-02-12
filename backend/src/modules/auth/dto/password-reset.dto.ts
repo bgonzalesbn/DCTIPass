@@ -1,10 +1,9 @@
-import { IsEmail, IsString, MinLength, Matches } from "class-validator";
-import { Transform } from "class-transformer";
+import { IsString, MinLength, Matches } from "class-validator";
 
 export class ForgotPasswordDto {
-  @IsEmail({}, { message: "Debe ingresar un correo electrónico válido" })
-  @Transform(({ value }) => value?.toLowerCase().trim())
-  email: string;
+  @IsString({ message: "Debe ingresar un número de empleado válido" })
+  @MinLength(3, { message: "Número de empleado inválido" })
+  employeeNumber: string;
 }
 
 export class ResetPasswordDto {

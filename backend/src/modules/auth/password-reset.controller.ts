@@ -24,7 +24,7 @@ export class PasswordResetController {
   ) {
     try {
       const result = await this.passwordResetService.requestPasswordReset(
-        forgotPasswordDto.email,
+        forgotPasswordDto.employeeNumber,
       );
       return res.status(HttpStatus.OK).json(result);
     } catch (error) {

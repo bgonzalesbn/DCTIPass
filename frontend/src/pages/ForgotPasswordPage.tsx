@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { authAPI } from "../services/api";
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState("");
+  const [employeeNumber, setEmployeeNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
@@ -13,20 +13,15 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     setError("");
 
-    if (!email.trim()) {
-      setError("Ingresa tu correo electrónico.");
-      return;
-    }
-
-    if (!email.includes("@")) {
-      setError("Ingresa un correo electrónico válido.");
+    if (!employeeNumber.trim()) {
+      setError("Ingresa tu número de empleado.");
       return;
     }
 
     setLoading(true);
 
     try {
-      await authAPI.requestPasswordReset(email);
+      await authAPI.requestPasswordReset(employeeNumber);
       setSuccess(true);
     } catch (err) {
       const error = err as {
@@ -90,9 +85,10 @@ export default function ForgotPasswordPage() {
           </h1>
 
           <p className="text-gray-600 text-center text-sm mb-6 leading-relaxed">
-            Si existe una cuenta asociada a{" "}
-            <strong className="text-[#0F2456]">{email}</strong>, recibirás un
-            enlace para restablecer tu contraseña.
+            Si existe una cuenta asociada al número de empleado{" "}
+            <strong className="text-[#0F2456]">{employeeNumber}</strong>,
+            recibirás un enlace para restablecer tu contraseña en el correo
+            electrónico registrado.
           </p>
 
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
@@ -171,8 +167,8 @@ export default function ForgotPasswordPage() {
           ¿Olvidaste tu contraseña?
         </h1>
         <p className="text-gray-500 text-center text-sm mb-6">
-          Ingresa el correo electrónico con el que te registraste y te
-          enviaremos un enlace para restablecerla.
+          Ingresa tu número de empleado y te enviaremos un enlace para
+          restablecer tu contraseña al correo con el que te registraste.
         </p>
 
         {error && (
@@ -196,14 +192,14 @@ export default function ForgotPasswordPage() {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-sm font-semibold text-[#0F2456] mb-3">
-              Correo electrónico
+              Número de empleado
             </label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              value={employeeNumber}
+              onChange={(e) => setEmployeeNumber(e.target.value)}
               className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1A3A7A] focus:border-transparent outline-none transition text-gray-700 placeholder-gray-400"
-              placeholder="tucorreo@ejemplo.com"
+              placeholder="Ingresa tu número de empleado"
               required
             />
           </div>
