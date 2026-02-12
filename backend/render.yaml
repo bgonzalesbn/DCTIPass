@@ -14,10 +14,10 @@ services:
       - key: JWT_SECRET
         scope: build
       - key: CORS_ORIGIN
-        value: https://dctpass.vercel.app
+        value: https://dcti-pass.vercel.app
       - key: SENDGRID_API_KEY
         sync: false
       - key: EMAIL_FROM
         value: bgonzalezsbn@gmail.com
       - key: FRONTEND_URL
-        value: https://dctpass.vercel.app
+        value: https://dcti-pass.vercel.app
