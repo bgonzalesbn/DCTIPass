@@ -1,18 +1,19 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Resend } from "resend";
+import * as sgMail from "@sendgrid/mail";
 
 @Injectable()
 export class EmailService {
-  private resend: Resend;
   private readonly logger = new Logger(EmailService.name);
 
   constructor(private configService: ConfigService) {
-    const apiKey = this.configService.get<string>("RESEND_API_KEY");
+    const apiKey = this.configService.get<string>("SENDGRID_API_KEY");
     if (!apiKey) {
-      this.logger.warn("RESEND_API_KEY no está configurada");
+      this.logger.warn("SENDGRID_API_KEY no está configurada");
+    } else {
+      sgMail.setApiKey(apiKey);
+      this.logger.log("SendGrid configurado correctamente");
     }
-    this.resend = new Resend(apiKey);
   }
 
   async sendPasswordResetEmail(
@@ -21,9 +22,9 @@ export class EmailService {
     firstName: string,
   ): Promise<void> {
     const fromName =
-      this.configService.get<string>("SMTP_FROM_NAME") || "DCTI Pass";
+      this.configService.get<string>("EMAIL_FROM_NAME") || "DCTI Pass";
     const fromEmail =
-      this.configService.get<string>("EMAIL_FROM") || "onboarding@resend.dev";
+      this.configService.get<string>("EMAIL_FROM") || "noreply@dctipass.com";
 
     const html = `
       <!DOCTYPE html>
@@ -82,22 +83,22 @@ export class EmailService {
     `;
 
     try {
-      const { data, error } = await this.resend.emails.send({
-        from: `${fromName} <${fromEmail}>`,
-        to: [to],
+      const msg = {
+        to,
+        from: { email: fromEmail, name: fromName },
         subject: "🔑 Restablecer tu contraseña - DCTI Pass",
         html,
-      });
+      };
 
-      if (error) {
-        this.logger.error("Error enviando email con Resend:", error);
-        throw new Error(`Error al enviar email: ${error.message}`);
-      }
-
-      this.logger.log(`Email enviado exitosamente. ID: ${data?.id}`);
-    } catch (err) {
-      this.logger.error("Error enviando email:", err);
-      throw err;
+      await sgMail.send(msg);
+      this.logger.log(`✅ Email enviado exitosamente a ${to}`);
+    } catch (err: any) {
+      const errorBody = err?.response?.body || err.message;
+      this.logger.error(
+        "❌ Error enviando email con SendGrid:",
+        JSON.stringify(errorBody),
+      );
+      throw new Error(`Error al enviar email: ${JSON.stringify(errorBody)}`);
     }
   }
 }

@@ -15,9 +15,9 @@ services:
         scope: build
       - key: CORS_ORIGIN
         value: https://dctpass.vercel.app
-      - key: RESEND_API_KEY
+      - key: SENDGRID_API_KEY
         sync: false
       - key: EMAIL_FROM
-        value: onboarding@resend.dev
+        value: bgonzalezsbn@gmail.com
       - key: FRONTEND_URL
         value: https://dctpass.vercel.app
