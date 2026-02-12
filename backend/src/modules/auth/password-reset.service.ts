@@ -74,6 +74,9 @@ export class PasswordResetService {
 
     // Send the email
     try {
+      console.log(
+        `📧 Intentando enviar email a: ${user.email} para empleado: ${employeeNumber}`,
+      );
       await this.emailService.sendPasswordResetEmail(
         user.email,
         resetLink,
@@ -84,8 +87,9 @@ export class PasswordResetService {
       );
     } catch (error) {
       console.error("❌ Failed to send password reset email:", error.message);
+      console.error("❌ Full error:", JSON.stringify(error, null, 2));
       throw new BadRequestException(
-        "Error al enviar el correo. Intenta de nuevo más tarde.",
+        `Error al enviar el correo: ${error.message || "Error desconocido"}`,
       );
     }
 
