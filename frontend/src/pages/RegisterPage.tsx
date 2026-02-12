@@ -9,6 +9,7 @@ const DIRECTION_OPTIONS = [
   "Arquitectura",
   "Estrategia Digital",
   "Supervisión y Control Digital",
+  "Staff DCTI",
 ];
 
 export default function RegisterPage() {
