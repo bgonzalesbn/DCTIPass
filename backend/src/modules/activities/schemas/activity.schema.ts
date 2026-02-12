@@ -26,6 +26,9 @@ export class SubActivity {
 
   @Prop({ type: Number, default: 0 })
   order: number;
+
+  @Prop({ type: String, default: "" })
+  location: string;
 }
 
 export const SubActivitySchema = SchemaFactory.createForClass(SubActivity);

@@ -181,10 +181,10 @@ export default function AdminAwardsTab() {
     });
   }, [awards, filterActivityId]);
 
-  const subActivityHasQuiz = (subActivityId: string) => {
-    return awards.some(
+  const subActivityQuizCount = (subActivityId: string) => {
+    return awards.filter(
       (a) => String(a.subActivityId) === subActivityId && a.active !== false,
-    );
+    ).length;
   };
 
   if (loading) {
@@ -203,8 +203,8 @@ export default function AdminAwardsTab() {
         <div>
           <h2 className="text-lg font-bold text-gray-900">Gestión de Retos</h2>
           <p className="text-sm text-gray-500 mt-0.5">
-            Crea preguntas para cada sub-actividad. Al responder correctamente,
-            el usuario gana el sticker asignado.
+            Crea preguntas para cada sesión. Al responder correctamente, el
+            usuario gana el sticker asignado.
           </p>
         </div>
         <button
@@ -256,7 +256,7 @@ export default function AdminAwardsTab() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Sub-actividad <span className="text-red-500">*</span>
+                    Sesión <span className="text-red-500">*</span>
                   </label>
                   <select
                     value={form.subActivityId}
@@ -278,29 +278,27 @@ export default function AdminAwardsTab() {
                     required
                     disabled={!form.activityId}
                   >
-                    <option value="">Seleccionar sub-actividad...</option>
+                    <option value="">Seleccionar sesión...</option>
                     {selectedActivity?.subActivities
                       ?.filter((s) => s.active !== false)
                       .map((s) => {
-                        const hasQuiz = subActivityHasQuiz(String(s._id));
+                        const quizCount = subActivityQuizCount(String(s._id));
                         return (
-                          <option
-                            key={String(s._id)}
-                            value={String(s._id)}
-                            disabled={hasQuiz}
-                          >
+                          <option key={String(s._id)} value={String(s._id)}>
                             {s.name}
-                            {hasQuiz ? " (ya tiene reto)" : ""}
+                            {quizCount > 0
+                              ? ` (${quizCount} reto${quizCount > 1 ? "s" : ""})`
+                              : ""}
                           </option>
                         );
                       })}
                   </select>
-                  {form.subActivityId &&
-                    subActivityHasQuiz(form.subActivityId) && (
-                      <p className="text-xs text-amber-600 mt-1">
-                        Esta sub-actividad ya tiene un reto asignado
-                      </p>
-                    )}
+                  {form.subActivityId && (
+                    <p className="text-xs text-blue-600 mt-1">
+                      {subActivityQuizCount(form.subActivityId)} reto(s)
+                      asignado(s) a esta sesión
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -512,7 +510,7 @@ export default function AdminAwardsTab() {
                   Actividad
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Sub-actividad
+                  Sesión
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Sticker
@@ -590,7 +588,7 @@ export default function AdminAwardsTab() {
                         No hay retos creados
                       </p>
                       <p className="text-sm mt-1">
-                        Crea un reto para asignarlo a una sub-actividad
+                        Crea un reto para asignarlo a una sesión
                       </p>
                     </div>
                   </td>

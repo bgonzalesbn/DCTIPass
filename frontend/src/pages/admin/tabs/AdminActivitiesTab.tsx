@@ -78,6 +78,7 @@ export default function AdminActivitiesTab() {
     description: "",
     stickerId: "",
     order: 0,
+    location: "",
   });
 
   const loadData = async () => {
@@ -142,7 +143,13 @@ export default function AdminActivitiesTab() {
   };
 
   const resetSubForm = () => {
-    setSubForm({ name: "", description: "", stickerId: "", order: 0 });
+    setSubForm({
+      name: "",
+      description: "",
+      stickerId: "",
+      order: 0,
+      location: "",
+    });
     setEditingSubId(null);
     setShowSubForm(null);
   };
@@ -206,6 +213,7 @@ export default function AdminActivitiesTab() {
       description: sub.description || "",
       stickerId: sub.stickerId?._id || "",
       order: sub.order || 0,
+      location: sub.location || "",
     });
     setEditingSubId(sub._id);
     setShowSubForm(activityId);
@@ -218,6 +226,7 @@ export default function AdminActivitiesTab() {
         name: subForm.name,
         description: subForm.description,
         order: subForm.order,
+        location: subForm.location,
       };
       if (subForm.stickerId) data.stickerId = subForm.stickerId;
 
@@ -234,7 +243,7 @@ export default function AdminActivitiesTab() {
   };
 
   const handleDeleteSub = async (activityId: string, subId: string) => {
-    if (!confirm("¿Eliminar esta subactividad?")) return;
+    if (!confirm("¿Eliminar esta sesión?")) return;
     try {
       await adminAPI.deleteSubActivity(activityId, subId);
       loadData();
@@ -468,7 +477,7 @@ export default function AdminActivitiesTab() {
       (x, y) => x.order - y.order,
     );
     if (subs.length === 0) {
-      alert("Agrega subactividades primero");
+      alert("Agrega sesiones primero");
       return;
     }
     const start = sessionStartTime || sch.startTime;
@@ -639,7 +648,7 @@ export default function AdminActivitiesTab() {
                     {a.name}
                   </h3>
                   <p className="text-xs text-gray-500">
-                    {a.subActivities?.length || 0} subactividades ·{" "}
+                    {a.subActivities?.length || 0} sesiones ·{" "}
                     {a.active ? "Activa" : "Inactiva"}
                   </p>
                 </div>
@@ -672,7 +681,7 @@ export default function AdminActivitiesTab() {
                         : "text-gray-500 hover:text-gray-700"
                     }`}
                   >
-                    Subactividades ({a.subActivities?.length || 0})
+                    Sesiones ({a.subActivities?.length || 0})
                   </button>
                   <button
                     onClick={() => setExpandedSection("schedules")}
@@ -686,12 +695,12 @@ export default function AdminActivitiesTab() {
                   </button>
                 </div>
 
-                {/* ===== SECCIÓN SUBACTIVIDADES ===== */}
+                {/* ===== SECCIÓN SESIONES ===== */}
                 {expandedSection === "sub" && (
                   <div className="px-4 py-3 bg-gray-50">
                     <div className="flex justify-between items-center mb-3">
                       <h4 className="text-sm font-semibold text-gray-700">
-                        Subactividades
+                        Sesiones
                       </h4>
                       <button
                         onClick={() => {
@@ -700,7 +709,7 @@ export default function AdminActivitiesTab() {
                         }}
                         className="text-sm bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded"
                       >
-                        + Subactividad
+                        + Sesión
                       </button>
                     </div>
 
@@ -726,18 +735,19 @@ export default function AdminActivitiesTab() {
                           </div>
                           <div>
                             <label className="block text-xs font-medium text-gray-700 mb-1">
-                              Orden
+                              Ubicación
                             </label>
                             <input
-                              type="number"
-                              value={subForm.order}
+                              type="text"
+                              value={subForm.location}
                               onChange={(e) =>
                                 setSubForm({
                                   ...subForm,
-                                  order: +e.target.value,
+                                  location: e.target.value,
                                 })
                               }
                               className="w-full border rounded px-2 py-1 text-sm"
+                              placeholder="Ej: Sala 1, Auditorio..."
                             />
                           </div>
                           <div className="sm:col-span-2">
@@ -807,12 +817,14 @@ export default function AdminActivitiesTab() {
                               className="flex items-center justify-between bg-white rounded border p-2"
                             >
                               <div>
-                                <span className="text-xs text-gray-400 mr-2">
-                                  #{sub.order}
-                                </span>
                                 <span className="text-sm font-medium">
                                   {sub.name}
                                 </span>
+                                {sub.location && (
+                                  <span className="text-xs text-blue-600 ml-2">
+                                    📍 {sub.location}
+                                  </span>
+                                )}
                                 {sub.description && (
                                   <span className="text-xs text-gray-500 ml-2">
                                     - {sub.description}
@@ -840,7 +852,7 @@ export default function AdminActivitiesTab() {
                       </div>
                     ) : (
                       <p className="text-sm text-gray-400 text-center py-2">
-                        Sin subactividades
+                        Sin sesiones
                       </p>
                     )}
                   </div>
@@ -1333,8 +1345,8 @@ export default function AdminActivitiesTab() {
                                     </table>
                                     {a.subActivities?.length === 0 && (
                                       <p className="text-xs text-amber-600 mt-2">
-                                        ⚠ No hay subactividades. Agrégalas en la
-                                        pestaña &quot;Subactividades&quot;.
+                                        ⚠ No hay sesiones. Agrégalas en la
+                                        pestaña &quot;Sesiones&quot;.
                                       </p>
                                     )}
                                   </div>

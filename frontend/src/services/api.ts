@@ -352,4 +352,12 @@ export const suggestionsAPI = {
   getAll: () => apiClient.get("/suggestions"),
 };
 
+// Rally Photos endpoints
+export const rallyPhotosAPI = {
+  upload: (imageData: string, caption?: string) =>
+    apiClient.post("/rally-photos", { imageData, caption }),
+  getMyPhotos: () => apiClient.get("/rally-photos/my-photos"),
+  delete: (id: string) => apiClient.delete(`/rally-photos/${id}`),
+};
+
 export default apiClient;

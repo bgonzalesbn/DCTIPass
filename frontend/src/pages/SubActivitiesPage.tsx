@@ -21,6 +21,7 @@ interface SubActivity {
   stickerId?: Sticker | string;
   active: boolean;
   order: number;
+  location?: string;
   progress?: number;
   completed?: boolean;
   startTime?: string;
@@ -113,7 +114,7 @@ const StickerIcon = ({
   return <span className={className}>{display.value}</span>;
 };
 
-// Componente de candado para subactividades bloqueadas
+// Componente de candado para sesiones bloqueadas
 const LockIcon = ({ className = "w-8 h-8" }: { className?: string }) => (
   <svg className={className} fill="currentColor" viewBox="0 0 24 24">
     <path d="M12 17a2 2 0 002-2v-2a2 2 0 00-4 0v2a2 2 0 002 2zm6-9h-1V6a5 5 0 00-10 0v2H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V10a2 2 0 00-2-2zm-9-2a3 3 0 116 0v2H9V6z" />
@@ -395,11 +396,85 @@ export default function SubActivitiesPage() {
         setShowQuestionModal(true);
         setSelectedActivity(null);
       } else {
-        alert("No hay reto disponible para esta subactividad");
+        alert("No hay reto disponible para esta sesión");
       }
     } catch (err) {
       console.error("Error loading award:", err);
       alert("Error al cargar el reto");
+    }
+  };
+
+  // Función para completar una sesión sin reto (basado en horario)
+  const handleCompleteWithoutChallenge = async (
+    subActivity: SubActivityWithStatus,
+  ) => {
+    try {
+      const stickerId =
+        typeof subActivity.stickerId === "object" && subActivity.stickerId?._id
+          ? subActivity.stickerId._id
+          : undefined;
+      await usersAPI.completeSubActivity({
+        activityId: activityId!,
+        subActivityId: subActivity._id,
+        stickerId,
+        points: 10,
+      });
+
+      const completedId = subActivity._id;
+      setCompletedSubActivityIds((prev) => [...prev, completedId]);
+
+      const newAwardsStatus = {
+        ...awardsStatus,
+        [completedId]: { hasAward: false, completed: true },
+      };
+      setAwardsStatus(newAwardsStatus);
+
+      // Recalcular estados
+      setSubActivities((prevSubActivities) => {
+        let foundFirstUnlocked = false;
+        const updatedCompletedIds = [...completedSubActivityIds, completedId];
+
+        return prevSubActivities.map((sub, index) => {
+          const isCompleted =
+            updatedCompletedIds.includes(sub._id) ||
+            newAwardsStatus[sub._id]?.completed;
+
+          let isUnlocked = false;
+          if (index === 0) {
+            isUnlocked = isWithinSchedule(sub, userSchedule);
+          } else {
+            const previousSub = prevSubActivities[index - 1];
+            const previousCompleted =
+              updatedCompletedIds.includes(previousSub._id) ||
+              newAwardsStatus[previousSub._id]?.completed;
+            isUnlocked =
+              previousCompleted && isWithinSchedule(sub, userSchedule);
+          }
+
+          if (isCompleted) isUnlocked = true;
+
+          let isActive = false;
+          if (isUnlocked && !isCompleted && !foundFirstUnlocked) {
+            isActive = true;
+            foundFirstUnlocked = true;
+          }
+
+          return {
+            ...sub,
+            isUnlocked,
+            isActive,
+            isCompleted,
+            completed: isCompleted,
+            progress: isCompleted ? 100 : isActive ? 50 : 0,
+          };
+        });
+      });
+
+      setSelectedActivity(null);
+      alert("¡Sesión completada exitosamente!");
+    } catch (err) {
+      console.error("Error completing session:", err);
+      alert("Error al completar la sesión");
     }
   };
 
@@ -530,7 +605,7 @@ export default function SubActivitiesPage() {
       <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#113780] mx-auto mb-4"></div>
-          <p className="text-lg text-gray-600">Cargando subactividades...</p>
+          <p className="text-lg text-gray-600">Cargando sesiones...</p>
         </div>
       </div>
     );
@@ -570,7 +645,7 @@ export default function SubActivitiesPage() {
           </div>
           <p className="text-blue-200 text-sm">
             {activity?.description ||
-              "Explora las subactividades y completa desafÃ­os"}
+              "Explora las sesiones y completa desafíos"}
           </p>
         </div>
       </div>
@@ -602,9 +677,7 @@ export default function SubActivitiesPage() {
               <div className="text-lg sm:text-2xl font-bold text-white">
                 {totalCount}
               </div>
-              <div className="text-xs sm:text-sm text-blue-200">
-                Sub-actividades
-              </div>
+              <div className="text-xs sm:text-sm text-blue-200">Sesiones</div>
             </div>
             <div className="bg-white/20 rounded-lg p-3 sm:p-4 text-center">
               <div className="text-lg sm:text-2xl font-bold text-white">
@@ -686,9 +759,9 @@ export default function SubActivitiesPage() {
           </div>
         )}
 
-        {/* Sub-Activities Grid */}
+        {/* Sessions Grid */}
         <h3 className="text-lg sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">
-          ðŸ“‹ Sub-actividades del dÃ­a
+          📋 Sesiones del día
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {subActivities.map((subActivity) => (
@@ -767,6 +840,11 @@ export default function SubActivitiesPage() {
                 >
                   {subActivity.name}
                 </h4>
+                {subActivity.location && (
+                  <p className="text-xs text-blue-600 mb-1 flex items-center gap-1">
+                    <span>📍</span> {subActivity.location}
+                  </p>
+                )}
                 <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">
                   {subActivity.description}
                 </p>
@@ -837,7 +915,7 @@ export default function SubActivitiesPage() {
                           {selectedActivity.name}
                         </h3>
                         <span className="text-green-100 text-sm">
-                          Subactividad completada
+                          Sesión completada
                         </span>
                       </div>
                       <button
@@ -866,7 +944,7 @@ export default function SubActivitiesPage() {
                       </div>
                     </div>
                     <p className="text-gray-600 mb-6">
-                      Has completado esta subactividad exitosamente.
+                      Has completado esta sesión exitosamente.
                     </p>
                     <button
                       onClick={closeModal}
@@ -925,8 +1003,8 @@ export default function SubActivitiesPage() {
                         <div className="flex items-center gap-2 text-yellow-700">
                           <span className="text-2xl">â­</span>
                           <span className="font-semibold">
-                            Contesta la pregunta para completar esta
-                            subactividad y ganar tu insignia
+                            Contesta la pregunta para completar esta sesión y
+                            ganar tu insignia
                           </span>
                         </div>
                       </div>
@@ -941,10 +1019,23 @@ export default function SubActivitiesPage() {
                             }
                             className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-4 rounded-lg transition flex items-center justify-center gap-2 shadow-lg animate-pulse"
                           >
-                            <span className="text-xl">ðŸŽ¯</span>
+                            <span className="text-xl">🎯</span>
                             <span className="text-lg">
                               Contestar Pregunta y Completar
                             </span>
+                          </button>
+                        )}
+
+                      {!awardsStatus[selectedActivity._id]?.hasAward &&
+                        !selectedActivity.isCompleted && (
+                          <button
+                            onClick={() =>
+                              handleCompleteWithoutChallenge(selectedActivity)
+                            }
+                            className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-4 rounded-lg transition flex items-center justify-center gap-2 shadow-lg"
+                          >
+                            <span className="text-xl">✅</span>
+                            <span className="text-lg">Completar Sesión</span>
                           </button>
                         )}
 

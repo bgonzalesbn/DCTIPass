@@ -12,6 +12,8 @@ export default function AdminUsersTab() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [directionFilter, setDirectionFilter] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const USERS_PER_PAGE = 20;
 
   const loadData = async () => {
     setLoading(true);
@@ -81,6 +83,17 @@ export default function AdminUsersTab() {
     return matchesSearch && matchesDirection;
   });
 
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, directionFilter]);
+
+  const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
+  const paginatedUsers = filteredUsers.slice(
+    (currentPage - 1) * USERS_PER_PAGE,
+    currentPage * USERS_PER_PAGE,
+  );
+
   if (loading) return <div className="text-center py-8">Cargando...</div>;
 
   return (
@@ -142,7 +155,7 @@ export default function AdminUsersTab() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredUsers.map((u) => (
+              {paginatedUsers.map((u) => (
                 <tr key={u._id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-sm font-mono">
                     {u.employeeNumber}
@@ -206,8 +219,71 @@ export default function AdminUsersTab() {
             </tbody>
           </table>
         </div>
-        <div className="px-4 py-2 bg-gray-50 text-xs text-gray-500 border-t">
-          {filteredUsers.length} de {users.length} usuarios
+        <div className="px-4 py-3 bg-gray-50 border-t flex flex-col sm:flex-row items-center justify-between gap-2">
+          <span className="text-xs text-gray-500">
+            Mostrando{" "}
+            {paginatedUsers.length > 0
+              ? (currentPage - 1) * USERS_PER_PAGE + 1
+              : 0}
+            -{Math.min(currentPage * USERS_PER_PAGE, filteredUsers.length)} de{" "}
+            {filteredUsers.length} usuarios
+            {filteredUsers.length !== users.length &&
+              ` (${users.length} total)`}
+          </span>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-2 py-1 text-xs rounded border bg-white hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                ← Anterior
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(
+                  (p) =>
+                    p === 1 ||
+                    p === totalPages ||
+                    Math.abs(p - currentPage) <= 1,
+                )
+                .reduce<(number | string)[]>((acc, p, i, arr) => {
+                  if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push("...");
+                  acc.push(p);
+                  return acc;
+                }, [])
+                .map((p, i) =>
+                  typeof p === "string" ? (
+                    <span
+                      key={`dots-${i}`}
+                      className="px-1 text-xs text-gray-400"
+                    >
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={p}
+                      onClick={() => setCurrentPage(p)}
+                      className={`px-2 py-1 text-xs rounded border ${
+                        currentPage === p
+                          ? "bg-[#113780] text-white border-[#113780]"
+                          : "bg-white hover:bg-gray-100"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ),
+                )}
+              <button
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+                disabled={currentPage === totalPages}
+                className="px-2 py-1 text-xs rounded border bg-white hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Siguiente →
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -60,6 +60,7 @@ export interface AdminSubActivity {
   stickerId?: { _id: string; name: string; imageUrl?: string };
   active: boolean;
   order: number;
+  location?: string;
 }
 
 export interface AdminSchedule {

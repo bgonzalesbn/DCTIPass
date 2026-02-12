@@ -16,7 +16,12 @@ function rateLimitMiddleware(
   const path = _req.path;
 
   if (path === "/auth/login") {
-    const ip = _req.ip || "unknown";
+    // Use X-Forwarded-For to get real client IP behind proxy (Render)
+    const forwarded = _req.headers["x-forwarded-for"];
+    const ip =
+      typeof forwarded === "string"
+        ? forwarded.split(",")[0].trim()
+        : _req.ip || "unknown";
     const now = Date.now();
     const limit = loginAttempts.get(ip);
 
@@ -25,8 +30,8 @@ function rateLimitMiddleware(
       loginAttempts.delete(ip);
     }
 
-    // Check limits: 5 attempts per 15 minutes
-    if (limit && limit.count >= 5) {
+    // Check limits: 20 attempts per 15 minutes per real IP
+    if (limit && limit.count >= 20) {
       console.warn(`⚠️  Rate limit exceeded for IP: ${ip}`);
       _res.status(429).json({
         statusCode: 429,
@@ -59,6 +64,7 @@ async function bootstrap() {
 
   // Middleware para payloads grandes - DEBE ir ANTES de los pipes
   const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.set("trust proxy", true);
   expressApp.use(express.json({ limit: "50mb" }));
   expressApp.use(express.urlencoded({ limit: "50mb", extended: true }));
 

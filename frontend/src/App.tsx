@@ -19,6 +19,7 @@ const AdminDashboardPage = lazy(
   () => import("./pages/admin/AdminDashboardPage"),
 );
 const SuggestionsPage = lazy(() => import("./pages/SuggestionsPage"));
+const RallyPhotosPage = lazy(() => import("./pages/RallyPhotosPage"));
 
 function App() {
   return (
@@ -96,6 +97,14 @@ function App() {
           element={
             <Suspense fallback={<LoadingSpinner />}>
               <SuggestionsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/rally-photos"
+          element={
+            <Suspense fallback={<LoadingSpinner />}>
+              <RallyPhotosPage />
             </Suspense>
           }
         />

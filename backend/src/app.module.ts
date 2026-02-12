@@ -12,6 +12,7 @@ import { StickersModule } from "./modules/stickers/stickers.module";
 import { AwardsModule } from "./modules/awards/awards.module";
 import { AdminModule } from "./modules/admin/admin.module";
 import { SuggestionsModule } from "./modules/suggestions/suggestions.module";
+import { RallyPhotosModule } from "./modules/rally-photos/rally-photos.module";
 import { JwtAuthGuard } from "./modules/auth/guards/jwt.guard";
 
 @Module({
@@ -37,6 +38,7 @@ import { JwtAuthGuard } from "./modules/auth/guards/jwt.guard";
     AwardsModule,
     AdminModule,
     SuggestionsModule,
+    RallyPhotosModule,
   ],
   providers: [
     DatabaseService,
