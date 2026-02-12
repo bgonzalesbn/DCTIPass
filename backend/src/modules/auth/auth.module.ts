@@ -12,9 +12,16 @@ import {
   GeneralSurvey,
   GeneralSurveySchema,
 } from "./schemas/general-survey.schema";
+import {
+  PasswordResetToken,
+  PasswordResetTokenSchema,
+} from "./schemas/password-reset-token.schema";
 import { AuthService } from "./auth.service";
 import { AuthController } from "./auth.controller";
 import { AuthCredentialService } from "./auth-credential.service";
+import { PasswordResetService } from "./password-reset.service";
+import { PasswordResetController } from "./password-reset.controller";
+import { EmailService } from "./email.service";
 import { JwtStrategy } from "./strategies/jwt.strategy";
 import { JwtAuthGuard } from "./guards/jwt.guard";
 
@@ -24,6 +31,7 @@ import { JwtAuthGuard } from "./guards/jwt.guard";
       { name: User.name, schema: UserSchema },
       { name: AuthCredential.name, schema: AuthCredentialSchema },
       { name: GeneralSurvey.name, schema: GeneralSurveySchema },
+      { name: PasswordResetToken.name, schema: PasswordResetTokenSchema },
     ]),
     PassportModule,
     JwtModule.registerAsync({
@@ -34,8 +42,15 @@ import { JwtAuthGuard } from "./guards/jwt.guard";
       }),
     }),
   ],
-  providers: [AuthService, AuthCredentialService, JwtStrategy, JwtAuthGuard],
-  controllers: [AuthController],
+  providers: [
+    AuthService,
+    AuthCredentialService,
+    PasswordResetService,
+    EmailService,
+    JwtStrategy,
+    JwtAuthGuard,
+  ],
+  controllers: [AuthController, PasswordResetController],
   exports: [AuthService, AuthCredentialService, JwtModule],
 })
 export class AuthModule {}

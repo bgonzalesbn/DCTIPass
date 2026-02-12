@@ -2,7 +2,10 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import LoadingSpinner from "./components/LoadingSpinner";
+
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 import "./App.css";
 
 // Lazy load todas las páginas excepto Login y Register
@@ -23,6 +26,15 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route
+          path="/reset-password"
+          element={
+            <Suspense fallback={<LoadingSpinner />}>
+              <ResetPasswordPage />
+            </Suspense>
+          }
+        />
         <Route
           path="/home"
           element={

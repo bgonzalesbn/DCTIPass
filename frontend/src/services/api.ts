@@ -94,6 +94,13 @@ export const authAPI = {
     apiClient.post("/auth/login", { employeeNumber, password }),
   register: (data: RegisterData) => apiClient.post("/auth/register", data),
   logout: () => apiClient.post("/auth/logout", {}),
+  // Password reset
+  requestPasswordReset: (email: string) =>
+    apiClient.post("/auth/password-reset/request", { email }),
+  validateResetToken: (token: string) =>
+    apiClient.post("/auth/password-reset/validate", { token }),
+  resetPassword: (token: string, newPassword: string) =>
+    apiClient.post("/auth/password-reset/reset", { token, newPassword }),
 };
 
 // Users endpoints

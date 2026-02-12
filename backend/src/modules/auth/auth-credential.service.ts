@@ -162,6 +162,33 @@ export class AuthCredentialService {
   }
 
   /**
+   * Update password directly (used by password reset flow).
+   * Properly increments passwordVersion and clears lockout.
+   */
+  async updatePasswordDirect(
+    userId: Types.ObjectId,
+    newPassword: string,
+  ): Promise<void> {
+    const passwordHash = await argon2.hash(newPassword, this.argon2Options);
+
+    const creds = await this.authCredentialModel.findOne({ userId });
+    if (!creds) {
+      throw new NotFoundException("Auth credentials not found");
+    }
+
+    await this.authCredentialModel.updateOne(
+      { userId },
+      {
+        passwordHash,
+        passwordUpdatedAt: new Date(),
+        passwordVersion: (creds.passwordVersion || 1) + 1,
+        failedAttempts: 0,
+        lockoutUntil: null,
+      },
+    );
+  }
+
+  /**
    * Enable MFA
    */
   async enableMFA(userId: Types.ObjectId, method: string, secret: string) {
