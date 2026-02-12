@@ -263,6 +263,10 @@ export class AdminCreateSubActivityDto {
   @IsOptional()
   order?: number;
 
+  @IsString()
+  @IsOptional()
+  location?: string;
+
   @IsBoolean()
   @IsOptional()
   active?: boolean;
