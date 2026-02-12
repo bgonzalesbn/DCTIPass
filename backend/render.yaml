@@ -18,6 +18,6 @@ services:
       - key: SENDGRID_API_KEY
         sync: false
       - key: EMAIL_FROM
-        value: bgonzalezs@bncr.fi.cr
+        value: bgonzalezsbn@gmail.com
       - key: FRONTEND_URL
         value: https://dctpass.vercel.app
