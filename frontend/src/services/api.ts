@@ -94,13 +94,47 @@ export const authAPI = {
     apiClient.post("/auth/login", { employeeNumber, password }),
   register: (data: RegisterData) => apiClient.post("/auth/register", data),
   logout: () => apiClient.post("/auth/logout", {}),
-  // Password reset
-  requestPasswordReset: (employeeNumber: string) =>
-    apiClient.post("/auth/password-reset/request", { employeeNumber }),
-  validateResetToken: (token: string) =>
-    apiClient.post("/auth/password-reset/validate", { token }),
-  resetPassword: (token: string, newPassword: string) =>
-    apiClient.post("/auth/password-reset/reset", { token, newPassword }),
+  // Password reset (security questions)
+  verifyIdentity: (employeeNumber: string, email: string) =>
+    apiClient.post("/auth/password-reset/verify-identity", {
+      employeeNumber,
+      email,
+    }),
+  verifySecurityAnswer: (employeeNumber: string, securityAnswer: string) =>
+    apiClient.post("/auth/password-reset/verify-answer", {
+      employeeNumber,
+      answer: securityAnswer,
+    }),
+  resetPasswordFirstTime: (
+    employeeNumber: string,
+    email: string,
+    newPassword: string,
+  ) =>
+    apiClient.post("/auth/password-reset/reset-first-time", {
+      employeeNumber,
+      email,
+      newPassword,
+    }),
+  resetPasswordWithAnswer: (
+    employeeNumber: string,
+    securityAnswer: string,
+    newPassword: string,
+  ) =>
+    apiClient.post("/auth/password-reset/reset-with-answer", {
+      employeeNumber,
+      answer: securityAnswer,
+      newPassword,
+    }),
+  setSecurityQuestion: (
+    employeeNumber: string,
+    securityQuestion: string,
+    securityAnswer: string,
+  ) =>
+    apiClient.post("/auth/password-reset/set-security-question", {
+      employeeNumber,
+      securityQuestion,
+      securityAnswer,
+    }),
 };
 
 // Users endpoints

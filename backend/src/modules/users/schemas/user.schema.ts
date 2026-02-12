@@ -86,6 +86,13 @@ export class User {
 
   @Prop({ type: Number, default: 0 })
   totalPoints: number;
+
+  // Security question for password recovery
+  @Prop({ type: String, default: null })
+  securityQuestion?: string;
+
+  @Prop({ type: String, default: null })
+  securityAnswer?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

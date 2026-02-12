@@ -1,14 +1,28 @@
-import { IsString, MinLength, Matches } from "class-validator";
+import { IsString, MinLength, Matches, IsEmail } from "class-validator";
 
-export class ForgotPasswordDto {
+export class VerifyIdentityDto {
   @IsString({ message: "Debe ingresar un número de empleado válido" })
   @MinLength(3, { message: "Número de empleado inválido" })
   employeeNumber: string;
+
+  @IsEmail({}, { message: "Debe ingresar un correo electrónico válido" })
+  email: string;
+}
+
+export class AnswerSecurityQuestionDto {
+  @IsString()
+  @MinLength(3)
+  employeeNumber: string;
+
+  @IsString({ message: "Debe ingresar una respuesta" })
+  @MinLength(1, { message: "La respuesta no puede estar vacía" })
+  answer: string;
 }
 
 export class ResetPasswordDto {
   @IsString()
-  token: string;
+  @MinLength(3)
+  employeeNumber: string;
 
   @IsString()
   @MinLength(8, { message: "La contraseña debe tener al menos 8 caracteres" })
@@ -27,7 +41,15 @@ export class ResetPasswordDto {
   newPassword: string;
 }
 
-export class ValidateTokenDto {
+export class SetSecurityQuestionDto {
   @IsString()
-  token: string;
+  @MinLength(3)
+  employeeNumber: string;
+
+  @IsString({ message: "Debe seleccionar una pregunta de seguridad" })
+  securityQuestion: string;
+
+  @IsString({ message: "Debe ingresar una respuesta" })
+  @MinLength(2, { message: "La respuesta debe tener al menos 2 caracteres" })
+  securityAnswer: string;
 }
