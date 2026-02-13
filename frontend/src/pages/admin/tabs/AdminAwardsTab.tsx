@@ -518,7 +518,7 @@ export default function AdminAwardsTab() {
             <div className="flex gap-2 justify-end pt-2 border-t border-gray-100">
               <button
                 type="button"
-                onClick={resetForm}
+                onClick={() => resetForm()}
                 className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 transition"
               >
                 Cancelar
