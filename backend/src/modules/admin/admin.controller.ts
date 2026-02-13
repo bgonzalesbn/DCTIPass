@@ -9,6 +9,7 @@ import {
   Body,
   Param,
   UseGuards,
+  Logger,
 } from "@nestjs/common";
 import { AdminGuard } from "../../common/guards/admin.guard";
 import { AdminService } from "./admin.service";
@@ -35,6 +36,8 @@ import {
 @Controller("admin")
 @UseGuards(AdminGuard)
 export class AdminController {
+  private readonly logger = new Logger(AdminController.name);
+
   constructor(private adminService: AdminService) {}
 
   // ==================== DASHBOARD ====================
@@ -276,6 +279,7 @@ export class AdminController {
 
   @Post("awards")
   async createAward(@Body() data: AdminCreateAwardDto) {
+    this.logger.log("Creating award with data:", JSON.stringify(data));
     return this.adminService.createAward(data);
   }
 

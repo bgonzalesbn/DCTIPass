@@ -74,6 +74,19 @@ export class AdminService {
     if (!data.scheduleId) {
       throw new BadRequestException("Debes seleccionar un horario.");
     }
+
+    // Validar que los IDs sean ObjectIds válidos
+    try {
+      new Types.ObjectId(data.stickerId);
+      new Types.ObjectId(data.activityId);
+      new Types.ObjectId(data.subActivityId);
+      new Types.ObjectId(data.scheduleId);
+    } catch (error) {
+      throw new BadRequestException(
+        "Uno o más IDs son inválidos. Por favor recarga la página e intenta nuevamente.",
+      );
+    }
+
     const existing = await this.stickerAwardModel.findOne({
       subActivityId: new Types.ObjectId(data.subActivityId),
       scheduleId: new Types.ObjectId(data.scheduleId),
@@ -85,21 +98,33 @@ export class AdminService {
         "Ya existe un reto para esta sesión en el horario seleccionado.",
       );
     }
-    const award = new this.stickerAwardModel({
-      ...data,
-      stickerId: new Types.ObjectId(data.stickerId),
-      activityId: new Types.ObjectId(data.activityId),
-      subActivityId: new Types.ObjectId(data.subActivityId),
-      scheduleId: new Types.ObjectId(data.scheduleId),
-      active: true,
-    });
-    const saved = await award.save();
-    return this.stickerAwardModel
-      .findById(saved._id)
-      .populate("stickerId", "_id name imageUrl")
-      .populate("activityId", "_id name")
-      .populate("scheduleId", "_id title date startTime endTime")
-      .lean();
+
+    try {
+      const award = new this.stickerAwardModel({
+        stickerId: new Types.ObjectId(data.stickerId),
+        activityId: new Types.ObjectId(data.activityId),
+        subActivityId: new Types.ObjectId(data.subActivityId),
+        scheduleId: new Types.ObjectId(data.scheduleId),
+        question: data.question,
+        options: data.options,
+        correctAnswer: data.correctAnswer,
+        explanation: data.explanation || "",
+        points: data.points || 10,
+        active: true,
+      });
+      const saved = await award.save();
+      return this.stickerAwardModel
+        .findById(saved._id)
+        .populate("stickerId", "_id name imageUrl")
+        .populate("activityId", "_id name")
+        .populate("scheduleId", "_id title date startTime endTime")
+        .lean();
+    } catch (error) {
+      console.error("Error creating award:", error);
+      throw new BadRequestException(
+        `Error al crear el reto: ${error.message || "Error desconocido"}`,
+      );
+    }
   }
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
