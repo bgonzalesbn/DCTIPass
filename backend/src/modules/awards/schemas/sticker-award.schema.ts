@@ -17,6 +17,9 @@ export class StickerAward {
   @Prop({ type: Types.ObjectId, ref: "SubActivity", required: true })
   subActivityId: Types.ObjectId;
 
+  @Prop({ type: Types.ObjectId, ref: "Schedule" })
+  scheduleId?: Types.ObjectId;
+
   @Prop({ required: true })
   question: string;
 
@@ -43,6 +46,7 @@ export const StickerAwardSchema = SchemaFactory.createForClass(StickerAward);
 
 // Índices
 StickerAwardSchema.index({ subActivityId: 1 });
+StickerAwardSchema.index({ scheduleId: 1 });
 StickerAwardSchema.index({ activityId: 1 });
 StickerAwardSchema.index({ stickerId: 1 });
 StickerAwardSchema.index({ active: 1 });

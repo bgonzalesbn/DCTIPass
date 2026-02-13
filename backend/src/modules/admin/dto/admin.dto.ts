@@ -453,6 +453,10 @@ export class AdminCreateAwardDto {
   subActivityId: string;
 
   @IsString()
+  @IsOptional()
+  scheduleId?: string;
+
+  @IsString()
   @IsNotEmpty()
   question: string;
 
@@ -494,6 +498,10 @@ export class AdminUpdateAwardDto {
   @IsNumber()
   @IsOptional()
   points?: number;
+
+  @IsString()
+  @IsOptional()
+  scheduleId?: string;
 
   @IsBoolean()
   @IsOptional()

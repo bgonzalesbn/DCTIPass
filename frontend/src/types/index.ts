@@ -141,6 +141,13 @@ export interface AdminAward {
   _id: string;
   stickerId: { _id: string; name: string; imageUrl?: string };
   activityId: { _id: string; name: string };
+  scheduleId?: {
+    _id: string;
+    title: string;
+    date?: string;
+    startTime?: string;
+    endTime?: string;
+  };
   subActivityId: string;
   question: string;
   options: string[];

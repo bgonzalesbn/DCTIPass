@@ -65,27 +65,21 @@ export class AdminService {
       .find({ deletedAt: null, active: true })
       .populate("stickerId", "_id name imageUrl")
       .populate("activityId", "_id name")
+      .populate("scheduleId", "_id title date startTime endTime")
       .sort({ createdAt: -1 })
       .lean();
   }
 
   async createAward(data: AdminCreateAwardDto) {
-    // Prevenir duplicados por sub-actividad
-    const existing = await this.stickerAwardModel.findOne({
-      subActivityId: new Types.ObjectId(data.subActivityId),
-      deletedAt: null,
-      active: true,
-    });
-    if (existing) {
-      throw new BadRequestException(
-        "Ya existe un award para esta sub-actividad.",
-      );
+    if (!data.scheduleId) {
+      throw new BadRequestException("Debes seleccionar un horario.");
     }
     const award = new this.stickerAwardModel({
       ...data,
       stickerId: new Types.ObjectId(data.stickerId),
       activityId: new Types.ObjectId(data.activityId),
       subActivityId: new Types.ObjectId(data.subActivityId),
+      scheduleId: new Types.ObjectId(data.scheduleId),
       active: true,
     });
     const saved = await award.save();
@@ -93,6 +87,7 @@ export class AdminService {
       .findById(saved._id)
       .populate("stickerId", "_id name imageUrl")
       .populate("activityId", "_id name")
+      .populate("scheduleId", "_id title date startTime endTime")
       .lean();
   }
   constructor(
@@ -792,10 +787,15 @@ export class AdminService {
   // ==================== AWARDS (Sticker Awards / Retos) ====================
 
   async updateAward(awardId: string, data: AdminUpdateAwardDto) {
+    const updateData: Record<string, unknown> = { ...data };
+    if (data.scheduleId) {
+      updateData.scheduleId = new Types.ObjectId(data.scheduleId);
+    }
     const award = await this.stickerAwardModel
-      .findByIdAndUpdate(awardId, { $set: data }, { new: true })
+      .findByIdAndUpdate(awardId, { $set: updateData }, { new: true })
       .populate("stickerId", "_id name imageUrl")
       .populate("activityId", "_id name")
+      .populate("scheduleId", "_id title date startTime endTime")
       .lean();
 
     if (!award) {

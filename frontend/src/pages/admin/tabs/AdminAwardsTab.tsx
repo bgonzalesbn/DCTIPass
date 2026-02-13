@@ -1,6 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
 import { adminAPI } from "../../../services/api";
-import type { AdminAward, AdminActivity, AdminSticker } from "../../../types";
+import type {
+  AdminAward,
+  AdminActivity,
+  AdminSticker,
+  AdminSchedule,
+} from "../../../types";
 
 const getErrorMessage = (err: unknown): string => {
   const error = err as { response?: { data?: { message?: string } } };
@@ -11,6 +16,7 @@ export default function AdminAwardsTab() {
   const [awards, setAwards] = useState<AdminAward[]>([]);
   const [activities, setActivities] = useState<AdminActivity[]>([]);
   const [stickers, setStickers] = useState<AdminSticker[]>([]);
+  const [schedules, setSchedules] = useState<AdminSchedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -21,6 +27,7 @@ export default function AdminAwardsTab() {
     stickerId: "",
     activityId: "",
     subActivityId: "",
+    scheduleId: "",
     question: "",
     options: ["", ""],
     correctAnswer: "",
@@ -31,15 +38,17 @@ export default function AdminAwardsTab() {
     setLoading(true);
     try {
       // Load independently so activities/stickers show even if awards fails
-      const [awRes, actRes, stkRes] = await Promise.allSettled([
+      const [awRes, actRes, stkRes, schRes] = await Promise.allSettled([
         adminAPI.getAwards(),
         adminAPI.getActivities(),
         adminAPI.getStickers(),
+        adminAPI.getSchedules(),
       ]);
       if (awRes.status === "fulfilled") setAwards(awRes.value.data);
       else console.error("Error loading awards:", awRes.reason);
       if (actRes.status === "fulfilled") setActivities(actRes.value.data);
       if (stkRes.status === "fulfilled") setStickers(stkRes.value.data);
+      if (schRes.status === "fulfilled") setSchedules(schRes.value.data);
     } catch (e) {
       console.error(e);
     } finally {
@@ -56,6 +65,7 @@ export default function AdminAwardsTab() {
       stickerId: "",
       activityId: "",
       subActivityId: "",
+      scheduleId: "",
       question: "",
       options: ["", ""],
       correctAnswer: "",
@@ -70,6 +80,7 @@ export default function AdminAwardsTab() {
       stickerId: a.stickerId?._id || "",
       activityId: a.activityId?._id || "",
       subActivityId: a.subActivityId || "",
+      scheduleId: a.scheduleId?._id || "",
       question: a.question,
       options:
         a.options.length >= 2
@@ -93,6 +104,10 @@ export default function AdminAwardsTab() {
       alert("Debes seleccionar una respuesta correcta de las opciones");
       return;
     }
+    if (!form.scheduleId) {
+      alert("Debes seleccionar un horario");
+      return;
+    }
     setSaving(true);
     try {
       if (editingId) {
@@ -101,12 +116,14 @@ export default function AdminAwardsTab() {
           options: filteredOptions,
           correctAnswer: form.correctAnswer,
           explanation: form.explanation,
+          scheduleId: form.scheduleId,
         });
       } else {
         await adminAPI.createAward({
           stickerId: form.stickerId,
           activityId: form.activityId,
           subActivityId: form.subActivityId,
+          scheduleId: form.scheduleId,
           question: form.question,
           options: filteredOptions,
           correctAnswer: form.correctAnswer,
@@ -160,6 +177,10 @@ export default function AdminAwardsTab() {
   };
 
   const selectedActivity = activities.find((a) => a._id === form.activityId);
+  const availableSchedules = useMemo(() => {
+    if (!form.activityId) return schedules;
+    return schedules.filter((s) => s.activityId?._id === form.activityId);
+  }, [schedules, form.activityId]);
 
   const getSubActivityName = (award: AdminAward) => {
     const activity = activities.find(
@@ -241,6 +262,7 @@ export default function AdminAwardsTab() {
                         activityId: e.target.value,
                         subActivityId: "",
                         stickerId: "",
+                        scheduleId: "",
                       });
                     }}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#113780] focus:border-transparent"
@@ -322,6 +344,40 @@ export default function AdminAwardsTab() {
                 </div>
               </div>
             )}
+
+            {/* Schedule selector */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Horario <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={form.scheduleId}
+                  onChange={(e) =>
+                    setForm({ ...form, scheduleId: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#113780] focus:border-transparent"
+                  required
+                  disabled={!form.activityId}
+                >
+                  <option value="">
+                    {form.activityId
+                      ? "Seleccionar horario..."
+                      : "Selecciona una actividad primero"}
+                  </option>
+                  {availableSchedules.map((s) => (
+                    <option key={s._id} value={s._id}>
+                      {s.title} — {s.startTime} a {s.endTime}
+                    </option>
+                  ))}
+                </select>
+                {form.activityId && availableSchedules.length === 0 && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    No hay horarios creados para esta actividad.
+                  </p>
+                )}
+              </div>
+            </div>
 
             {/* Question */}
             <div>
