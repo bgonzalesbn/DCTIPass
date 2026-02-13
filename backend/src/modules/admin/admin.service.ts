@@ -738,14 +738,26 @@ export class AdminService {
       );
     }
 
-    // Create new membership
-    const membership = new this.membershipModel({
+    const groupObjectId = new Types.ObjectId(groupId);
+    const existingMembership = await this.membershipModel.findOne({
       userId: user._id,
-      groupId: new Types.ObjectId(groupId),
-      assignedAt: new Date(),
+      groupId: groupObjectId,
     });
 
-    await membership.save();
+    if (existingMembership) {
+      existingMembership.deletedAt = null;
+      existingMembership.assignedAt = new Date();
+      await existingMembership.save();
+    } else {
+      // Create new membership
+      const membership = new this.membershipModel({
+        userId: user._id,
+        groupId: groupObjectId,
+        assignedAt: new Date(),
+      });
+
+      await membership.save();
+    }
 
     return {
       message: `${user.firstName} ${user.lastName} assigned to ${group.name}`,
