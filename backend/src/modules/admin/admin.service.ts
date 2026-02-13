@@ -470,6 +470,7 @@ export class AdminService {
         : undefined,
       active: data.active ?? true,
       order: data.order ?? activity.subActivities.length,
+      location: data.location || "",
     };
 
     activity.subActivities.push(subActivity);
@@ -507,6 +508,7 @@ export class AdminService {
       existing.stickerId = new Types.ObjectId(data.stickerId);
     if (data.order !== undefined) existing.order = data.order;
     if (data.active !== undefined) existing.active = data.active;
+    if (data.location !== undefined) existing.location = data.location;
 
     await activity.save();
 
