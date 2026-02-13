@@ -19,7 +19,11 @@ import {
   Challenge,
   ChallengeDocument,
 } from "../challenges/schemas/challenge.schema";
-import { Group, GroupDocument } from "../groups/schemas/group.schema";
+import {
+  Group,
+  GroupDocument,
+  ShiftType,
+} from "../groups/schemas/group.schema";
 import {
   GroupMembership,
   GroupMembershipDocument,
@@ -644,6 +648,10 @@ export class AdminService {
       ...data,
       active: true,
     };
+
+    if (!groupData.shift) {
+      groupData.shift = ShiftType.MORNING;
+    }
 
     if (data.scheduleId) {
       groupData.scheduleId = new Types.ObjectId(data.scheduleId);

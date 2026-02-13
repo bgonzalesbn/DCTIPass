@@ -39,6 +39,7 @@ export default function AdminGroupsTab() {
     name: "",
     capacityMax: 25,
     scheduleId: "",
+    shift: "Morning",
   });
 
   const loadData = async () => {
@@ -100,7 +101,7 @@ export default function AdminGroupsTab() {
   };
 
   const resetForm = () => {
-    setForm({ name: "", capacityMax: 25, scheduleId: "" });
+    setForm({ name: "", capacityMax: 25, scheduleId: "", shift: "Morning" });
     setEditingId(null);
     setShowForm(false);
   };
@@ -110,6 +111,7 @@ export default function AdminGroupsTab() {
       name: g.name,
       capacityMax: g.capacityMax,
       scheduleId: g.scheduleId?._id || "",
+      shift: g.shift || "Morning",
     });
     setEditingId(g._id);
     setShowForm(true);
@@ -121,6 +123,7 @@ export default function AdminGroupsTab() {
       const data: Record<string, unknown> = {
         name: form.name,
         capacityMax: form.capacityMax,
+        shift: form.shift,
       };
       if (form.scheduleId) data.scheduleId = form.scheduleId;
 
@@ -249,7 +252,21 @@ export default function AdminGroupsTab() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Capacidad máxima
+                Turno
+              </label>
+              <select
+                value={form.shift}
+                onChange={(e) => setForm({ ...form, shift: e.target.value })}
+                className="w-full border rounded-lg px-3 py-2 text-sm"
+                required
+              >
+                <option value="Morning">Manana</option>
+                <option value="Afternoon">Tarde</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Capacidad maxima
               </label>
               <input
                 type="number"
