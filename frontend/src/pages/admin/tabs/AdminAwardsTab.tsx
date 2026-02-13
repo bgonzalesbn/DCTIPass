@@ -278,7 +278,6 @@ export default function AdminAwardsTab() {
                   }}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#113780] focus:border-transparent"
                   required
-                  disabled={!!editingId}
                 >
                   <option value="">Seleccionar actividad...</option>
                   {activities.map((a) => (
@@ -310,7 +309,7 @@ export default function AdminAwardsTab() {
                   }}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#113780] focus:border-transparent"
                   required
-                  disabled={!form.activityId || !!editingId}
+                  disabled={!form.activityId}
                 >
                   <option value="">Seleccionar sesión...</option>
                   {selectedActivity?.subActivities
@@ -345,7 +344,6 @@ export default function AdminAwardsTab() {
                   }
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#113780] focus:border-transparent"
                   required
-                  disabled={!!editingId}
                 >
                   <option value="">Seleccionar sticker...</option>
                   {stickers.map((s) => (
