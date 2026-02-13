@@ -75,7 +75,7 @@ interface SubActivityWithStatus extends SubActivity {
 // Helper para obtener el icono/imagen del sticker
 const getStickerDisplay = (
   stickerId?: Sticker | string,
-  defaultIcon: string = "ðŸŽ¯",
+  defaultIcon: string = "🎯",
 ) => {
   if (!stickerId || typeof stickerId === "string") {
     return { type: "emoji" as const, value: defaultIcon };
@@ -92,7 +92,7 @@ const getStickerDisplay = (
 // Componente para mostrar el sticker
 const StickerIcon = ({
   stickerId,
-  defaultIcon = "ðŸŽ¯",
+  defaultIcon = "🎯",
   className = "text-4xl",
   imgClassName = "",
 }: {
@@ -640,7 +640,7 @@ export default function SubActivitiesPage() {
               onClick={() => navigate("/activities")}
               className="bg-white/15 hover:bg-white/25 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex-shrink-0"
             >
-              â† Volver
+              ← Volver
             </button>
           </div>
           <p className="text-blue-200 text-sm">
@@ -657,7 +657,7 @@ export default function SubActivitiesPage() {
             <div className="text-4xl sm:text-5xl flex-shrink-0">
               <StickerIcon
                 stickerId={activity?.stickerId}
-                defaultIcon="ðŸ¢"
+                defaultIcon="🏢"
                 className="text-4xl sm:text-5xl"
                 imgClassName="w-12 h-12 sm:w-16 sm:h-16"
               />
@@ -668,7 +668,7 @@ export default function SubActivitiesPage() {
               </h2>
               <p className="text-blue-200 mt-1 text-sm sm:text-base line-clamp-2">
                 {activity?.description ||
-                  "Programa principal de desarrollo tecnolÃ³gico"}
+                  "Programa principal de desarrollo tecnológico"}
               </p>
             </div>
           </div>
@@ -697,7 +697,7 @@ export default function SubActivitiesPage() {
             </div>
             <div className="bg-white/20 rounded-lg p-3 sm:p-4 text-center">
               <div className="text-lg sm:text-2xl font-bold text-white">
-                {earnedBadgesCount} ðŸ†
+                {earnedBadgesCount} 🏆
               </div>
               <div className="text-xs sm:text-sm text-blue-200">
                 Insignias Ganadas
@@ -727,7 +727,7 @@ export default function SubActivitiesPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="bg-[#113780]/10 rounded-full p-2 sm:p-3 flex-shrink-0">
-                  <span className="text-xl sm:text-2xl">ðŸ‘¥</span>
+                  <span className="text-xl sm:text-2xl">👥</span>
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-gray-500">Tu Grupo</p>
@@ -741,7 +741,7 @@ export default function SubActivitiesPage() {
               </div>
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="bg-green-100 rounded-full p-2 sm:p-3 flex-shrink-0">
-                  <span className="text-xl sm:text-2xl">ðŸ“…</span>
+                  <span className="text-xl sm:text-2xl">📅</span>
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-gray-500">Tu Horario</p>
@@ -749,7 +749,7 @@ export default function SubActivitiesPage() {
                     {userSchedule.title}
                   </p>
                   <p className="text-xs sm:text-sm text-green-600">
-                    {formatDate(userSchedule.date)} â€¢{" "}
+                    {formatDate(userSchedule.date)} •{" "}
                     {formatTime(userSchedule.startTime)} -{" "}
                     {formatTime(userSchedule.endTime)}
                   </p>
@@ -783,12 +783,12 @@ export default function SubActivitiesPage() {
               {/* Banner de estado */}
               {subActivity.isCompleted && (
                 <div className="absolute top-0 right-0 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg z-10">
-                  âœ… COMPLETADO
+                  ✅ COMPLETADO
                 </div>
               )}
               {subActivity.isActive && !subActivity.isCompleted && (
                 <div className="absolute top-0 right-0 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg z-10 animate-bounce shadow-lg">
-                  ðŸ”” ACTIVO
+                  🔔 ACTIVO
                 </div>
               )}
 
@@ -804,7 +804,7 @@ export default function SubActivitiesPage() {
                   <div className={subActivity.isUnlocked ? "" : "grayscale"}>
                     <StickerIcon
                       stickerId={subActivity.stickerId}
-                      defaultIcon="ðŸŽ¯"
+                      defaultIcon="🎯"
                       imgClassName="w-8 h-8 sm:w-10 sm:h-10"
                     />
                   </div>
@@ -822,7 +822,7 @@ export default function SubActivitiesPage() {
                     subActivity.endTime &&
                     subActivity.isUnlocked && (
                       <span className="bg-white/90 text-gray-800 text-xs sm:text-sm font-semibold px-2 sm:px-3 py-1 rounded-full flex items-center gap-1 whitespace-nowrap">
-                        ðŸ• {formatTime(subActivity.startTime)} -{" "}
+                        🕐 {formatTime(subActivity.startTime)} -{" "}
                         {formatTime(subActivity.endTime)}
                       </span>
                     )}
@@ -876,14 +876,14 @@ export default function SubActivitiesPage() {
                     {subActivity.isCompleted
                       ? "Completado"
                       : subActivity.isActive
-                        ? "ðŸŽ¯ Â¡Tu turno!"
+                        ? "🎯 ¡Tu turno!"
                         : subActivity.isUnlocked
-                          ? "ðŸ”“ Disponible"
-                          : "ðŸ”’ Bloqueado"}
+                          ? "📝 Disponible"
+                          : "🔒 Bloqueado"}
                   </span>
                   {subActivity.isActive && !subActivity.isCompleted && (
                     <span className="text-orange-500 font-bold hover:text-orange-600 flex items-center gap-1 animate-pulse">
-                      Iniciar â†’
+                      Iniciar →
                     </span>
                   )}
                 </div>
@@ -892,7 +892,7 @@ export default function SubActivitiesPage() {
                 {subActivity.isActive && !subActivity.isCompleted && (
                   <div className="mt-4 bg-gradient-to-r from-orange-500 to-red-500 text-white text-center py-2 px-3 rounded-lg animate-pulse shadow-md">
                     <span className="text-sm font-bold">
-                      ðŸŽ¯ Â¡Responde la pregunta para completar!
+                      🎯 ¡Responde la pregunta para completar!
                     </span>
                   </div>
                 )}
@@ -922,22 +922,22 @@ export default function SubActivitiesPage() {
                         onClick={closeModal}
                         className="text-white/80 hover:text-white text-2xl"
                       >
-                        âœ•
+                        ✕
                       </button>
                     </div>
                   </div>
                   <div className="p-6 text-center">
                     <div className="mb-4">
-                      <span className="text-6xl">ðŸ†</span>
+                      <span className="text-6xl">🏆</span>
                     </div>
                     <h4 className="text-xl font-bold text-gray-800 mb-2">
-                      Â¡Insignia Ganada!
+                      ¡Insignia Ganada!
                     </h4>
                     <div className="flex justify-center my-6">
                       <div className="bg-gradient-to-br from-yellow-100 to-yellow-200 p-6 rounded-2xl shadow-lg border-4 border-yellow-400">
                         <StickerIcon
                           stickerId={selectedActivity.stickerId}
-                          defaultIcon="ðŸ…"
+                          defaultIcon="🏅"
                           className="text-7xl"
                           imgClassName="w-24 h-24"
                         />
@@ -950,7 +950,7 @@ export default function SubActivitiesPage() {
                       onClick={closeModal}
                       className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-lg transition"
                     >
-                      Â¡Genial! Cerrar
+                      ¡Genial! Cerrar
                     </button>
                   </div>
                 </>
@@ -963,7 +963,7 @@ export default function SubActivitiesPage() {
                       <div className="flex items-center gap-4">
                         <StickerIcon
                           stickerId={selectedActivity.stickerId}
-                          defaultIcon="ðŸŽ¯"
+                          defaultIcon="🎯"
                           className="text-5xl"
                           imgClassName="w-12 h-12"
                         />
@@ -977,7 +977,7 @@ export default function SubActivitiesPage() {
                         onClick={closeModal}
                         className="text-white/80 hover:text-white text-2xl"
                       >
-                        âœ•
+                        ✕
                       </button>
                     </div>
                   </div>
@@ -989,7 +989,7 @@ export default function SubActivitiesPage() {
                     {selectedActivity.startTime && selectedActivity.endTime && (
                       <div className="bg-blue-50 rounded-lg p-4 mb-4">
                         <div className="flex items-center gap-2 text-[#113780]">
-                          <span>ðŸ•</span>
+                          <span>🕐</span>
                           <span className="font-semibold">
                             Horario: {formatTime(selectedActivity.startTime)} -{" "}
                             {formatTime(selectedActivity.endTime)}
@@ -1001,7 +1001,7 @@ export default function SubActivitiesPage() {
                     {awardsStatus[selectedActivity._id]?.hasAward && (
                       <div className="mt-2 p-4 bg-yellow-50 rounded-lg border-2 border-yellow-300">
                         <div className="flex items-center gap-2 text-yellow-700">
-                          <span className="text-2xl">â­</span>
+                          <span className="text-2xl">⭐</span>
                           <span className="font-semibold">
                             Contesta la pregunta para completar esta sesión y
                             ganar tu insignia
