@@ -31,6 +31,101 @@ export default function AdminUsersTab() {
     loadData();
   }, []);
 
+  const handleDownloadPdf = () => {
+    const grouped = users.reduce<Record<string, AdminUser[]>>((acc, u) => {
+      const key = u.direction?.trim() || "Sin dirección";
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(u);
+      return acc;
+    }, {});
+
+    const sortedDirections = Object.keys(grouped).sort((a, b) =>
+      a.localeCompare(b),
+    );
+
+    const normalizeNumber = (value: string) => {
+      const num = Number.parseInt(value, 10);
+      return Number.isNaN(num) ? value : num;
+    };
+
+    sortedDirections.forEach((dir) => {
+      grouped[dir].sort((a, b) => {
+        const aNum = normalizeNumber(a.employeeNumber);
+        const bNum = normalizeNumber(b.employeeNumber);
+        if (typeof aNum === "number" && typeof bNum === "number") {
+          return aNum - bNum;
+        }
+        return String(a.employeeNumber).localeCompare(String(b.employeeNumber));
+      });
+    });
+
+    const rows = sortedDirections
+      .map((dir) => {
+        const usersRows = grouped[dir]
+          .map(
+            (u) => `
+              <tr>
+                <td>${u.employeeNumber}</td>
+                <td>${u.firstName} ${u.lastName}</td>
+                <td>${u.direction || "Sin dirección"}</td>
+              </tr>`,
+          )
+          .join("");
+
+        return `
+          <h2>${dir}</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Número de empleado</th>
+                <th>Nombre</th>
+                <th>Dirección</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${usersRows}
+            </tbody>
+          </table>
+        `;
+      })
+      .join("");
+
+    const html = `
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>Usuarios por Dirección</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 24px; color: #111; }
+            h1 { font-size: 20px; margin: 0 0 12px; }
+            h2 { font-size: 16px; margin: 20px 0 8px; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+            th, td { border: 1px solid #ddd; padding: 8px; font-size: 12px; }
+            th { background: #f3f4f6; text-align: left; }
+          </style>
+        </head>
+        <body>
+          <h1>Usuarios registrados por dirección</h1>
+          <p>Generado: ${new Date().toLocaleString("es-CR")}</p>
+          ${rows}
+        </body>
+      </html>
+    `;
+
+    const win = window.open("", "_blank", "width=900,height=700");
+    if (!win) {
+      alert("No se pudo abrir la ventana de impresión.");
+      return;
+    }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    setTimeout(() => {
+      win.print();
+    }, 300);
+  };
+
   const toggleAdmin = async (user: AdminUser) => {
     const action = user.isAdmin ? "quitar admin" : "hacer admin";
     if (!confirm(`¿${action} a ${user.firstName} ${user.lastName}?`)) return;
@@ -101,6 +196,13 @@ export default function AdminUsersTab() {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-bold text-gray-900">Gestión de Usuarios</h2>
         <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={handleDownloadPdf}
+            className="bg-[#113780] hover:bg-[#0C2A5C] text-white px-3 py-2 rounded-lg text-sm"
+          >
+            Descargar PDF
+          </button>
           <input
             type="text"
             placeholder="Buscar usuario..."
