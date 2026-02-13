@@ -74,6 +74,17 @@ export class AdminService {
     if (!data.scheduleId) {
       throw new BadRequestException("Debes seleccionar un horario.");
     }
+    const existing = await this.stickerAwardModel.findOne({
+      subActivityId: new Types.ObjectId(data.subActivityId),
+      scheduleId: new Types.ObjectId(data.scheduleId),
+      deletedAt: null,
+      active: true,
+    });
+    if (existing) {
+      throw new BadRequestException(
+        "Ya existe un reto para esta sesión en el horario seleccionado.",
+      );
+    }
     const award = new this.stickerAwardModel({
       ...data,
       stickerId: new Types.ObjectId(data.stickerId),

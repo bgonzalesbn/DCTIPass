@@ -334,8 +334,10 @@ export default function SubActivitiesPage() {
       > = {};
       if (subActivityIds.length > 0) {
         try {
-          const statusResponse =
-            await awardsAPI.getSubActivityAwardsStatus(subActivityIds);
+          const statusResponse = await awardsAPI.getSubActivityAwardsStatus(
+            subActivityIds,
+            userData.schedule?._id,
+          );
           awardsStatusData = statusResponse.data;
           setAwardsStatus(awardsStatusData);
         } catch (err) {
@@ -389,7 +391,10 @@ export default function SubActivitiesPage() {
   // FunciÃ³n para abrir el modal de pregunta
   const handleAnswerQuestion = async (subActivity: SubActivityWithStatus) => {
     try {
-      const response = await awardsAPI.getAwardBySubActivity(subActivity._id);
+      const response = await awardsAPI.getAwardBySubActivity(
+        subActivity._id,
+        userSchedule?._id,
+      );
       if (response.data) {
         setAnsweringSubActivity(subActivity); // Guardar referencia antes de cerrar el modal
         setCurrentAward(response.data);

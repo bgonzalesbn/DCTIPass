@@ -31,8 +31,11 @@ export class AwardsController {
 
   // Obtener reto por subactividad
   @Get("subactivity/:subActivityId")
-  async getAwardBySubActivity(@Param("subActivityId") subActivityId: string) {
-    return this.awardsService.getAwardBySubActivity(subActivityId);
+  async getAwardBySubActivity(
+    @Param("subActivityId") subActivityId: string,
+    @Query("scheduleId") scheduleId?: string,
+  ) {
+    return this.awardsService.getAwardBySubActivity(subActivityId, scheduleId);
   }
 
   // Obtener todos los retos de una actividad
@@ -73,12 +76,14 @@ export class AwardsController {
   async getSubActivityAwardsStatus(
     @Request() req,
     @Query("subActivityIds") subActivityIds: string,
+    @Query("scheduleId") scheduleId?: string,
   ) {
     const userId = req.user.id || req.user.sub || req.user._id;
     const ids = subActivityIds.split(",");
     const statusMap = await this.awardsService.getSubActivityAwardsStatus(
       userId,
       ids,
+      scheduleId,
     );
 
     // Convertir Map a objeto para la respuesta JSON

@@ -220,8 +220,10 @@ export const groupsAPI = {
 // Awards endpoints
 export const awardsAPI = {
   // Obtener reto por subactividad
-  getAwardBySubActivity: (subActivityId: string) =>
-    apiClient.get(`/awards/subactivity/${subActivityId}`),
+  getAwardBySubActivity: (subActivityId: string, scheduleId?: string) =>
+    apiClient.get(
+      `/awards/subactivity/${subActivityId}${scheduleId ? `?scheduleId=${encodeURIComponent(scheduleId)}` : ""}`,
+    ),
   // Obtener todos los retos de una actividad
   getAwardsByActivity: (activityId: string) =>
     apiClient.get(`/awards/activity/${activityId}`),
@@ -234,8 +236,12 @@ export const awardsAPI = {
   getProgress: (activityId: string) =>
     apiClient.get(`/awards/progress/${activityId}`),
   // Obtener estado de retos para subactividades
-  getSubActivityAwardsStatus: (subActivityIds: string[]) =>
-    apiClient.get(`/awards/status?subActivityIds=${subActivityIds.join(",")}`),
+  getSubActivityAwardsStatus: (subActivityIds: string[], scheduleId?: string) =>
+    apiClient.get(
+      `/awards/status?subActivityIds=${subActivityIds.join(",")}${
+        scheduleId ? `&scheduleId=${encodeURIComponent(scheduleId)}` : ""
+      }`,
+    ),
   // Verificar si completó un reto
   hasCompletedAward: (stickerAwardId: string) =>
     apiClient.get(`/awards/completed/${stickerAwardId}`),

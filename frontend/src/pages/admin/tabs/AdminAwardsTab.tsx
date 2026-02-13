@@ -60,17 +60,28 @@ export default function AdminAwardsTab() {
     loadData();
   }, []);
 
-  const resetForm = () => {
-    setForm({
-      stickerId: "",
-      activityId: "",
-      subActivityId: "",
-      scheduleId: "",
-      question: "",
-      options: ["", ""],
-      correctAnswer: "",
-      explanation: "",
-    });
+  const resetForm = (keepSelection: boolean = false) => {
+    setForm((prev) =>
+      keepSelection
+        ? {
+            ...prev,
+            scheduleId: "",
+            question: "",
+            options: ["", ""],
+            correctAnswer: "",
+            explanation: "",
+          }
+        : {
+            stickerId: "",
+            activityId: "",
+            subActivityId: "",
+            scheduleId: "",
+            question: "",
+            options: ["", ""],
+            correctAnswer: "",
+            explanation: "",
+          },
+    );
     setEditingId(null);
     setShowForm(false);
   };
@@ -118,6 +129,7 @@ export default function AdminAwardsTab() {
           explanation: form.explanation,
           scheduleId: form.scheduleId,
         });
+        resetForm();
       } else {
         await adminAPI.createAward({
           stickerId: form.stickerId,
@@ -129,8 +141,8 @@ export default function AdminAwardsTab() {
           correctAnswer: form.correctAnswer,
           explanation: form.explanation,
         });
+        resetForm(true);
       }
-      resetForm();
       loadData();
     } catch (err) {
       alert(getErrorMessage(err));
@@ -247,103 +259,103 @@ export default function AdminAwardsTab() {
             {editingId ? "Editar Reto" : "Crear Nuevo Reto"}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Activity/SubActivity/Sticker selectors - only for new */}
-            {!editingId && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Actividad <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={form.activityId}
-                    onChange={(e) => {
-                      setForm({
-                        ...form,
-                        activityId: e.target.value,
-                        subActivityId: "",
-                        stickerId: "",
-                        scheduleId: "",
-                      });
-                    }}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#113780] focus:border-transparent"
-                    required
-                  >
-                    <option value="">Seleccionar actividad...</option>
-                    {activities.map((a) => (
-                      <option key={a._id} value={a._id}>
-                        {a.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Sesión <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={form.subActivityId}
-                    onChange={(e) => {
-                      const subId = e.target.value;
-                      const sub = selectedActivity?.subActivities?.find(
-                        (s) => String(s._id) === subId,
-                      );
-                      const autoSticker = sub?.stickerId
-                        ? String(sub.stickerId)
-                        : "";
-                      setForm({
-                        ...form,
-                        subActivityId: subId,
-                        stickerId: autoSticker || form.stickerId,
-                      });
-                    }}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#113780] focus:border-transparent"
-                    required
-                    disabled={!form.activityId}
-                  >
-                    <option value="">Seleccionar sesión...</option>
-                    {selectedActivity?.subActivities
-                      ?.filter((s) => s.active !== false)
-                      .map((s) => {
-                        const quizCount = subActivityQuizCount(String(s._id));
-                        return (
-                          <option key={String(s._id)} value={String(s._id)}>
-                            {s.name}
-                            {quizCount > 0
-                              ? ` (${quizCount} reto${quizCount > 1 ? "s" : ""})`
-                              : ""}
-                          </option>
-                        );
-                      })}
-                  </select>
-                  {form.subActivityId && (
-                    <p className="text-xs text-blue-600 mt-1">
-                      {subActivityQuizCount(form.subActivityId)} reto(s)
-                      asignado(s) a esta sesión
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Sticker (premio) <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={form.stickerId}
-                    onChange={(e) =>
-                      setForm({ ...form, stickerId: e.target.value })
-                    }
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#113780] focus:border-transparent"
-                    required
-                  >
-                    <option value="">Seleccionar sticker...</option>
-                    {stickers.map((s) => (
-                      <option key={s._id} value={s._id}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+            {/* Activity/SubActivity/Sticker selectors */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Actividad <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={form.activityId}
+                  onChange={(e) => {
+                    setForm({
+                      ...form,
+                      activityId: e.target.value,
+                      subActivityId: "",
+                      stickerId: "",
+                      scheduleId: "",
+                    });
+                  }}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#113780] focus:border-transparent"
+                  required
+                  disabled={!!editingId}
+                >
+                  <option value="">Seleccionar actividad...</option>
+                  {activities.map((a) => (
+                    <option key={a._id} value={a._id}>
+                      {a.name}
+                    </option>
+                  ))}
+                </select>
               </div>
-            )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Sesión <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={form.subActivityId}
+                  onChange={(e) => {
+                    const subId = e.target.value;
+                    const sub = selectedActivity?.subActivities?.find(
+                      (s) => String(s._id) === subId,
+                    );
+                    const autoSticker = sub?.stickerId
+                      ? String(sub.stickerId)
+                      : "";
+                    setForm({
+                      ...form,
+                      subActivityId: subId,
+                      stickerId: autoSticker || form.stickerId,
+                    });
+                  }}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#113780] focus:border-transparent"
+                  required
+                  disabled={!form.activityId || !!editingId}
+                >
+                  <option value="">Seleccionar sesión...</option>
+                  {selectedActivity?.subActivities
+                    ?.filter((s) => s.active !== false)
+                    .map((s) => {
+                      const quizCount = subActivityQuizCount(String(s._id));
+                      return (
+                        <option key={String(s._id)} value={String(s._id)}>
+                          {s.name}
+                          {quizCount > 0
+                            ? ` (${quizCount} reto${quizCount > 1 ? "s" : ""})`
+                            : ""}
+                        </option>
+                      );
+                    })}
+                </select>
+                {form.subActivityId && (
+                  <p className="text-xs text-blue-600 mt-1">
+                    {subActivityQuizCount(form.subActivityId)} reto(s)
+                    asignado(s) a esta sesión
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Sticker (premio) <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={form.stickerId}
+                  onChange={(e) =>
+                    setForm({ ...form, stickerId: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#113780] focus:border-transparent"
+                  required
+                  disabled={!!editingId}
+                >
+                  <option value="">Seleccionar sticker...</option>
+                  {stickers.map((s) => (
+                    <option key={s._id} value={s._id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
             {/* Schedule selector */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

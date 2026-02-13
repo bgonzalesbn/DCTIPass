@@ -43,15 +43,17 @@ export class AwardsService {
   // Obtener reto por subactividad
   async getAwardBySubActivity(
     subActivityId: string,
+    scheduleId?: string,
   ): Promise<StickerAward | null> {
-    return this.stickerAwardModel
-      .findOne({
-        subActivityId: new Types.ObjectId(subActivityId),
-        active: true,
-        deletedAt: null,
-      })
-      .populate("stickerId")
-      .exec();
+    const query: Record<string, unknown> = {
+      subActivityId: new Types.ObjectId(subActivityId),
+      active: true,
+      deletedAt: null,
+    };
+    if (scheduleId) {
+      query.scheduleId = new Types.ObjectId(scheduleId);
+    }
+    return this.stickerAwardModel.findOne(query).populate("stickerId").exec();
   }
 
   // Obtener todos los retos de una actividad
@@ -351,6 +353,7 @@ export class AwardsService {
   async getSubActivityAwardsStatus(
     userId: string,
     subActivityIds: string[],
+    scheduleId?: string,
   ): Promise<Map<string, { hasAward: boolean; completed: boolean }>> {
     const result = new Map<string, { hasAward: boolean; completed: boolean }>();
 
@@ -362,11 +365,15 @@ export class AwardsService {
     );
 
     for (const subActivityId of subActivityIds) {
-      const award = await this.stickerAwardModel.findOne({
+      const query: Record<string, unknown> = {
         subActivityId: new Types.ObjectId(subActivityId),
         active: true,
         deletedAt: null,
-      });
+      };
+      if (scheduleId) {
+        query.scheduleId = new Types.ObjectId(scheduleId);
+      }
+      const award = await this.stickerAwardModel.findOne(query);
 
       console.log(
         `[getSubActivityAwardsStatus] SubActivity ${subActivityId}: award found = ${!!award}`,
