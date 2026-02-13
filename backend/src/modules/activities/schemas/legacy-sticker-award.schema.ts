@@ -31,7 +31,16 @@ export class LegacyStickerAward {
 export const LegacyStickerAwardSchema =
   SchemaFactory.createForClass(LegacyStickerAward);
 
-LegacyStickerAwardSchema.index({ userId: 1, stickerId: 1 }, { unique: true });
+LegacyStickerAwardSchema.index(
+  { userId: 1, stickerId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      userId: { $exists: true, $type: "objectId" },
+      stickerId: { $exists: true, $type: "objectId" },
+    },
+  },
+);
 LegacyStickerAwardSchema.index({ userId: 1, awardedAt: -1 });
 LegacyStickerAwardSchema.index({ stickerId: 1 });
 LegacyStickerAwardSchema.index({ awardedAt: -1 });
