@@ -453,8 +453,8 @@ export class AdminCreateAwardDto {
   subActivityId: string;
 
   @IsString()
-  @IsOptional()
-  scheduleId?: string;
+  @IsNotEmpty()
+  scheduleId: string;
 
   @IsString()
   @IsNotEmpty()
