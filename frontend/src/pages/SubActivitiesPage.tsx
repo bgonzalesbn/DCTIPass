@@ -27,6 +27,7 @@ interface SubActivity {
   completed?: boolean;
   startTime?: string;
   endTime?: string;
+  enableClarityQuestion?: boolean;
 }
 
 interface Activity {
@@ -323,30 +324,17 @@ export default function SubActivitiesPage() {
         setAnsweringSubActivity(subActivity); // Guardar referencia antes de cerrar el modal
         setCurrentAward(response.data);
 
-        // Verificar si la sesión tiene habilitada la pregunta de claridad
-        const groupId = userGroup?._id;
-        const groupSessions = userSchedule?.groupSessions || [];
-        const groupSession = groupId
-          ? groupSessions.find((gs) => {
-              const gsGroupId =
-                typeof gs.groupId === "string" ? gs.groupId : gs.groupId?._id;
-              return gsGroupId && String(gsGroupId) === String(groupId);
-            })
-          : null;
-
-        const sessionInfo = groupSession?.sessions?.find(
-          (session) =>
-            String(session.subActivityId) === String(subActivity._id),
-        );
+        // Verificar si la subactividad tiene habilitada la pregunta de claridad
+        const clarityEnabled =
+          (subActivity as any).enableClarityQuestion || false;
 
         console.log("[DEBUG] Clarity Question Check:", {
           subActivityId: subActivity._id,
           subActivityName: subActivity.name,
-          sessionInfo,
-          enableClarityQuestion: sessionInfo?.enableClarityQuestion,
+          enableClarityQuestion: clarityEnabled,
         });
 
-        setEnableClarityQuestion(sessionInfo?.enableClarityQuestion || false);
+        setEnableClarityQuestion(clarityEnabled);
         setShowQuestionModal(true);
         setSelectedActivity(null);
       } else {

@@ -82,6 +82,7 @@ export default function AdminActivitiesTab() {
     stickerId: "",
     order: 0,
     location: "",
+    enableClarityQuestion: false,
   });
 
   const loadData = async () => {
@@ -152,6 +153,7 @@ export default function AdminActivitiesTab() {
       stickerId: "",
       order: 0,
       location: "",
+      enableClarityQuestion: false,
     });
     setEditingSubId(null);
     setShowSubForm(null);
@@ -217,6 +219,7 @@ export default function AdminActivitiesTab() {
       stickerId: sub.stickerId?._id || "",
       order: sub.order || 0,
       location: sub.location || "",
+      enableClarityQuestion: sub.enableClarityQuestion || false,
     });
     setEditingSubId(sub._id);
     setShowSubForm(activityId);
@@ -230,6 +233,7 @@ export default function AdminActivitiesTab() {
         description: subForm.description,
         order: subForm.order,
         location: subForm.location,
+        enableClarityQuestion: subForm.enableClarityQuestion,
       };
       if (subForm.stickerId) data.stickerId = subForm.stickerId;
 
@@ -879,6 +883,29 @@ export default function AdminActivitiesTab() {
                                 </option>
                               ))}
                             </select>
+                          </div>
+                          <div className="sm:col-span-2">
+                            <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={subForm.enableClarityQuestion}
+                                onChange={(e) =>
+                                  setSubForm({
+                                    ...subForm,
+                                    enableClarityQuestion: e.target.checked,
+                                  })
+                                }
+                                className="rounded"
+                              />
+                              <span>
+                                💭 Habilitar pregunta de claridad para esta
+                                sesión
+                              </span>
+                            </label>
+                            <p className="text-xs text-gray-500 mt-1 ml-6">
+                              Los usuarios verán la pregunta de evaluación de
+                              claridad al completar esta sesión
+                            </p>
                           </div>
                           <div className="sm:col-span-2 flex gap-2 justify-end">
                             <button
