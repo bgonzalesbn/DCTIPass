@@ -55,6 +55,11 @@ export default function ClarityQuestionModal({
   enableClarityQuestion = false,
   skipChallenge = false,
 }: ClarityQuestionModalProps) {
+  const hasChallenge =
+    !skipChallenge &&
+    !!challengeQuestion &&
+    Array.isArray(challengeOptions) &&
+    challengeOptions.length > 0;
   const [selectedChallengeAnswer, setSelectedChallengeAnswer] = useState<
     string | null
   >(null);
@@ -62,7 +67,7 @@ export default function ClarityQuestionModal({
     string | null
   >(null);
   const [step, setStep] = useState<"challenge" | "clarity">(
-    skipChallenge ? "clarity" : "challenge",
+    hasChallenge ? "challenge" : "clarity",
   );
   const [challengeLocked, setChallengeLocked] = useState(false);
   const [challengeResult, setChallengeResult] =
@@ -71,14 +76,14 @@ export default function ClarityQuestionModal({
 
   useEffect(() => {
     if (isOpen) {
-      setStep(skipChallenge ? "clarity" : "challenge");
+      setStep(hasChallenge ? "challenge" : "clarity");
       setChallengeLocked(false);
       setChallengeResult(null);
       setShowIncorrectPopup(false);
       setSelectedChallengeAnswer(null);
       setSelectedClarityAnswer(null);
     }
-  }, [isOpen, skipChallenge]);
+  }, [isOpen, hasChallenge]);
 
   if (!isOpen) return null;
 
@@ -158,7 +163,7 @@ export default function ClarityQuestionModal({
         </div>
 
         {/* Progress indicator */}
-        {enableClarityQuestion && !skipChallenge && (
+        {enableClarityQuestion && hasChallenge && (
           <div className="px-4 sm:px-6 pt-4">
             <div className="flex items-center gap-2">
               <div
@@ -180,7 +185,7 @@ export default function ClarityQuestionModal({
         )}
 
         {/* Challenge Question */}
-        {step === "challenge" && !skipChallenge && (
+        {step === "challenge" && hasChallenge && (
           <div className="p-4 sm:p-6">
             <div className="mb-4 sm:mb-6">
               <div className="flex items-center gap-2 mb-2 sm:mb-3">
