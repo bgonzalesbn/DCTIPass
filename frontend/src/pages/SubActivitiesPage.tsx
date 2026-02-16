@@ -1068,7 +1068,6 @@ export default function SubActivitiesPage() {
                             className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-4 rounded-lg transition flex items-center justify-center gap-2 shadow-lg animate-pulse"
                           >
                             <span className="text-xl">🎯</span>
-                            setSkipChallenge(false);
                             <span className="text-lg">
                               Contestar Pregunta y Completar
                             </span>
@@ -1078,7 +1077,6 @@ export default function SubActivitiesPage() {
                       {!awardsStatus[selectedActivity._id]?.hasAward &&
                         !selectedActivity.isCompleted && (
                           <button
-                            skipChallenge={skipChallenge}
                             onClick={() =>
                               handleCompleteWithoutChallenge(selectedActivity)
                             }
