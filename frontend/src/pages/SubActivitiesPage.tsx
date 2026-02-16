@@ -335,8 +335,16 @@ export default function SubActivitiesPage() {
           : null;
 
         const sessionInfo = groupSession?.sessions?.find(
-          (session) => session.subActivityId === subActivity._id,
+          (session) =>
+            String(session.subActivityId) === String(subActivity._id),
         );
+
+        console.log("[DEBUG] Clarity Question Check:", {
+          subActivityId: subActivity._id,
+          subActivityName: subActivity.name,
+          sessionInfo,
+          enableClarityQuestion: sessionInfo?.enableClarityQuestion,
+        });
 
         setEnableClarityQuestion(sessionInfo?.enableClarityQuestion || false);
         setShowQuestionModal(true);
