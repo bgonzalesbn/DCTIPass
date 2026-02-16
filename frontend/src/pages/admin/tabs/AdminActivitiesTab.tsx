@@ -605,9 +605,9 @@ export default function AdminActivitiesTab() {
         groupSessions: groupSessions.map((gs) => ({
           groupId: gs.groupId,
           sessions: gs.sessions.map((s) => ({
-            subActivityName: s.subActivityName,
-            startTime: s.startTime,
-            enableClarityQuestion: s.enableClarityQuestion,
+            subActivityName: s?.subActivityName || "",
+            startTime: s?.startTime || "",
+            enableClarityQuestion: s?.enableClarityQuestion || false,
           })),
         })),
       });
