@@ -506,6 +506,7 @@ export class AdminService {
       active: data.active ?? true,
       order: data.order ?? activity.subActivities.length,
       location: data.location || "",
+      enableClarityQuestion: data.enableClarityQuestion ?? false,
     };
 
     activity.subActivities.push(subActivity);
@@ -544,6 +545,8 @@ export class AdminService {
     if (data.order !== undefined) existing.order = data.order;
     if (data.active !== undefined) existing.active = data.active;
     if (data.location !== undefined) existing.location = data.location;
+    if (data.enableClarityQuestion !== undefined)
+      existing.enableClarityQuestion = data.enableClarityQuestion;
 
     await activity.save();
 

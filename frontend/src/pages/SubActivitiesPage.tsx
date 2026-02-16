@@ -325,8 +325,7 @@ export default function SubActivitiesPage() {
         setCurrentAward(response.data);
 
         // Verificar si la subactividad tiene habilitada la pregunta de claridad
-        const clarityEnabled =
-          (subActivity as any).enableClarityQuestion || false;
+        const clarityEnabled = subActivity.enableClarityQuestion || false;
 
         console.log("[DEBUG] Clarity Question Check:", {
           subActivityId: subActivity._id,

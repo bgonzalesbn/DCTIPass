@@ -66,9 +66,6 @@ export default function AdminActivitiesTab() {
   const [sessionMatrix, setSessionMatrix] = useState<Record<string, string>>(
     {},
   );
-  const [clarityMatrix, setClarityMatrix] = useState<Record<string, boolean>>(
-    {},
-  );
   const [savingSessions, setSavingSessions] = useState(false);
 
   const [form, setForm] = useState({
@@ -415,61 +412,6 @@ export default function AdminActivitiesTab() {
     return cells;
   };
 
-  const initClarityMatrix = (
-    sch: AdminSchedule,
-    dur: number,
-    customStart?: string,
-  ) => {
-    const start = customStart || sch.sessionStartTime || sch.startTime;
-    const slots = generateSlots(start, sch.endTime, dur);
-    const cells: Record<string, boolean> = {};
-    const groupList = sch.groupIds || [];
-
-    console.log("[DEBUG] initClarityMatrix - Schedule:", {
-      scheduleId: sch._id,
-      title: sch.title,
-      hasGroupSessions: !!sch.groupSessions?.length,
-      groupSessionsCount: sch.groupSessions?.length || 0,
-    });
-
-    // Load saved clarity flags from groupSessions if they exist
-    if (sch.groupSessions?.length) {
-      for (const gs of sch.groupSessions) {
-        const gsGroupId = String(
-          typeof gs.groupId === "string" ? gs.groupId : gs.groupId._id,
-        );
-        const rowIdx = groupList.findIndex(
-          (g) => (typeof g === "string" ? g : String(g._id)) === gsGroupId,
-        );
-        if (rowIdx < 0) continue;
-
-        console.log(
-          `[DEBUG] Processing group ${gsGroupId}, rowIdx: ${rowIdx}, sessions:`,
-          gs.sessions.map((s) => ({
-            subActivityName: s.subActivityName,
-            startTime: s.startTime,
-            enableClarityQuestion: s.enableClarityQuestion,
-          })),
-        );
-
-        for (let col = 0; col < slots.length; col++) {
-          const found = gs.sessions.find(
-            (s) => s.startTime === slots[col].startTime,
-          );
-          if (found && found.enableClarityQuestion) {
-            cells[cellKey(rowIdx, col)] = true;
-            console.log(
-              `[DEBUG] Setting clarity at row:${rowIdx} col:${col} for ${found.subActivityName}`,
-            );
-          }
-        }
-      }
-    }
-
-    console.log("[DEBUG] Final clarityMatrix cells:", cells);
-    return cells;
-  };
-
   const handleExpandSchedule = (sch: AdminSchedule) => {
     if (expandedScheduleId === sch._id) {
       setExpandedScheduleId(null);
@@ -480,7 +422,6 @@ export default function AdminActivitiesTab() {
     setSessionDuration(dur);
     setSessionStartTime(startT);
     setSessionMatrix(initMatrix(sch, dur, startT));
-    setClarityMatrix(initClarityMatrix(sch, dur, startT));
     setExpandedScheduleId(sch._id);
   };
 
@@ -529,27 +470,10 @@ export default function AdminActivitiesTab() {
     });
   };
 
-  const toggleClarityCell = (row: number, col: number) => {
-    setClarityMatrix((prev) => {
-      const k = cellKey(row, col);
-      const currentValue = prev[k] || false;
-      if (currentValue) {
-        // Deactivate clarity question
-        const next = { ...prev };
-        delete next[k];
-        return next;
-      }
-      return { ...prev, [k]: true };
-    });
-  };
-
   const handleDurationChange = (sch: AdminSchedule, newDur: number) => {
     if (newDur < 5) return;
     setSessionDuration(newDur);
     setSessionMatrix(initMatrix(sch, newDur, sessionStartTime || undefined));
-    setClarityMatrix(
-      initClarityMatrix(sch, newDur, sessionStartTime || undefined),
-    );
   };
 
   const autoRotate = (sch: AdminSchedule, act: AdminActivity) => {
@@ -589,32 +513,16 @@ export default function AdminActivitiesTab() {
             const subId = sessionMatrix[cellKey(rowIdx, colIdx)];
             if (!subId) return null;
             const sub = subs.find((s) => s._id === subId);
-            const clarityEnabled =
-              clarityMatrix[cellKey(rowIdx, colIdx)] || false;
             return {
               subActivityId: subId,
               subActivityName: sub?.name || "",
               startTime: slot.startTime,
               endTime: slot.endTime,
               order: colIdx,
-              enableClarityQuestion: clarityEnabled,
             };
           })
           .filter(Boolean),
       }));
-
-      console.log("[DEBUG] Saving sessions with clarity flags:", {
-        scheduleId: sch._id,
-        clarityMatrix,
-        groupSessions: groupSessions.map((gs) => ({
-          groupId: gs.groupId,
-          sessions: gs.sessions.map((s) => ({
-            subActivityName: s?.subActivityName || "",
-            startTime: s?.startTime || "",
-            enableClarityQuestion: s?.enableClarityQuestion || false,
-          })),
-        })),
-      });
 
       await adminAPI.updateGroupSessions(sch._id, {
         sessionDuration,
@@ -1454,28 +1362,6 @@ export default function AdminActivitiesTab() {
                                                           );
                                                         })}
                                                     </select>
-                                                    {currentVal && (
-                                                      <label className="flex items-center gap-1 mt-1 text-xs text-gray-700 cursor-pointer">
-                                                        <input
-                                                          type="checkbox"
-                                                          checked={
-                                                            clarityMatrix[ck] ||
-                                                            false
-                                                          }
-                                                          onChange={() =>
-                                                            toggleClarityCell(
-                                                              rowIdx,
-                                                              colIdx,
-                                                            )
-                                                          }
-                                                          className="rounded"
-                                                        />
-                                                        <span>
-                                                          💭 Pregunta de
-                                                          claridad
-                                                        </span>
-                                                      </label>
-                                                    )}
                                                   </td>
                                                 );
                                               })}
