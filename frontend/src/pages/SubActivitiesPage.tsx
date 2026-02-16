@@ -1143,17 +1143,17 @@ export default function SubActivitiesPage() {
             setAnsweringSubActivity(null);
             setEnableClarityQuestion(false);
             setPendingAwardResult(null);
+            setSkipChallenge(false);
           }}
           challengeQuestion={currentAward?.question || ""}
           challengeOptions={currentAward?.options || []}
           onValidateChallenge={handleValidateChallengeAnswer}
-          onSubmitClarity={
-            enableClarityQuestion ? handleSubmitClarity : undefined
-          }
+          onSubmitClarity={handleSubmitClarity}
           loading={answeringLoading}
           subActivityName={answeringSubActivity?.name || ""}
           sticker={currentAward?.stickerId}
           enableClarityQuestion={enableClarityQuestion}
+          skipChallenge={skipChallenge}
         />
 
         {/* Completed Modal */}
