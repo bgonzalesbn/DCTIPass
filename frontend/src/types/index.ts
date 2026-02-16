@@ -93,6 +93,7 @@ export interface AdminSchedule {
       startTime: string;
       endTime: string;
       order: number;
+      enableClarityQuestion?: boolean;
     }[];
   }[];
   order: number;
