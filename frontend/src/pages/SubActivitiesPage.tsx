@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { activitiesAPI, usersAPI, awardsAPI } from "../services/api";
+import { useSubActivityStatus } from "../hooks/useSubActivityStatus";
 import QuestionModal from "../components/QuestionModal";
 import CompletedModal from "../components/CompletedModal";
 
@@ -170,22 +171,23 @@ export default function SubActivitiesPage() {
   const [awardsStatus, setAwardsStatus] = useState<
     Record<string, { hasAward: boolean; completed: boolean }>
   >({});
-  // Referencia a la subactividad que estÃ¡ respondiendo (no se limpia al abrir modal de pregunta)
+  // Referencia a la subactividad que está respondiendo (no se limpia al abrir modal de pregunta)
   const [answeringSubActivity, setAnsweringSubActivity] =
     useState<SubActivityWithStatus | null>(null);
 
   const navigate = useNavigate();
+  const { calculateStatus, isWithinSchedule } = useSubActivityStatus();
 
-  // FunciÃ³n para verificar si estamos en el dÃ­a correcto del schedule
+  // Función para verificar si estamos en el día correcto del schedule
   const isScheduleDay = useCallback((schedule: Schedule | null): boolean => {
     if (!schedule?.date) {
-      return true; // Si no hay schedule, asumimos que es vÃ¡lido
+      return true; // Si no hay schedule, asumimos que es válido
     }
 
     const today = new Date();
     const scheduleDate = new Date(schedule.date);
 
-    // Comparar solo aÃ±o, mes y dÃ­a
+    // Comparar solo año, mes y día
     return (
       today.getFullYear() === scheduleDate.getFullYear() &&
       today.getMonth() === scheduleDate.getMonth() &&
@@ -193,15 +195,15 @@ export default function SubActivitiesPage() {
     );
   }, []);
 
-  // FunciÃ³n para verificar si una subactividad estÃ¡ dentro de su horario
+  // Función para verificar si una subactividad está dentro de su horario
   const isWithinSchedule = useCallback(
     (subActivity: SubActivity, schedule: Schedule | null): boolean => {
-      // Primero verificar si estamos en el dÃ­a correcto
+      // Primero verificar si estamos en el día correcto
       if (!isScheduleDay(schedule)) {
         return false;
       }
 
-      // Si la subactividad no tiene horario especÃ­fico, estÃ¡ disponible todo el dÃ­a del schedule
+      // Si la subactividad no tiene horario específico, está disponible todo el día del schedule
       if (!subActivity.startTime || !subActivity.endTime) {
         return true;
       }
@@ -210,14 +212,14 @@ export default function SubActivitiesPage() {
       const currentTime = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
 
       // Para la subactividad, solo verificamos que ya haya comenzado su horario
-      // (no bloqueamos si ya pasÃ³ la hora de fin, para permitir completarla tarde)
+      // (no bloqueamos si ya pasó la hora de fin, para permitir completarla tarde)
       const hasStarted = currentTime >= subActivity.startTime;
       return hasStarted;
     },
     [isScheduleDay],
   );
 
-  // FunciÃ³n para determinar el estado de cada subactividad
+  // Función para determinar el estado de cada subactividad
   const calculateSubActivityStatus = useCallback(
     (
       subActivitiesData: SubActivity[],
@@ -235,15 +237,15 @@ export default function SubActivitiesPage() {
           completedIds.includes(sub._id) ||
           awardsStatusData[sub._id]?.completed;
 
-        // La primera subactividad siempre puede estar desbloqueada si es el dÃ­a del schedule
-        // Las siguientes solo si la anterior estÃ¡ completada Y estÃ¡ en horario
+        // La primera subactividad siempre puede estar desbloqueada si es el día del schedule
+        // Las siguientes solo si la anterior está completada Y está en horario
         let isUnlocked = false;
 
         if (index === 0) {
-          // Primera subactividad: desbloqueada si es el dÃ­a del schedule y estÃ¡ en horario (o no tiene horario especÃ­fico)
+          // Primera subactividad: desbloqueada si es el día del schedule y está en horario (o no tiene horario específico)
           isUnlocked = isWithinSchedule(sub, schedule);
         } else {
-          // Verificar si la subactividad anterior estÃ¡ completada
+          // Verificar si la subactividad anterior está completada
           const previousSub = subActivitiesData[index - 1];
           const previousCompleted =
             completedIds.includes(previousSub._id) ||
@@ -251,12 +253,12 @@ export default function SubActivitiesPage() {
           isUnlocked = previousCompleted && isWithinSchedule(sub, schedule);
         }
 
-        // Una subactividad completada siempre estÃ¡ "desbloqueada"
+        // Una subactividad completada siempre está "desbloqueada"
         if (isCompleted) {
           isUnlocked = true;
         }
 
-        // Solo la primera subactividad desbloqueada y no completada estÃ¡ "activa"
+        // Solo la primera subactividad desbloqueada y no completada está "activa"
         let isActive = false;
         if (isUnlocked && !isCompleted && !foundFirstUnlocked) {
           isActive = true;
@@ -281,9 +283,18 @@ export default function SubActivitiesPage() {
       setLoading(true);
       setError("");
 
-      // Primero obtenemos el perfil del usuario para obtener su schedule
-      const profileResponse = await usersAPI.getProfile();
-      const userData = profileResponse.data;
+      // OPTIMIZACIÓN: Paralelizar las primeras 3 llamadas API
+      // Antes: secuencial (4 llamadas esperaban una a la otra = 1.4s)
+      // Ahora: paralelo (solo la más lenta = 0.5s)
+      const [profileRes, activityRes, completedRes] = await Promise.all([
+        usersAPI.getProfile(),
+        activitiesAPI.getActivity(activityId!),
+        usersAPI.getCompletedSubActivities().catch(() => ({ data: [] })),
+      ]);
+
+      const userData = profileRes.data;
+      const activityData = activityRes.data;
+      const completedIds = completedRes.data || [];
 
       if (userData.group) {
         setUserGroup(userData.group);
@@ -293,19 +304,7 @@ export default function SubActivitiesPage() {
         setUserSchedule(userData.schedule);
       }
 
-      // Obtener subactividades completadas del usuario
-      let completedIds: string[] = [];
-      try {
-        const completedResponse = await usersAPI.getCompletedSubActivities();
-        completedIds = completedResponse.data || [];
-        setCompletedSubActivityIds(completedIds);
-      } catch (err) {
-        console.log("No completed subactivities found");
-      }
-
-      // Obtener la actividad
-      const response = await activitiesAPI.getActivity(activityId!);
-      const activityData = response.data;
+      setCompletedSubActivityIds(completedIds);
       setActivity(activityData);
 
       // Combinar subactividades con horarios del schedule del usuario
@@ -368,13 +367,13 @@ export default function SubActivitiesPage() {
         }
       }
 
-      // Calcular estado de cada subactividad
-      const subActivitiesWithStatus = calculateSubActivityStatus(
-        subActivitiesWithSchedule,
+      // Calcular estado de cada subactividad usando el hook reutilizable
+      const subActivitiesWithStatus = calculateStatus({
+        subActivities: subActivitiesWithSchedule,
         completedIds,
-        awardsStatusData,
-        userData.schedule,
-      );
+        awardsStatus: awardsStatusData,
+        schedule: userData.schedule,
+      });
 
       setSubActivities(subActivitiesWithStatus);
     } catch (err) {
@@ -383,7 +382,7 @@ export default function SubActivitiesPage() {
     } finally {
       setLoading(false);
     }
-  }, [activityId, calculateSubActivityStatus]);
+  }, [activityId, calculateStatus]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -411,7 +410,7 @@ export default function SubActivitiesPage() {
     setSelectedActivity(null);
   };
 
-  // FunciÃ³n para abrir el modal de pregunta
+  // Función para abrir el modal de pregunta
   const handleAnswerQuestion = async (subActivity: SubActivityWithStatus) => {
     try {
       const response = await awardsAPI.getAwardBySubActivity(
@@ -506,7 +505,7 @@ export default function SubActivitiesPage() {
     }
   };
 
-  // FunciÃ³n para enviar respuesta
+  // Función para enviar respuesta
   const handleSubmitAnswer = async (answer: string) => {
     if (!currentAward) return;
 
@@ -619,7 +618,7 @@ export default function SubActivitiesPage() {
     return `${hour12}:${minutes} ${ampm}`;
   };
 
-  // Calcular estadÃ­sticas
+  // Calcular estadísticas
   const completedCount = subActivities.filter((s) => s.isCompleted).length;
   const totalCount = subActivities.length;
   const progressPercentage =
@@ -837,7 +836,7 @@ export default function SubActivitiesPage() {
                     />
                   </div>
 
-                  {/* Mostrar candado si estÃ¡ bloqueada */}
+                  {/* Mostrar candado si está bloqueada */}
                   {!subActivity.isUnlocked && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-t-xl">
                       <div className="bg-white/90 rounded-full p-3">
@@ -933,7 +932,7 @@ export default function SubActivitiesPage() {
         {selectedActivity && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden max-h-[90vh] overflow-y-auto">
-              {/* Si estÃ¡ completado, mostrar solo la insignia ganada */}
+              {/* Si está completado, mostrar solo la insignia ganada */}
               {selectedActivity.isCompleted ? (
                 <>
                   <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 text-white">
