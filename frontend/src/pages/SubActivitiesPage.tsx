@@ -186,6 +186,7 @@ export default function SubActivitiesPage() {
   const [answeringSubActivity, setAnsweringSubActivity] =
     useState<SubActivityWithStatus | null>(null);
   const [enableClarityQuestion, setEnableClarityQuestion] = useState(false);
+  const [skipChallenge, setSkipChallenge] = useState(false);
 
   const navigate = useNavigate();
   const { calculateStatus, isWithinSchedule } = useSubActivityStatus();
@@ -354,9 +355,9 @@ export default function SubActivitiesPage() {
     }
   };
 
-  // Función para completar una sesión sin reto (basado en horario)
-  const handleCompleteWithoutChallenge = async (
+  const completeSubActivityWithoutAward = async (
     subActivity: SubActivityWithStatus,
+    showAlert: boolean = true,
   ) => {
     try {
       const stickerId =
@@ -371,7 +372,9 @@ export default function SubActivitiesPage() {
       });
 
       const completedId = subActivity._id;
-      setCompletedSubActivityIds((prev) => [...prev, completedId]);
+      setCompletedSubActivityIds((prev) =>
+        prev.includes(completedId) ? prev : [...prev, completedId],
+      );
 
       const newAwardsStatus = {
         ...awardsStatus,
@@ -382,11 +385,14 @@ export default function SubActivitiesPage() {
       // Recalcular estados
       setSubActivities((prevSubActivities) => {
         let foundFirstUnlocked = false;
-        const updatedCompletedIds = [...completedSubActivityIds, completedId];
+        const updatedCompletedIds = new Set([
+          ...completedSubActivityIds,
+          completedId,
+        ]);
 
         return prevSubActivities.map((sub, index) => {
           const isCompleted =
-            updatedCompletedIds.includes(sub._id) ||
+            updatedCompletedIds.has(sub._id) ||
             newAwardsStatus[sub._id]?.completed;
 
           let isUnlocked = false;
@@ -395,7 +401,7 @@ export default function SubActivitiesPage() {
           } else {
             const previousSub = prevSubActivities[index - 1];
             const previousCompleted =
-              updatedCompletedIds.includes(previousSub._id) ||
+              updatedCompletedIds.has(previousSub._id) ||
               newAwardsStatus[previousSub._id]?.completed;
             isUnlocked =
               previousCompleted && isWithinSchedule(sub, userSchedule);
@@ -421,11 +427,29 @@ export default function SubActivitiesPage() {
       });
 
       setSelectedActivity(null);
-      alert("¡Sesión completada exitosamente!");
+      if (showAlert) {
+        alert("¡Sesión completada exitosamente!");
+      }
     } catch (err) {
       console.error("Error completing session:", err);
       alert("Error al completar la sesión");
     }
+  };
+
+  // Función para completar una sesión sin reto (basado en horario)
+  const handleCompleteWithoutChallenge = async (
+    subActivity: SubActivityWithStatus,
+  ) => {
+    if (subActivity.enableClarityQuestion) {
+      setAnsweringSubActivity(subActivity);
+      setEnableClarityQuestion(true);
+      setSkipChallenge(true);
+      setShowQuestionModal(true);
+      setSelectedActivity(null);
+      return;
+    }
+
+    await completeSubActivityWithoutAward(subActivity, true);
   };
 
   const applyAwardResult = () => {
@@ -545,9 +569,6 @@ export default function SubActivitiesPage() {
   const handleSubmitClarity = async (clarityResponse: string) => {
     setAnsweringLoading(true);
     try {
-      // Ensure local progress is applied even if modal flow resets state
-      applyAwardResult();
-
       if (clarityResponse && answeringSubActivity && userSchedule) {
         try {
           await usersAPI.saveClarityResponse({
@@ -559,6 +580,20 @@ export default function SubActivitiesPage() {
           console.error("Error saving clarity response:", err);
         }
       }
+
+      if (skipChallenge && answeringSubActivity) {
+        await completeSubActivityWithoutAward(answeringSubActivity, true);
+        setShowQuestionModal(false);
+        setSkipChallenge(false);
+        setEnableClarityQuestion(false);
+        setAnsweringSubActivity(null);
+        setPendingAwardResult(null);
+        await loadActivityData();
+        return;
+      }
+
+      // Ensure local progress is applied even if modal flow resets state
+      applyAwardResult();
 
       if (pendingAwardResult) {
         setAnswerResult(pendingAwardResult);
@@ -1033,6 +1068,7 @@ export default function SubActivitiesPage() {
                             className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-4 rounded-lg transition flex items-center justify-center gap-2 shadow-lg animate-pulse"
                           >
                             <span className="text-xl">🎯</span>
+                            setSkipChallenge(false);
                             <span className="text-lg">
                               Contestar Pregunta y Completar
                             </span>
@@ -1042,6 +1078,7 @@ export default function SubActivitiesPage() {
                       {!awardsStatus[selectedActivity._id]?.hasAward &&
                         !selectedActivity.isCompleted && (
                           <button
+                            skipChallenge={skipChallenge}
                             onClick={() =>
                               handleCompleteWithoutChallenge(selectedActivity)
                             }

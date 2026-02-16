@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface Sticker {
   _id: string;
@@ -39,6 +39,7 @@ interface ClarityQuestionModalProps {
   subActivityName: string;
   sticker?: Sticker;
   enableClarityQuestion?: boolean;
+  skipChallenge?: boolean;
 }
 
 export default function ClarityQuestionModal({
@@ -52,6 +53,7 @@ export default function ClarityQuestionModal({
   subActivityName,
   sticker,
   enableClarityQuestion = false,
+  skipChallenge = false,
 }: ClarityQuestionModalProps) {
   const [selectedChallengeAnswer, setSelectedChallengeAnswer] = useState<
     string | null
@@ -59,11 +61,24 @@ export default function ClarityQuestionModal({
   const [selectedClarityAnswer, setSelectedClarityAnswer] = useState<
     string | null
   >(null);
-  const [step, setStep] = useState<"challenge" | "clarity">("challenge");
+  const [step, setStep] = useState<"challenge" | "clarity">(
+    skipChallenge ? "clarity" : "challenge",
+  );
   const [challengeLocked, setChallengeLocked] = useState(false);
   const [challengeResult, setChallengeResult] =
     useState<ChallengeResult | null>(null);
   const [showIncorrectPopup, setShowIncorrectPopup] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setStep(skipChallenge ? "clarity" : "challenge");
+      setChallengeLocked(false);
+      setChallengeResult(null);
+      setShowIncorrectPopup(false);
+      setSelectedChallengeAnswer(null);
+      setSelectedClarityAnswer(null);
+    }
+  }, [isOpen, skipChallenge]);
 
   if (!isOpen) return null;
 
@@ -88,8 +103,11 @@ export default function ClarityQuestionModal({
   };
 
   const handleSubmit = async () => {
-    if (selectedChallengeAnswer && selectedClarityAnswer && onSubmitClarity) {
-      await onSubmitClarity(selectedClarityAnswer);
+    const canSubmit = skipChallenge
+      ? !!selectedClarityAnswer
+      : !!selectedChallengeAnswer && !!selectedClarityAnswer;
+    if (canSubmit && onSubmitClarity) {
+      await onSubmitClarity(selectedClarityAnswer as string);
       resetState();
       onClose();
     }
@@ -140,7 +158,7 @@ export default function ClarityQuestionModal({
         </div>
 
         {/* Progress indicator */}
-        {enableClarityQuestion && (
+        {enableClarityQuestion && !skipChallenge && (
           <div className="px-4 sm:px-6 pt-4">
             <div className="flex items-center gap-2">
               <div
@@ -162,7 +180,7 @@ export default function ClarityQuestionModal({
         )}
 
         {/* Challenge Question */}
-        {step === "challenge" && (
+        {step === "challenge" && !skipChallenge && (
           <div className="p-4 sm:p-6">
             <div className="mb-4 sm:mb-6">
               <div className="flex items-center gap-2 mb-2 sm:mb-3">
@@ -339,17 +357,21 @@ export default function ClarityQuestionModal({
 
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-              <button
-                onClick={() => setStep("challenge")}
-                disabled={loading}
-                className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition disabled:opacity-50 text-sm sm:text-base order-2 sm:order-1"
-              >
-                ← Volver
-              </button>
+              {!skipChallenge && (
+                <button
+                  onClick={() => setStep("challenge")}
+                  disabled={loading}
+                  className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition disabled:opacity-50 text-sm sm:text-base order-2 sm:order-1"
+                >
+                  ← Volver
+                </button>
+              )}
               <button
                 onClick={handleSubmit}
                 disabled={!selectedClarityAnswer || loading}
-                className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-[#113780] text-white rounded-lg font-semibold hover:bg-[#0C2A5C] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base order-1 sm:order-2"
+                className={`flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-[#113780] text-white rounded-lg font-semibold hover:bg-[#0C2A5C] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base ${
+                  skipChallenge ? "order-1" : "order-1 sm:order-2"
+                }`}
               >
                 {loading ? (
                   <>
