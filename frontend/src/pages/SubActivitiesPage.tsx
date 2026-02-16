@@ -55,6 +55,16 @@ interface Schedule {
   startTime: string;
   endTime: string;
   subActivitySchedules: SubActivitySchedule[];
+  groupSessions?: {
+    groupId: { _id: string } | string;
+    sessions: {
+      subActivityId: string;
+      subActivityName: string;
+      startTime: string;
+      endTime: string;
+      order: number;
+    }[];
+  }[];
   order: number;
   active: boolean;
 }
@@ -298,12 +308,22 @@ export default function SubActivitiesPage() {
       // Combinar subactividades con horarios del schedule del usuario
       const subActivitiesWithSchedule = activityData.subActivities.map(
         (sub: SubActivity) => {
-          // Buscar el horario de esta subactividad en el schedule del usuario
+          const groupId = userData.group?._id;
+          const groupSessions = userData.schedule?.groupSessions || [];
+          const groupSession = groupId
+            ? groupSessions.find((gs) => {
+                const gsGroupId =
+                  typeof gs.groupId === "string" ? gs.groupId : gs.groupId?._id;
+                return gsGroupId && String(gsGroupId) === String(groupId);
+              })
+            : null;
+
           let scheduleInfo = null;
-          if (userData.schedule?.subActivitySchedules) {
-            scheduleInfo = userData.schedule.subActivitySchedules.find(
-              (sas: SubActivitySchedule) =>
-                sas.subActivityId === sub._id || sas.name === sub.name,
+          if (groupSession?.sessions?.length) {
+            scheduleInfo = groupSession.sessions.find(
+              (session) =>
+                session.subActivityId === sub._id ||
+                session.subActivityName === sub.name,
             );
           }
 
