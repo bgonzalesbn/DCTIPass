@@ -421,6 +421,13 @@ export default function AdminActivitiesTab() {
     const cells: Record<string, boolean> = {};
     const groupList = sch.groupIds || [];
 
+    console.log("[DEBUG] initClarityMatrix - Schedule:", {
+      scheduleId: sch._id,
+      title: sch.title,
+      hasGroupSessions: !!sch.groupSessions?.length,
+      groupSessionsCount: sch.groupSessions?.length || 0,
+    });
+
     // Load saved clarity flags from groupSessions if they exist
     if (sch.groupSessions?.length) {
       for (const gs of sch.groupSessions) {
@@ -431,17 +438,31 @@ export default function AdminActivitiesTab() {
           (g) => (typeof g === "string" ? g : String(g._id)) === gsGroupId,
         );
         if (rowIdx < 0) continue;
+
+        console.log(
+          `[DEBUG] Processing group ${gsGroupId}, rowIdx: ${rowIdx}, sessions:`,
+          gs.sessions.map((s) => ({
+            subActivityName: s.subActivityName,
+            startTime: s.startTime,
+            enableClarityQuestion: s.enableClarityQuestion,
+          })),
+        );
+
         for (let col = 0; col < slots.length; col++) {
           const found = gs.sessions.find(
             (s) => s.startTime === slots[col].startTime,
           );
           if (found && found.enableClarityQuestion) {
             cells[cellKey(rowIdx, col)] = true;
+            console.log(
+              `[DEBUG] Setting clarity at row:${rowIdx} col:${col} for ${found.subActivityName}`,
+            );
           }
         }
       }
     }
 
+    console.log("[DEBUG] Final clarityMatrix cells:", cells);
     return cells;
   };
 
@@ -577,6 +598,19 @@ export default function AdminActivitiesTab() {
           })
           .filter(Boolean),
       }));
+
+      console.log("[DEBUG] Saving sessions with clarity flags:", {
+        scheduleId: sch._id,
+        clarityMatrix,
+        groupSessions: groupSessions.map((gs) => ({
+          groupId: gs.groupId,
+          sessions: gs.sessions.map((s) => ({
+            subActivityName: s.subActivityName,
+            startTime: s.startTime,
+            enableClarityQuestion: s.enableClarityQuestion,
+          })),
+        })),
+      });
 
       await adminAPI.updateGroupSessions(sch._id, {
         sessionDuration,
