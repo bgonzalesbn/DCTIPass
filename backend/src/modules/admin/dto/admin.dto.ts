@@ -163,6 +163,10 @@ export class GroupSessionItemDto {
   @IsNumber()
   @IsOptional()
   order?: number;
+
+  @IsBoolean()
+  @IsOptional()
+  enableClarityQuestion?: boolean;
 }
 
 export class GroupSessionDto {
