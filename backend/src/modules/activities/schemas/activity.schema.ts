@@ -29,6 +29,9 @@ export class SubActivity {
 
   @Prop({ type: String, default: "" })
   location: string;
+
+  @Prop({ type: Boolean, default: false })
+  enableClarityQuestion: boolean;
 }
 
 export const SubActivitySchema = SchemaFactory.createForClass(SubActivity);

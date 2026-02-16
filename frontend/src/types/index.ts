@@ -61,6 +61,7 @@ export interface AdminSubActivity {
   active: boolean;
   order: number;
   location?: string;
+  enableClarityQuestion?: boolean;
 }
 
 export interface AdminSchedule {

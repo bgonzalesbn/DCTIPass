@@ -274,6 +274,10 @@ export class AdminCreateSubActivityDto {
   @IsBoolean()
   @IsOptional()
   active?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  enableClarityQuestion?: boolean;
 }
 
 // ==================== CHALLENGES ====================
