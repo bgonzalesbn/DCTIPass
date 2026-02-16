@@ -19,7 +19,34 @@
  * 3. AwardState - estado de preguntas/respuestas
  */
 
+import type { Activity, Schedule, Group } from "./index";
+
 // NUEVO: Tipos consolidados
+// Local type definitions (defined in SubActivitiesPage.tsx - included here for reference)
+interface SubActivityWithStatus {
+  _id: string;
+  name: string;
+  description?: string;
+  points?: number;
+  isUnlocked?: boolean;
+  isActive?: boolean;
+  isCompleted?: boolean;
+  completed?: boolean;
+  progress?: number;
+  earnedSticker?: any;
+  startTime?: string;
+  endTime?: string;
+  [key: string]: any;
+}
+
+interface Sticker {
+  _id?: string;
+  name?: string;
+  imageUrl?: string;
+  icon?: string;
+  [key: string]: any;
+}
+
 interface ActivityState {
   activity: Activity | null;
   subActivities: SubActivityWithStatus[];
@@ -98,5 +125,5 @@ const initialAwardState: AwardState = {
 //    //   activity: data,
 //    // }));
 
-export { ActivityState, UIState, AwardState };
+export type { ActivityState, UIState, AwardState };
 export { initialActivityState, initialUIState, initialAwardState };
