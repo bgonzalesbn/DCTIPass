@@ -61,10 +61,11 @@ export default function AdminUsersTab() {
 
     const rows = sortedDirections
       .map((dir) => {
-        const usersRows = grouped[dir]
+        const directionUsers = grouped[dir];
+        const usersRows = directionUsers
           .map(
-            (u) => `
-              <tr>
+            (u, idx) => `
+              <tr class="${idx % 2 === 0 ? "even" : "odd"}">
                 <td>${u.employeeNumber}</td>
                 <td>${u.firstName} ${u.lastName}</td>
                 <td>${u.direction || "Sin dirección"}</td>
@@ -73,19 +74,26 @@ export default function AdminUsersTab() {
           .join("");
 
         return `
-          <h2>${dir}</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Número de empleado</th>
-                <th>Nombre</th>
-                <th>Dirección</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${usersRows}
-            </tbody>
-          </table>
+          <div class="section">
+            <div class="direction-header">
+              <h2>${dir}</h2>
+              <div class="direction-count">
+                <span class="count-badge">${directionUsers.length} usuario${directionUsers.length !== 1 ? "s" : ""}</span>
+              </div>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Número de empleado</th>
+                  <th>Nombre</th>
+                  <th>Dirección</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${usersRows}
+              </tbody>
+            </table>
+          </div>
         `;
       })
       .join("");
@@ -94,25 +102,160 @@ export default function AdminUsersTab() {
       <html>
         <head>
           <meta charset="utf-8" />
-          <title>Usuarios por Dirección</title>
+          <title>Usuarios registrados por Dirección</title>
           <style>
-            body { font-family: Arial, sans-serif; padding: 24px; color: #111; }
-            h1 { font-size: 20px; margin: 0 0 12px; }
-            h2 { font-size: 16px; margin: 20px 0 8px; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
-            th, td { border: 1px solid #ddd; padding: 8px; font-size: 12px; }
-            th { background: #f3f4f6; text-align: left; }
+            * { margin: 0; padding: 0; }
+            html, body { 
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+              color: #222; 
+              background-color: #f5f7fa;
+            }
+            body { 
+              padding: 30px; 
+              line-height: 1.6;
+            }
+            
+            .header {
+              background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+              color: white;
+              padding: 40px 30px;
+              border-radius: 8px;
+              margin-bottom: 30px;
+              box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            }
+            
+            .header h1 {
+              font-size: 32px;
+              margin-bottom: 8px;
+              font-weight: 700;
+              letter-spacing: -0.5px;
+            }
+            
+            .header p {
+              font-size: 13px;
+              opacity: 0.95;
+              margin-bottom: 15px;
+            }
+            
+            .total-stats {
+              background: rgba(255,255,255,0.2);
+              padding: 12px 15px;
+              border-radius: 6px;
+              width: fit-content;
+              font-weight: 600;
+              font-size: 14px;
+            }
+            
+            .section {
+              margin-bottom: 28px;
+              background: white;
+              border-radius: 6px;
+              overflow: hidden;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            }
+            
+            .direction-header {
+              background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+              padding: 20px 25px;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              border-bottom: 2px solid #c7d2fe;
+            }
+            
+            .direction-header h2 {
+              font-size: 16px;
+              font-weight: 600;
+              color: #1e3a8a;
+              margin: 0;
+              letter-spacing: -0.3px;
+            }
+            
+            .count-badge {
+              background: #2563eb;
+              color: white;
+              padding: 6px 14px;
+              border-radius: 20px;
+              font-size: 13px;
+              font-weight: 600;
+              white-space: nowrap;
+            }
+            
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              font-size: 13px;
+            }
+            
+            thead tr {
+              background: #f8fafc;
+              border-bottom: 2px solid #e2e8f0;
+            }
+            
+            th {
+              padding: 12px 15px;
+              text-align: left;
+              font-weight: 600;
+              color: #1e293b;
+              letter-spacing: 0.3px;
+            }
+            
+            tbody tr.even {
+              background: #ffffff;
+            }
+            
+            tbody tr.odd {
+              background: #f9fafb;
+            }
+            
+            tbody tr:hover {
+              background: #f0f4fa;
+            }
+            
+            td {
+              padding: 11px 15px;
+              border-bottom: 1px solid #e2e8f0;
+            }
+            
+            td:first-child {
+              font-weight: 500;
+              color: #2563eb;
+            }
+            
+            .footer {
+              text-align: center;
+              margin-top: 40px;
+              padding-top: 20px;
+              border-top: 2px solid #e2e8f0;
+              font-size: 12px;
+              color: #666;
+            }
+            
+            @media print {
+              body { background: white; }
+              .section { page-break-inside: avoid; }
+            }
           </style>
         </head>
         <body>
-          <h1>Usuarios registrados por dirección</h1>
-          <p>Generado: ${new Date().toLocaleString("es-CR")}</p>
+          <div class="header">
+            <h1>Usuarios Registrados por Dirección</h1>
+            <p>Reporte de empleados activos en el sistema</p>
+            <div class="total-stats">
+              👥 Total de usuarios: <strong>${users.length}</strong>
+            </div>
+          </div>
+          
           ${rows}
+          
+          <div class="footer">
+            <p>📅 Generado: ${new Date().toLocaleString("es-CR")}</p>
+          </div>
         </body>
       </html>
     `;
 
-    const win = window.open("", "_blank", "width=900,height=700");
+    const win = window.open("", "_blank", "width=1000,height=800");
     if (!win) {
       alert("No se pudo abrir la ventana de impresión.");
       return;
