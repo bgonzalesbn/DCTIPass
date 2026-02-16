@@ -20,12 +20,21 @@ const clarityOptions: ClarityOption[] = [
   { emoji: "🤩", label: "Clarísimo", value: "Clarísimo" },
 ];
 
+interface ChallengeResult {
+  isCorrect: boolean;
+  pointsEarned: number;
+  explanation?: string;
+  correctAnswer?: string;
+  alreadyCompleted?: boolean;
+}
+
 interface ClarityQuestionModalProps {
   isOpen: boolean;
   onClose: () => void;
   challengeQuestion: string;
   challengeOptions: string[];
-  onAnswer: (challengeAnswer: string, clarityAnswer: string) => void;
+  onValidateChallenge: (challengeAnswer: string) => Promise<ChallengeResult>;
+  onSubmitClarity?: (clarityAnswer: string) => Promise<void>;
   loading?: boolean;
   subActivityName: string;
   sticker?: Sticker;
@@ -37,7 +46,8 @@ export default function ClarityQuestionModal({
   onClose,
   challengeQuestion,
   challengeOptions,
-  onAnswer,
+  onValidateChallenge,
+  onSubmitClarity,
   loading = false,
   subActivityName,
   sticker,
@@ -50,23 +60,38 @@ export default function ClarityQuestionModal({
     string | null
   >(null);
   const [step, setStep] = useState<"challenge" | "clarity">("challenge");
+  const [challengeLocked, setChallengeLocked] = useState(false);
+  const [challengeResult, setChallengeResult] =
+    useState<ChallengeResult | null>(null);
+  const [showIncorrectPopup, setShowIncorrectPopup] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleNext = () => {
-    if (selectedChallengeAnswer && enableClarityQuestion) {
+  const handleNext = async () => {
+    if (!selectedChallengeAnswer || loading || challengeLocked) return;
+
+    setChallengeLocked(true);
+    const result = await onValidateChallenge(selectedChallengeAnswer);
+    setChallengeResult(result);
+
+    if (enableClarityQuestion) {
+      if (!result.isCorrect) {
+        setShowIncorrectPopup(true);
+        return;
+      }
       setStep("clarity");
-    } else if (selectedChallengeAnswer) {
-      // Si no hay pregunta de claridad, enviar directamente
-      onAnswer(selectedChallengeAnswer, "");
-      resetState();
+      return;
     }
+
+    resetState();
+    onClose();
   };
 
-  const handleSubmit = () => {
-    if (selectedChallengeAnswer && selectedClarityAnswer) {
-      onAnswer(selectedChallengeAnswer, selectedClarityAnswer);
+  const handleSubmit = async () => {
+    if (selectedChallengeAnswer && selectedClarityAnswer && onSubmitClarity) {
+      await onSubmitClarity(selectedClarityAnswer);
       resetState();
+      onClose();
     }
   };
 
@@ -74,6 +99,9 @@ export default function ClarityQuestionModal({
     setSelectedChallengeAnswer(null);
     setSelectedClarityAnswer(null);
     setStep("challenge");
+    setChallengeLocked(false);
+    setChallengeResult(null);
+    setShowIncorrectPopup(false);
   };
 
   const handleClose = () => {
@@ -157,7 +185,7 @@ export default function ClarityQuestionModal({
                 <button
                   key={index}
                   onClick={() => setSelectedChallengeAnswer(option)}
-                  disabled={loading}
+                  disabled={loading || challengeLocked}
                   className={`w-full p-3 sm:p-4 rounded-lg border-2 text-left transition-all duration-200 ${
                     selectedChallengeAnswer === option
                       ? "border-[#113780] bg-[#113780]/10 text-[#113780]"
@@ -205,7 +233,9 @@ export default function ClarityQuestionModal({
               </button>
               <button
                 onClick={handleNext}
-                disabled={!selectedChallengeAnswer || loading}
+                disabled={
+                  !selectedChallengeAnswer || loading || challengeLocked
+                }
                 className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-[#113780] text-white rounded-lg font-semibold hover:bg-[#0C2A5C] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base order-1 sm:order-2"
               >
                 {enableClarityQuestion ? (
@@ -228,6 +258,36 @@ export default function ClarityQuestionModal({
                     )}
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {showIncorrectPopup && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full p-4 sm:p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-2xl">✅</span>
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800">
+                  Respuesta correcta
+                </h3>
+              </div>
+              <p className="text-gray-700 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm sm:text-base">
+                {challengeResult?.correctAnswer || ""}
+              </p>
+              {challengeResult?.explanation && (
+                <p className="text-gray-600 text-sm mt-3">
+                  {challengeResult.explanation}
+                </p>
+              )}
+              <button
+                onClick={() => {
+                  setShowIncorrectPopup(false);
+                  setStep("clarity");
+                }}
+                className="w-full mt-4 px-4 py-2.5 bg-[#113780] text-white rounded-lg font-semibold hover:bg-[#0C2A5C] transition"
+              >
+                Continuar a evaluación
               </button>
             </div>
           </div>

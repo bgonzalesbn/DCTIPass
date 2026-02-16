@@ -170,6 +170,14 @@ export default function SubActivitiesPage() {
     alreadyCompleted?: boolean;
     correctAnswer?: string;
   } | null>(null);
+  const [pendingAwardResult, setPendingAwardResult] = useState<{
+    isCorrect: boolean;
+    pointsEarned: number;
+    sticker: Sticker | null;
+    explanation: string;
+    alreadyCompleted?: boolean;
+    correctAnswer?: string;
+  } | null>(null);
   const [answeringLoading, setAnsweringLoading] = useState(false);
   const [awardsStatus, setAwardsStatus] = useState<
     Record<string, { hasAward: boolean; completed: boolean }>
@@ -420,18 +428,130 @@ export default function SubActivitiesPage() {
     }
   };
 
-  // Función para enviar respuesta
-  const handleSubmitAnswer = async (
-    answer: string,
-    clarityResponse?: string,
-  ) => {
-    if (!currentAward) return;
+  const applyAwardResult = (responseData: {
+    isCorrect: boolean;
+    pointsEarned: number;
+    sticker: Sticker | null;
+    explanation: string;
+    alreadyCompleted?: boolean;
+    correctAnswer?: string;
+  }) => {
+    if (!answeringSubActivity) return;
+
+    const completedId = answeringSubActivity._id;
+
+    // Actualizar completedSubActivityIds
+    setCompletedSubActivityIds((prev) =>
+      prev.includes(completedId) ? prev : [...prev, completedId],
+    );
+
+    // Actualizar awardsStatus
+    const newAwardsStatus = {
+      ...awardsStatus,
+      [completedId]: {
+        hasAward: awardsStatus[completedId]?.hasAward ?? true,
+        completed: true,
+      },
+    };
+    setAwardsStatus(newAwardsStatus);
+
+    // Actualizar directamente las subactividades para reflejar el cambio inmediatamente
+    setSubActivities((prevSubActivities) => {
+      let foundFirstUnlocked = false;
+      const updatedCompletedIds = new Set([
+        ...completedSubActivityIds,
+        completedId,
+      ]);
+
+      const result = prevSubActivities.map((sub, index) => {
+        const isCompleted =
+          updatedCompletedIds.has(sub._id) ||
+          newAwardsStatus[sub._id]?.completed;
+
+        let isUnlocked = false;
+        if (index === 0) {
+          isUnlocked = isWithinSchedule(sub, userSchedule);
+        } else {
+          const previousSub = prevSubActivities[index - 1];
+          const previousCompleted =
+            updatedCompletedIds.has(previousSub._id) ||
+            newAwardsStatus[previousSub._id]?.completed;
+          isUnlocked = previousCompleted && isWithinSchedule(sub, userSchedule);
+        }
+
+        if (isCompleted) {
+          isUnlocked = true;
+        }
+
+        let isActive = false;
+        if (isUnlocked && !isCompleted && !foundFirstUnlocked) {
+          isActive = true;
+          foundFirstUnlocked = true;
+        }
+
+        const newSub = {
+          ...sub,
+          isUnlocked,
+          isActive,
+          isCompleted,
+          completed: isCompleted,
+          progress: isCompleted ? 100 : isActive ? 50 : 0,
+        };
+
+        console.log(
+          `[setSubActivities] ${sub.name}: isCompleted=${isCompleted}, isUnlocked=${isUnlocked}, isActive=${isActive}, progress=${newSub.progress}`,
+        );
+        return newSub;
+      });
+
+      return result;
+    });
+  };
+
+  const handleValidateChallengeAnswer = async (answer: string) => {
+    if (!currentAward) {
+      return {
+        isCorrect: false,
+        pointsEarned: 0,
+        sticker: null,
+        explanation: "",
+      };
+    }
 
     setAnsweringLoading(true);
     try {
       const response = await awardsAPI.answerAward(currentAward._id, answer);
+      const result = {
+        ...response.data,
+        correctAnswer: response.data.correctAnswer || "",
+      };
+      setPendingAwardResult(result);
+      applyAwardResult(result);
 
-      // Si hay respuesta de claridad, guardarla
+      if (!enableClarityQuestion) {
+        setAnswerResult(result);
+        setShowQuestionModal(false);
+        setShowCompletedModal(true);
+      }
+
+      return result;
+    } catch (err) {
+      console.error("Error submitting answer:", err);
+      alert("Error al enviar la respuesta");
+      return {
+        isCorrect: false,
+        pointsEarned: 0,
+        sticker: null,
+        explanation: "",
+      };
+    } finally {
+      setAnsweringLoading(false);
+    }
+  };
+
+  const handleSubmitClarity = async (clarityResponse: string) => {
+    setAnsweringLoading(true);
+    try {
       if (clarityResponse && answeringSubActivity && userSchedule) {
         try {
           await usersAPI.saveClarityResponse({
@@ -441,92 +561,17 @@ export default function SubActivitiesPage() {
           });
         } catch (err) {
           console.error("Error saving clarity response:", err);
-          // No mostramos error al usuario para no interrumpir el flujo
         }
       }
 
-      setAnswerResult({
-        ...response.data,
-        correctAnswer: response.data.correctAnswer || "",
-      });
-      setShowQuestionModal(false);
-      setShowCompletedModal(true);
-
-      // Actualizar el estado local usando answeringSubActivity (correcta o incorrecta)
-      if (answeringSubActivity) {
-        const completedId = answeringSubActivity._id;
-
-        // Actualizar completedSubActivityIds
-        setCompletedSubActivityIds((prev) =>
-          prev.includes(completedId) ? prev : [...prev, completedId],
-        );
-
-        // Actualizar awardsStatus
-        const newAwardsStatus = {
-          ...awardsStatus,
-          [completedId]: {
-            hasAward: awardsStatus[completedId]?.hasAward ?? true,
-            completed: true,
-          },
-        };
-        setAwardsStatus(newAwardsStatus);
-
-        // Actualizar directamente las subactividades para reflejar el cambio inmediatamente
-        setSubActivities((prevSubActivities) => {
-          let foundFirstUnlocked = false;
-          const updatedCompletedIds = new Set([
-            ...completedSubActivityIds,
-            completedId,
-          ]);
-
-          const result = prevSubActivities.map((sub, index) => {
-            const isCompleted =
-              updatedCompletedIds.has(sub._id) ||
-              newAwardsStatus[sub._id]?.completed;
-
-            let isUnlocked = false;
-            if (index === 0) {
-              isUnlocked = isWithinSchedule(sub, userSchedule);
-            } else {
-              const previousSub = prevSubActivities[index - 1];
-              const previousCompleted =
-                updatedCompletedIds.has(previousSub._id) ||
-                newAwardsStatus[previousSub._id]?.completed;
-              isUnlocked =
-                previousCompleted && isWithinSchedule(sub, userSchedule);
-            }
-
-            if (isCompleted) {
-              isUnlocked = true;
-            }
-
-            let isActive = false;
-            if (isUnlocked && !isCompleted && !foundFirstUnlocked) {
-              isActive = true;
-              foundFirstUnlocked = true;
-            }
-
-            const newSub = {
-              ...sub,
-              isUnlocked,
-              isActive,
-              isCompleted,
-              completed: isCompleted,
-              progress: isCompleted ? 100 : isActive ? 50 : 0,
-            };
-
-            console.log(
-              `[setSubActivities] ${sub.name}: isCompleted=${isCompleted}, isUnlocked=${isUnlocked}, isActive=${isActive}, progress=${newSub.progress}`,
-            );
-            return newSub;
-          });
-
-          return result;
-        });
+      if (pendingAwardResult) {
+        setAnswerResult(pendingAwardResult);
+        setShowQuestionModal(false);
+        setShowCompletedModal(true);
       }
     } catch (err) {
-      console.error("Error submitting answer:", err);
-      alert("Error al enviar la respuesta");
+      console.error("Error saving clarity response:", err);
+      alert("Error al guardar la evaluación");
     } finally {
       setAnsweringLoading(false);
     }
@@ -1030,10 +1075,14 @@ export default function SubActivitiesPage() {
             setCurrentAward(null);
             setAnsweringSubActivity(null);
             setEnableClarityQuestion(false);
+            setPendingAwardResult(null);
           }}
           challengeQuestion={currentAward?.question || ""}
           challengeOptions={currentAward?.options || []}
-          onAnswer={handleSubmitAnswer}
+          onValidateChallenge={handleValidateChallengeAnswer}
+          onSubmitClarity={
+            enableClarityQuestion ? handleSubmitClarity : undefined
+          }
           loading={answeringLoading}
           subActivityName={answeringSubActivity?.name || ""}
           sticker={currentAward?.stickerId}
