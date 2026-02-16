@@ -330,25 +330,41 @@ export default function SubActivitiesPage() {
         subActivity._id,
         userSchedule?._id,
       );
-      if (response.data) {
+      const award = response.data;
+      const hasValidAward =
+        !!award?.question &&
+        Array.isArray(award?.options) &&
+        award.options.length > 0;
+      const clarityEnabled = subActivity.enableClarityQuestion || false;
+
+      console.log("[DEBUG] Clarity Question Check:", {
+        subActivityId: subActivity._id,
+        subActivityName: subActivity.name,
+        enableClarityQuestion: clarityEnabled,
+        hasValidAward,
+      });
+
+      if (hasValidAward) {
         setAnsweringSubActivity(subActivity); // Guardar referencia antes de cerrar el modal
-        setCurrentAward(response.data);
-
-        // Verificar si la subactividad tiene habilitada la pregunta de claridad
-        const clarityEnabled = subActivity.enableClarityQuestion || false;
-
-        console.log("[DEBUG] Clarity Question Check:", {
-          subActivityId: subActivity._id,
-          subActivityName: subActivity.name,
-          enableClarityQuestion: clarityEnabled,
-        });
-
+        setCurrentAward(award);
         setEnableClarityQuestion(clarityEnabled);
         setShowQuestionModal(true);
         setSelectedActivity(null);
-      } else {
-        alert("No hay reto disponible para esta sesión");
+        return;
       }
+
+      // No hay reto válido: si hay claridad, solo evaluación; si no, completar directo
+      if (clarityEnabled) {
+        setAnsweringSubActivity(subActivity);
+        setCurrentAward(null);
+        setEnableClarityQuestion(true);
+        setSkipChallenge(true);
+        setShowQuestionModal(true);
+        setSelectedActivity(null);
+        return;
+      }
+
+      await completeSubActivityWithoutAward(subActivity, true);
     } catch (err) {
       console.error("Error loading award:", err);
       alert("Error al cargar el reto");
@@ -1058,6 +1074,19 @@ export default function SubActivitiesPage() {
                       </div>
                     )}
 
+                    {!awardsStatus[selectedActivity._id]?.hasAward &&
+                      selectedActivity.enableClarityQuestion && (
+                        <div className="mt-2 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                          <div className="flex items-center gap-2 text-blue-700">
+                            <span className="text-2xl">💭</span>
+                            <span className="font-semibold">
+                              Esta sesión requiere evaluación de claridad para
+                              completarse
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
                     <div className="mt-6 flex flex-col gap-3">
                       {awardsStatus[selectedActivity._id]?.hasAward &&
                         !awardsStatus[selectedActivity._id]?.completed && (
@@ -1083,7 +1112,11 @@ export default function SubActivitiesPage() {
                             className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-4 rounded-lg transition flex items-center justify-center gap-2 shadow-lg"
                           >
                             <span className="text-xl">✅</span>
-                            <span className="text-lg">Completar Sesión</span>
+                            <span className="text-lg">
+                              {selectedActivity.enableClarityQuestion
+                                ? "Responder Evaluación"
+                                : "Completar Sesión"}
+                            </span>
                           </button>
                         )}
 
