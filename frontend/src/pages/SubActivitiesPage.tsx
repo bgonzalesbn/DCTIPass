@@ -69,6 +69,9 @@ interface Schedule {
   active: boolean;
 }
 
+type GroupSession = NonNullable<Schedule["groupSessions"]>[number];
+type GroupSessionItem = GroupSession["sessions"][number];
+
 interface Group {
   _id: string;
   name: string;
@@ -311,7 +314,7 @@ export default function SubActivitiesPage() {
           const groupId = userData.group?._id;
           const groupSessions = userData.schedule?.groupSessions || [];
           const groupSession = groupId
-            ? groupSessions.find((gs) => {
+            ? groupSessions.find((gs: GroupSession) => {
                 const gsGroupId =
                   typeof gs.groupId === "string" ? gs.groupId : gs.groupId?._id;
                 return gsGroupId && String(gsGroupId) === String(groupId);
@@ -321,7 +324,7 @@ export default function SubActivitiesPage() {
           let scheduleInfo = null;
           if (groupSession?.sessions?.length) {
             scheduleInfo = groupSession.sessions.find(
-              (session) =>
+              (session: GroupSessionItem) =>
                 session.subActivityId === sub._id ||
                 session.subActivityName === sub.name,
             );
