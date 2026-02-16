@@ -323,7 +323,7 @@ export default function ClarityQuestionModal({
               <div className="flex items-center gap-2 mb-2 sm:mb-3">
                 <span className="text-xl sm:text-2xl">💭</span>
                 <h3 className="text-base sm:text-lg font-semibold text-gray-800">
-                  Evaluación de claridad:
+                  Evaluación al Stand:
                 </h3>
               </div>
               <p className="text-gray-700 text-base sm:text-lg bg-gray-50 p-3 sm:p-4 rounded-lg">

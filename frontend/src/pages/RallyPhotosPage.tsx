@@ -16,7 +16,8 @@ export default function RallyPhotosPage() {
   const [caption, setCaption] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<RallyPhoto | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   const loadPhotos = async () => {
@@ -69,7 +70,8 @@ export default function RallyPhotosPage() {
       await rallyPhotosAPI.upload(preview, caption);
       setPreview(null);
       setCaption("");
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      if (galleryInputRef.current) galleryInputRef.current.value = "";
+      if (cameraInputRef.current) cameraInputRef.current.value = "";
       await loadPhotos();
       alert("¡Foto subida exitosamente!");
     } catch (err) {
@@ -132,17 +134,38 @@ export default function RallyPhotosPage() {
           </h2>
 
           {!preview ? (
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-[#113780] hover:bg-blue-50/50 transition-all"
-            >
-              <div className="text-4xl mb-2">📷</div>
-              <p className="text-gray-600 font-medium">
-                Toca para seleccionar una foto
-              </p>
-              <p className="text-xs text-gray-400 mt-1">
-                JPG, PNG o HEIC · Máximo 10MB
-              </p>
+            <div className="space-y-4">
+              <div
+                onClick={() => galleryInputRef.current?.click()}
+                className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-[#113780] hover:bg-blue-50/50 transition-all"
+              >
+                <div className="text-4xl mb-2">📷</div>
+                <p className="text-gray-600 font-medium">
+                  Toca para seleccionar una foto
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  JPG, PNG o HEIC · Máximo 10MB
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Puedes elegir una imagen existente o tomar una nueva.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => galleryInputRef.current?.click()}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 rounded-lg transition text-sm"
+                >
+                  📁 Elegir de la galería
+                </button>
+                <button
+                  type="button"
+                  onClick={() => cameraInputRef.current?.click()}
+                  className="bg-[#113780]/10 hover:bg-[#113780]/20 text-[#113780] font-semibold py-3 rounded-lg transition text-sm"
+                >
+                  📸 Tomar foto ahora
+                </button>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
@@ -155,7 +178,12 @@ export default function RallyPhotosPage() {
                 <button
                   onClick={() => {
                     setPreview(null);
-                    if (fileInputRef.current) fileInputRef.current.value = "";
+                    if (galleryInputRef.current) {
+                      galleryInputRef.current.value = "";
+                    }
+                    if (cameraInputRef.current) {
+                      cameraInputRef.current.value = "";
+                    }
                   }}
                   className="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/70"
                 >
@@ -180,7 +208,14 @@ export default function RallyPhotosPage() {
           )}
 
           <input
-            ref={fileInputRef}
+            ref={galleryInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+          <input
+            ref={cameraInputRef}
             type="file"
             accept="image/*"
             capture="environment"

@@ -54,6 +54,12 @@ interface Group {
   scheduleId?: Schedule;
 }
 
+const getShiftLabel = (shift?: string | null) => {
+  if (shift === "Morning") return "Mañana";
+  if (shift === "Afternoon") return "Tarde";
+  return shift || "";
+};
+
 // Helper para obtener el icono/imagen del sticker
 const getStickerDisplay = (
   stickerId?: Sticker | string,
@@ -270,7 +276,7 @@ export default function ActivitiesPage() {
                 {userGroup.name}
               </p>
               <p className="text-xs sm:text-sm text-[#113780]">
-                {userGroup.shift}
+                {getShiftLabel(userGroup.shift)}
               </p>
             </div>
           </div>

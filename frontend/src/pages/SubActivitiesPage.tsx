@@ -81,6 +81,12 @@ interface Group {
   shift: string;
 }
 
+const getShiftLabel = (shift?: string | null) => {
+  if (shift === "Morning") return "Mañana";
+  if (shift === "Afternoon") return "Tarde";
+  return shift || "";
+};
+
 interface SubActivityWithStatus extends SubActivity {
   isUnlocked: boolean;
   isActive: boolean;
@@ -810,7 +816,7 @@ export default function SubActivitiesPage() {
                     {userGroup.name}
                   </p>
                   <p className="text-xs sm:text-sm text-[#113780]">
-                    {userGroup.shift}
+                    {getShiftLabel(userGroup.shift)}
                   </p>
                 </div>
               </div>
