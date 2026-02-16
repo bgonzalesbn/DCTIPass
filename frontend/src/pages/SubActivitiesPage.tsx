@@ -598,11 +598,22 @@ export default function SubActivitiesPage() {
       }
 
       if (skipChallenge && answeringSubActivity) {
-        await completeSubActivityWithoutAward(answeringSubActivity, true);
+        await completeSubActivityWithoutAward(answeringSubActivity, false);
+        const sticker =
+          typeof answeringSubActivity.stickerId === "object"
+            ? (answeringSubActivity.stickerId as Sticker)
+            : null;
+
+        setAnswerResult({
+          isCorrect: true,
+          pointsEarned: 10,
+          sticker,
+          explanation: "",
+        });
         setShowQuestionModal(false);
+        setShowCompletedModal(true);
         setSkipChallenge(false);
         setEnableClarityQuestion(false);
-        setAnsweringSubActivity(null);
         setPendingAwardResult(null);
         await loadActivityData();
         return;
