@@ -545,6 +545,9 @@ export default function SubActivitiesPage() {
   const handleSubmitClarity = async (clarityResponse: string) => {
     setAnsweringLoading(true);
     try {
+      // Ensure local progress is applied even if modal flow resets state
+      applyAwardResult();
+
       if (clarityResponse && answeringSubActivity && userSchedule) {
         try {
           await usersAPI.saveClarityResponse({
@@ -562,6 +565,9 @@ export default function SubActivitiesPage() {
         setShowQuestionModal(false);
         setShowCompletedModal(true);
       }
+
+      // Refresh server-backed progress to keep UI in sync
+      await loadActivityData();
     } catch (err) {
       console.error("Error saving clarity response:", err);
       alert("Error al guardar la evaluación");
