@@ -8,8 +8,8 @@ export type SuggestionDocument = HydratedDocument<Suggestion>;
   collection: "suggestions",
 })
 export class Suggestion {
-  @Prop({ type: String, required: true })
-  employeeNumber: string;
+  @Prop({ type: String, required: false })
+  employeeNumber?: string;
 
   @Prop({ type: String, required: true })
   suggestion: string;

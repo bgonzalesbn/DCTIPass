@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsString, MaxLength } from "class-validator";
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from "class-validator";
 
 export class CreateSuggestionDto {
   @IsString()
@@ -7,4 +13,8 @@ export class CreateSuggestionDto {
     message: "La sugerencia no puede exceder 2000 caracteres.",
   })
   suggestion: string;
+
+  @IsBoolean()
+  @IsOptional()
+  anonymous?: boolean;
 }

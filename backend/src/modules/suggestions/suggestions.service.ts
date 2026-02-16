@@ -11,13 +11,12 @@ export class SuggestionsService {
   ) {}
 
   async create(
-    employeeNumber: string,
     suggestion: string,
+    employeeNumber?: string,
   ): Promise<SuggestionDocument> {
-    const newSuggestion = new this.suggestionModel({
-      employeeNumber,
-      suggestion,
-    });
+    const newSuggestion = new this.suggestionModel(
+      employeeNumber ? { employeeNumber, suggestion } : { suggestion },
+    );
     return newSuggestion.save();
   }
 

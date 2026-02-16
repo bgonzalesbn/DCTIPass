@@ -4,6 +4,7 @@ import { suggestionsAPI } from "../services/api";
 
 export default function SuggestionsPage() {
   const [suggestion, setSuggestion] = useState("");
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
@@ -20,9 +21,10 @@ export default function SuggestionsPage() {
 
     setLoading(true);
     try {
-      await suggestionsAPI.create(suggestion.trim());
+      await suggestionsAPI.create(suggestion.trim(), isAnonymous);
       setSuccess(true);
       setSuggestion("");
+      setIsAnonymous(false);
     } catch (err: any) {
       setError(err.response?.data?.message || "Error al enviar la sugerencia.");
     } finally {
@@ -55,7 +57,7 @@ export default function SuggestionsPage() {
               </svg>
             </button>
             <h1 className="text-lg sm:text-xl font-semibold text-white">
-              Buzón de sugerencias
+              Te Escuchamos DCTI
             </h1>
           </div>
         </div>
@@ -111,11 +113,9 @@ export default function SuggestionsPage() {
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-gray-900">
-                    Comparte tu sugerencia
+                    Tu opinión cuenta. Compártenos tus ideas, sugerencias o
+                    comentarios.
                   </h2>
-                  <p className="text-gray-500 text-sm">
-                    Tu opinión nos ayuda a mejorar
-                  </p>
                 </div>
               </div>
 
@@ -154,6 +154,17 @@ export default function SuggestionsPage() {
                     {suggestion.length}/2000
                   </p>
                 </div>
+                <label className="flex items-start gap-3 text-sm text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={isAnonymous}
+                    onChange={(e) => setIsAnonymous(e.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-[#113780] focus:ring-[#113780]"
+                  />
+                  <span>
+                    Si lo prefieres, puedes hacerlo de manera anónima.
+                  </span>
+                </label>
 
                 <button
                   type="submit"

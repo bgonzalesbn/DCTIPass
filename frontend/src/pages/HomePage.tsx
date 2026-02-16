@@ -214,7 +214,7 @@ export default function HomePage() {
             </div>
             <div className="min-w-0">
               <h2 className="text-base sm:text-lg font-bold text-gray-900 group-hover:text-[#113780] transition">
-                Buzón de sugerencias
+                Te Escuchamos DCTI
               </h2>
               <p className="text-gray-500 text-sm">
                 Envía tus sugerencias y comentarios

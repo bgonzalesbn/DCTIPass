@@ -96,6 +96,20 @@ const StickerIcon = ({
   return <span className={className}>{display.value}</span>;
 };
 
+const activityGradientMap: Record<string, string> = {
+  "from-indigo-600 to-purple-600": "from-indigo-600 to-purple-600",
+  "from-blue-500 to-blue-600": "from-blue-500 to-blue-600",
+  "from-purple-500 to-purple-600": "from-purple-500 to-purple-600",
+  "from-green-500 to-green-600": "from-green-500 to-green-600",
+  "from-orange-500 to-orange-600": "from-orange-500 to-orange-600",
+  "from-indigo-500 to-indigo-600": "from-indigo-500 to-indigo-600",
+  "from-pink-500 to-pink-600": "from-pink-500 to-pink-600",
+  "from-gray-500 to-gray-600": "from-gray-500 to-gray-600",
+};
+
+const getActivityGradient = (color?: string) =>
+  activityGradientMap[color || ""] || "from-[#113780] to-[#0C2A5C]";
+
 export default function ActivitiesPage() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [userGroup, setUserGroup] = useState<Group | null>(null);
@@ -266,6 +280,7 @@ export default function ActivitiesPage() {
         <div className="space-y-4">
           {activities.map((activity) => {
             const progress = calculateProgress(activity);
+            const gradientClasses = getActivityGradient(activity.color);
             return (
               <div
                 key={activity._id}
@@ -274,7 +289,7 @@ export default function ActivitiesPage() {
               >
                 {/* Card Header con gradiente */}
                 <div
-                  className={`bg-gradient-to-r ${activity.color || "from-[#113780] to-[#0C2A5C]"} p-4 sm:p-6`}
+                  className={`bg-gradient-to-r ${gradientClasses} p-4 sm:p-6`}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <StickerIcon
@@ -308,7 +323,7 @@ export default function ActivitiesPage() {
                     </div>
                     <div className="w-full bg-gray-100 rounded-full h-2">
                       <div
-                        className={`bg-gradient-to-r ${activity.color || "from-[#113780] to-[#0C2A5C]"} h-2 rounded-full transition-all duration-500`}
+                        className={`bg-gradient-to-r ${gradientClasses} h-2 rounded-full transition-all duration-500`}
                         style={{ width: `${progress}%` }}
                       ></div>
                     </div>

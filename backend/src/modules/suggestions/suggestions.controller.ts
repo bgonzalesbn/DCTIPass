@@ -28,19 +28,25 @@ export class SuggestionsController {
     @Res() res: Response,
   ) {
     try {
-      const jwtUser = (req as any).user;
-      const userId = jwtUser.id || jwtUser.sub || jwtUser._id;
+      const isAnonymous = dto.anonymous === true;
+      let employeeNumber: string | undefined;
 
-      const user = await this.userModel.findById(userId).lean();
-      if (!user) {
-        return res
-          .status(HttpStatus.BAD_REQUEST)
-          .json({ message: "Usuario no encontrado." });
+      if (!isAnonymous) {
+        const jwtUser = (req as any).user;
+        const userId = jwtUser.id || jwtUser.sub || jwtUser._id;
+
+        const user = await this.userModel.findById(userId).lean();
+        if (!user) {
+          return res
+            .status(HttpStatus.BAD_REQUEST)
+            .json({ message: "Usuario no encontrado." });
+        }
+        employeeNumber = user.employeeNumber;
       }
 
       const suggestion = await this.suggestionsService.create(
-        user.employeeNumber,
         dto.suggestion,
+        employeeNumber,
       );
 
       return res.status(HttpStatus.CREATED).json({

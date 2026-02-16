@@ -353,8 +353,8 @@ export const adminAPI = {
 
 // Suggestions endpoints
 export const suggestionsAPI = {
-  create: (suggestion: string) =>
-    apiClient.post("/suggestions", { suggestion }),
+  create: (suggestion: string, anonymous?: boolean) =>
+    apiClient.post("/suggestions", { suggestion, anonymous }),
   getAll: () => apiClient.get("/suggestions"),
 };
 
