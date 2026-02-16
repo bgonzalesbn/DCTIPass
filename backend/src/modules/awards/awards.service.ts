@@ -90,6 +90,7 @@ export class AwardsService {
     sticker: any;
     explanation: string;
     alreadyCompleted?: boolean;
+    correctAnswer?: string;
   }> {
     // Primero obtener el documento sin populate para tener los ObjectIds originales
     const stickerAwardRaw = await this.stickerAwardModel
@@ -123,6 +124,7 @@ export class AwardsService {
         sticker: stickerAward.stickerId,
         explanation: "Ya completaste este reto anteriormente",
         alreadyCompleted: true,
+        correctAnswer: stickerAwardRaw.correctAnswer || "",
       };
     }
 
@@ -175,128 +177,126 @@ export class AwardsService {
       `[answerAward] stickerAwardId: ${dto.stickerAwardId}, userId: ${userId}, isCorrect: ${isCorrect}`,
     );
 
-    // Si respondió correctamente, actualizar el progreso del usuario
-    if (isCorrect) {
-      const stickerIdString = stickerAwardRaw.stickerId?.toString();
+    const stickerIdString = stickerAwardRaw.stickerId?.toString();
 
-      // Actualizar progreso de subactividad en el usuario
-      const userObjectId = new Types.ObjectId(userId);
-      const user = await this.userModel.findById(userObjectId);
+    // Actualizar progreso de subactividad en el usuario (siempre, acierte o no)
+    const userObjectId = new Types.ObjectId(userId);
+    const user = await this.userModel.findById(userObjectId);
 
-      if (user) {
-        const subActivityIdString = subActivityIdValue.toString();
-        const activityIdString = activityIdValue.toString();
+    if (user) {
+      const subActivityIdString = subActivityIdValue.toString();
+      const activityIdString = activityIdValue.toString();
 
-        console.log(`[answerAward] Updating progress for user ${userId}`);
-        console.log(`[answerAward] subActivityId: ${subActivityIdString}`);
+      console.log(`[answerAward] Updating progress for user ${userId}`);
+      console.log(`[answerAward] subActivityId: ${subActivityIdString}`);
 
-        // Verificar si ya existe el progreso de esta subactividad
-        const existingProgress = (user.subActivityProgress || []).find(
-          (p: any) => p.subActivityId?.toString() === subActivityIdString,
-        );
+      // Verificar si ya existe el progreso de esta subactividad
+      const existingProgress = (user.subActivityProgress || []).find(
+        (p: any) => p.subActivityId?.toString() === subActivityIdString,
+      );
 
-        const subActivityProgressItem = {
-          subActivityId: subActivityIdValue,
-          completed: true,
-          completedAt: new Date(),
-          earnedStickerId: stickerIdString
+      const subActivityProgressItem = {
+        subActivityId: subActivityIdValue,
+        completed: true,
+        completedAt: new Date(),
+        earnedStickerId:
+          isCorrect && stickerIdString
             ? new Types.ObjectId(stickerIdString)
             : null,
-        };
+      };
 
-        console.log(
-          `[answerAward] subActivityProgressItem:`,
-          JSON.stringify(subActivityProgressItem),
+      console.log(
+        `[answerAward] subActivityProgressItem:`,
+        JSON.stringify(subActivityProgressItem),
+      );
+
+      if (existingProgress) {
+        console.log(`[answerAward] Updating existing progress`);
+        const updateResult = await this.userModel.updateOne(
+          {
+            _id: userObjectId,
+            "subActivityProgress.subActivityId": subActivityIdValue,
+          },
+          { $set: { "subActivityProgress.$": subActivityProgressItem } },
         );
+        console.log(
+          `[answerAward] Update result:`,
+          JSON.stringify(updateResult),
+        );
+      } else {
+        console.log(`[answerAward] Adding new progress`);
+        const pushResult = await this.userModel.updateOne(
+          { _id: userObjectId },
+          { $push: { subActivityProgress: subActivityProgressItem } },
+        );
+        console.log(`[answerAward] Push result:`, JSON.stringify(pushResult));
+      }
 
-        if (existingProgress) {
-          console.log(`[answerAward] Updating existing progress`);
-          const updateResult = await this.userModel.updateOne(
-            {
-              _id: userObjectId,
-              "subActivityProgress.subActivityId": subActivityIdValue,
+      // Agregar sticker ganado solo si es correcto
+      if (isCorrect && stickerIdString) {
+        await this.userModel.updateOne(
+          { _id: userObjectId },
+          {
+            $addToSet: {
+              earnedStickers: new Types.ObjectId(stickerIdString),
             },
-            { $set: { "subActivityProgress.$": subActivityProgressItem } },
-          );
-          console.log(
-            `[answerAward] Update result:`,
-            JSON.stringify(updateResult),
-          );
-        } else {
-          console.log(`[answerAward] Adding new progress`);
-          const pushResult = await this.userModel.updateOne(
-            { _id: userObjectId },
-            { $push: { subActivityProgress: subActivityProgressItem } },
-          );
-          console.log(`[answerAward] Push result:`, JSON.stringify(pushResult));
-        }
+          },
+        );
+      }
 
-        // Agregar sticker ganado
-        if (stickerIdString) {
-          await this.userModel.updateOne(
-            { _id: userObjectId },
-            {
-              $addToSet: {
-                earnedStickers: new Types.ObjectId(stickerIdString),
-              },
-            },
-          );
-        }
+      // Actualizar puntos solo si es correcto
+      if (isCorrect && pointsEarned > 0) {
+        await this.userModel.updateOne(
+          { _id: userObjectId },
+          { $inc: { totalPoints: pointsEarned } },
+        );
+      }
 
-        // Actualizar puntos
-        if (pointsEarned > 0) {
-          await this.userModel.updateOne(
-            { _id: userObjectId },
-            { $inc: { totalPoints: pointsEarned } },
-          );
-        }
+      // Actualizar progreso de actividad
+      const updatedUser = await this.userModel.findById(userObjectId);
+      const completedSubActivitiesCount = (
+        updatedUser?.subActivityProgress || []
+      ).filter((p: any) => p.completed).length;
 
-        // Actualizar progreso de actividad
-        const updatedUser = await this.userModel.findById(userObjectId);
-        const completedSubActivitiesCount = (
-          updatedUser?.subActivityProgress || []
-        ).filter((p: any) => p.completed).length;
-
-        // Contar total de subactividades con retos para esta actividad
-        const totalAwardsForActivity =
-          await this.stickerAwardModel.countDocuments({
-            activityId: activityIdValue,
-            active: true,
-            deletedAt: null,
-          });
-
-        const existingActivityProgress = (
-          updatedUser?.activityProgress || []
-        ).find((p: any) => p.activityId?.toString() === activityIdString);
-
-        const activityProgressItem = {
+      // Contar total de subactividades con retos para esta actividad
+      const totalAwardsForActivity =
+        await this.stickerAwardModel.countDocuments({
           activityId: activityIdValue,
-          completedSubActivities: completedSubActivitiesCount,
-          totalSubActivities: totalAwardsForActivity,
-          completed:
-            completedSubActivitiesCount >= totalAwardsForActivity &&
-            totalAwardsForActivity > 0,
-          completedAt:
-            completedSubActivitiesCount >= totalAwardsForActivity &&
-            totalAwardsForActivity > 0
-              ? new Date()
-              : null,
-        };
+          active: true,
+          deletedAt: null,
+        });
 
-        if (existingActivityProgress) {
-          await this.userModel.updateOne(
-            {
-              _id: userObjectId,
-              "activityProgress.activityId": activityIdValue,
-            },
-            { $set: { "activityProgress.$": activityProgressItem } },
-          );
-        } else {
-          await this.userModel.updateOne(
-            { _id: userObjectId },
-            { $push: { activityProgress: activityProgressItem } },
-          );
-        }
+      const existingActivityProgress = (
+        updatedUser?.activityProgress || []
+      ).find((p: any) => p.activityId?.toString() === activityIdString);
+
+      const activityProgressItem = {
+        activityId: activityIdValue,
+        completedSubActivities: completedSubActivitiesCount,
+        totalSubActivities: totalAwardsForActivity,
+        completed:
+          completedSubActivitiesCount >= totalAwardsForActivity &&
+          totalAwardsForActivity > 0,
+        completedAt:
+          completedSubActivitiesCount >= totalAwardsForActivity &&
+          totalAwardsForActivity > 0
+            ? new Date()
+            : null,
+      };
+
+      if (existingActivityProgress) {
+        await this.userModel.updateOne(
+          {
+            _id: userObjectId,
+            "activityProgress.activityId": activityIdValue,
+          },
+          { $set: { "activityProgress.$": activityProgressItem } },
+        );
+      } else {
+        await this.userModel.updateOne(
+          { _id: userObjectId },
+          { $push: { activityProgress: activityProgressItem } },
+        );
       }
     }
 
@@ -305,6 +305,7 @@ export class AwardsService {
       pointsEarned,
       sticker: isCorrect ? stickerAward.stickerId : null,
       explanation: stickerAwardRaw.explanation || "",
+      correctAnswer,
     };
   }
 

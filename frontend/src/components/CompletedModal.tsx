@@ -14,6 +14,7 @@ interface CompletedModalProps {
   sticker?: Sticker | null;
   pointsEarned: number;
   explanation?: string;
+  correctAnswer?: string;
   subActivityName: string;
   alreadyCompleted?: boolean;
 }
@@ -25,6 +26,7 @@ export default function CompletedModal({
   sticker,
   pointsEarned,
   explanation,
+  correctAnswer,
   subActivityName,
   alreadyCompleted = false,
 }: CompletedModalProps) {
@@ -191,8 +193,24 @@ export default function CompletedModal({
 
             {/* Content */}
             <div className="p-5 sm:p-8 text-center">
+              {correctAnswer && (
+                <div className="bg-emerald-50 rounded-lg p-3 sm:p-4 mb-3 sm:mb-4 text-left border border-emerald-200">
+                  <div className="flex items-start gap-2">
+                    <span className="text-lg sm:text-xl flex-shrink-0">✅</span>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-emerald-800 text-xs sm:text-sm">
+                        Respuesta correcta:
+                      </p>
+                      <p className="text-emerald-700 text-xs sm:text-sm mt-1">
+                        {correctAnswer}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {explanation && (
-                <div className="bg-amber-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 text-left">
+                <div className="bg-amber-50 rounded-lg p-3 sm:p-4 mb-3 sm:mb-4 text-left">
                   <div className="flex items-start gap-2">
                     <span className="text-lg sm:text-xl flex-shrink-0">📚</span>
                     <div className="min-w-0">
@@ -208,7 +226,7 @@ export default function CompletedModal({
               )}
 
               <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">
-                Revisa el contenido de la subactividad e intenta nuevamente.
+                Puedes continuar con la siguiente sesión.
               </p>
 
               <button

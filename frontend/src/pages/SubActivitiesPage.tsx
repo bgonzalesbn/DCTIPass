@@ -168,6 +168,7 @@ export default function SubActivitiesPage() {
     sticker: Sticker | null;
     explanation: string;
     alreadyCompleted?: boolean;
+    correctAnswer?: string;
   } | null>(null);
   const [answeringLoading, setAnsweringLoading] = useState(false);
   const [awardsStatus, setAwardsStatus] = useState<
@@ -444,34 +445,43 @@ export default function SubActivitiesPage() {
         }
       }
 
-      setAnswerResult(response.data);
+      setAnswerResult({
+        ...response.data,
+        correctAnswer: response.data.correctAnswer || "",
+      });
       setShowQuestionModal(false);
       setShowCompletedModal(true);
 
-      // Si fue correcta, actualizar el estado local usando answeringSubActivity
-      if (response.data.isCorrect && answeringSubActivity) {
+      // Actualizar el estado local usando answeringSubActivity (correcta o incorrecta)
+      if (answeringSubActivity) {
         const completedId = answeringSubActivity._id;
 
         // Actualizar completedSubActivityIds
-        setCompletedSubActivityIds((prev) => {
-          return [...prev, completedId];
-        });
+        setCompletedSubActivityIds((prev) =>
+          prev.includes(completedId) ? prev : [...prev, completedId],
+        );
 
         // Actualizar awardsStatus
         const newAwardsStatus = {
           ...awardsStatus,
-          [completedId]: { hasAward: true, completed: true },
+          [completedId]: {
+            hasAward: awardsStatus[completedId]?.hasAward ?? true,
+            completed: true,
+          },
         };
         setAwardsStatus(newAwardsStatus);
 
         // Actualizar directamente las subactividades para reflejar el cambio inmediatamente
         setSubActivities((prevSubActivities) => {
           let foundFirstUnlocked = false;
-          const updatedCompletedIds = [...completedSubActivityIds, completedId];
+          const updatedCompletedIds = new Set([
+            ...completedSubActivityIds,
+            completedId,
+          ]);
 
           const result = prevSubActivities.map((sub, index) => {
             const isCompleted =
-              updatedCompletedIds.includes(sub._id) ||
+              updatedCompletedIds.has(sub._id) ||
               newAwardsStatus[sub._id]?.completed;
 
             let isUnlocked = false;
@@ -480,7 +490,7 @@ export default function SubActivitiesPage() {
             } else {
               const previousSub = prevSubActivities[index - 1];
               const previousCompleted =
-                updatedCompletedIds.includes(previousSub._id) ||
+                updatedCompletedIds.has(previousSub._id) ||
                 newAwardsStatus[previousSub._id]?.completed;
               isUnlocked =
                 previousCompleted && isWithinSchedule(sub, userSchedule);
@@ -1038,6 +1048,7 @@ export default function SubActivitiesPage() {
           sticker={answerResult?.sticker}
           pointsEarned={answerResult?.pointsEarned || 0}
           explanation={answerResult?.explanation}
+          correctAnswer={answerResult?.correctAnswer}
           subActivityName={answeringSubActivity?.name || ""}
           alreadyCompleted={answerResult?.alreadyCompleted}
         />
