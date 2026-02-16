@@ -33,6 +33,17 @@ class CompleteSubActivityDto {
   points?: number;
 }
 
+class SaveClarityResponseDto {
+  @IsString()
+  subActivityId: string;
+
+  @IsString()
+  scheduleId: string;
+
+  @IsString()
+  response: string; // "Nada claro", "Claro", "Muy claro", "Clarísimo"
+}
+
 @Controller("users")
 export class UsersController {
   constructor(private usersService: UsersService) {}
@@ -100,6 +111,23 @@ export class UsersController {
       dto.subActivityId,
       dto.stickerId,
       dto.points,
+    );
+  }
+
+  @Post("clarity-response")
+  async saveClarityResponse(
+    @Req() req: Request,
+    @Body() dto: SaveClarityResponseDto,
+  ) {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return { error: "No authenticated user" };
+    }
+    return this.usersService.saveClarityResponse(
+      userId,
+      dto.subActivityId,
+      dto.scheduleId,
+      dto.response,
     );
   }
 

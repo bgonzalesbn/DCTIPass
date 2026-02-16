@@ -43,6 +43,9 @@ export class GroupSessionItem {
 
   @Prop({ required: true, default: 0 })
   order: number;
+
+  @Prop({ default: false })
+  enableClarityQuestion: boolean; // Habilitar pregunta "¿Qué tan claro te queda ahora el rol de esta dirección?"
 }
 
 export const GroupSessionItemSchema =

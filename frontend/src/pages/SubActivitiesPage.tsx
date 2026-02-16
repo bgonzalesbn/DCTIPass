@@ -2,7 +2,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { activitiesAPI, usersAPI, awardsAPI } from "../services/api";
 import { useSubActivityStatus } from "../hooks/useSubActivityStatus";
-import QuestionModal from "../components/QuestionModal";
+import ClarityQuestionModal from "../components/ClarityQuestionModal";
 import CompletedModal from "../components/CompletedModal";
 
 interface Sticker {
@@ -64,6 +64,7 @@ interface Schedule {
       startTime: string;
       endTime: string;
       order: number;
+      enableClarityQuestion?: boolean;
     }[];
   }[];
   order: number;
@@ -174,6 +175,7 @@ export default function SubActivitiesPage() {
   // Referencia a la subactividad que está respondiendo (no se limpia al abrir modal de pregunta)
   const [answeringSubActivity, setAnsweringSubActivity] =
     useState<SubActivityWithStatus | null>(null);
+  const [enableClarityQuestion, setEnableClarityQuestion] = useState(false);
 
   const navigate = useNavigate();
   const { calculateStatus, isWithinSchedule } = useSubActivityStatus();
@@ -320,6 +322,23 @@ export default function SubActivitiesPage() {
       if (response.data) {
         setAnsweringSubActivity(subActivity); // Guardar referencia antes de cerrar el modal
         setCurrentAward(response.data);
+
+        // Verificar si la sesión tiene habilitada la pregunta de claridad
+        const groupId = userGroup?._id;
+        const groupSessions = userSchedule?.groupSessions || [];
+        const groupSession = groupId
+          ? groupSessions.find((gs) => {
+              const gsGroupId =
+                typeof gs.groupId === "string" ? gs.groupId : gs.groupId?._id;
+              return gsGroupId && String(gsGroupId) === String(groupId);
+            })
+          : null;
+
+        const sessionInfo = groupSession?.sessions?.find(
+          (session) => session.subActivityId === subActivity._id,
+        );
+
+        setEnableClarityQuestion(sessionInfo?.enableClarityQuestion || false);
         setShowQuestionModal(true);
         setSelectedActivity(null);
       } else {
@@ -406,12 +425,30 @@ export default function SubActivitiesPage() {
   };
 
   // Función para enviar respuesta
-  const handleSubmitAnswer = async (answer: string) => {
+  const handleSubmitAnswer = async (
+    answer: string,
+    clarityResponse?: string,
+  ) => {
     if (!currentAward) return;
 
     setAnsweringLoading(true);
     try {
       const response = await awardsAPI.answerAward(currentAward._id, answer);
+
+      // Si hay respuesta de claridad, guardarla
+      if (clarityResponse && answeringSubActivity && userSchedule) {
+        try {
+          await usersAPI.saveClarityResponse({
+            subActivityId: answeringSubActivity._id,
+            scheduleId: userSchedule._id,
+            response: clarityResponse,
+          });
+        } catch (err) {
+          console.error("Error saving clarity response:", err);
+          // No mostramos error al usuario para no interrumpir el flujo
+        }
+      }
+
       setAnswerResult(response.data);
       setShowQuestionModal(false);
       setShowCompletedModal(true);
@@ -981,19 +1018,21 @@ export default function SubActivitiesPage() {
         )}
 
         {/* Question Modal */}
-        <QuestionModal
+        <ClarityQuestionModal
           isOpen={showQuestionModal}
           onClose={() => {
             setShowQuestionModal(false);
             setCurrentAward(null);
             setAnsweringSubActivity(null);
+            setEnableClarityQuestion(false);
           }}
-          question={currentAward?.question || ""}
-          options={currentAward?.options || []}
+          challengeQuestion={currentAward?.question || ""}
+          challengeOptions={currentAward?.options || []}
           onAnswer={handleSubmitAnswer}
           loading={answeringLoading}
           subActivityName={answeringSubActivity?.name || ""}
           sticker={currentAward?.stickerId}
+          enableClarityQuestion={enableClarityQuestion}
         />
 
         {/* Completed Modal */}

@@ -3,6 +3,21 @@ import { HydratedDocument, Types } from "mongoose";
 
 export type UserDocument = HydratedDocument<User>;
 
+// Sub-schema para respuestas de claridad
+class ClarityResponse {
+  @Prop({ type: Types.ObjectId, ref: "SubActivity", required: true })
+  subActivityId: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: "Schedule", required: true })
+  scheduleId: Types.ObjectId;
+
+  @Prop({ required: true })
+  response: string; // "Nada claro", "Claro", "Muy claro", "Clarísimo"
+
+  @Prop({ type: Date, default: Date.now })
+  answeredAt: Date;
+}
+
 // Sub-schema para progreso de subactividad
 class SubActivityProgress {
   @Prop({ type: Types.ObjectId, ref: "SubActivity" })
@@ -86,6 +101,9 @@ export class User {
 
   @Prop({ type: Number, default: 0 })
   totalPoints: number;
+
+  @Prop({ type: [Object], default: [] })
+  clarityResponses: ClarityResponse[]; // Respuestas a la pregunta de claridad
 
   // Security question for password recovery
   @Prop({ type: String, default: null })

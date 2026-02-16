@@ -156,6 +156,11 @@ export const usersAPI = {
     stickerId?: string;
     points?: number;
   }) => apiClient.post("/users/complete-subactivity", data),
+  saveClarityResponse: (data: {
+    subActivityId: string;
+    scheduleId: string;
+    response: string;
+  }) => apiClient.post("/users/clarity-response", data),
 };
 
 // Activities endpoints

@@ -374,4 +374,55 @@ export class UsersService {
 
     return (user.earnedStickers || []).map((s: any) => s.toString());
   }
+
+  /**
+   * Guardar respuesta de claridad del usuario
+   */
+  async saveClarityResponse(
+    userId: string,
+    subActivityId: string,
+    scheduleId: string,
+    response: string,
+  ) {
+    const objectId = new Types.ObjectId(userId);
+    const user = await this.userModel.findById(objectId);
+
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    // Verificar si ya existe una respuesta para esta subactividad y schedule
+    const existingResponse = (user.clarityResponses || []).find(
+      (r: any) =>
+        r.subActivityId?.toString() === subActivityId &&
+        r.scheduleId?.toString() === scheduleId,
+    );
+
+    const clarityResponseItem = {
+      subActivityId: new Types.ObjectId(subActivityId),
+      scheduleId: new Types.ObjectId(scheduleId),
+      response,
+      answeredAt: new Date(),
+    };
+
+    if (existingResponse) {
+      // Actualizar respuesta existente
+      await this.userModel.updateOne(
+        {
+          _id: objectId,
+          "clarityResponses.subActivityId": new Types.ObjectId(subActivityId),
+          "clarityResponses.scheduleId": new Types.ObjectId(scheduleId),
+        },
+        { $set: { "clarityResponses.$": clarityResponseItem } },
+      );
+    } else {
+      // Agregar nueva respuesta
+      await this.userModel.updateOne(
+        { _id: objectId },
+        { $push: { clarityResponses: clarityResponseItem } },
+      );
+    }
+
+    return { success: true, message: "Clarity response saved successfully" };
+  }
 }
