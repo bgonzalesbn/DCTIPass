@@ -428,14 +428,7 @@ export default function SubActivitiesPage() {
     }
   };
 
-  const applyAwardResult = (responseData: {
-    isCorrect: boolean;
-    pointsEarned: number;
-    sticker: Sticker | null;
-    explanation: string;
-    alreadyCompleted?: boolean;
-    correctAnswer?: string;
-  }) => {
+  const applyAwardResult = () => {
     if (!answeringSubActivity) return;
 
     const completedId = answeringSubActivity._id;
@@ -526,7 +519,7 @@ export default function SubActivitiesPage() {
         correctAnswer: response.data.correctAnswer || "",
       };
       setPendingAwardResult(result);
-      applyAwardResult(result);
+      applyAwardResult();
 
       if (!enableClarityQuestion) {
         setAnswerResult(result);
