@@ -358,6 +358,14 @@ export class AwardsService {
   ): Promise<Map<string, { hasAward: boolean; completed: boolean }>> {
     const result = new Map<string, { hasAward: boolean; completed: boolean }>();
 
+    const userObjectId = new Types.ObjectId(userId);
+    const user = await this.userModel.findById(userObjectId).lean();
+    const completedProgressSet = new Set(
+      (user?.subActivityProgress || [])
+        .filter((p: any) => p.completed)
+        .map((p: any) => p.subActivityId?.toString()),
+    );
+
     console.log(
       `[getSubActivityAwardsStatus] Checking status for userId: ${userId}`,
     );
@@ -381,19 +389,20 @@ export class AwardsService {
       );
 
       if (award) {
-        const completed = await this.userAwardModel.findOne({
+        const completedByProgress = completedProgressSet.has(subActivityId);
+        const completedByAward = await this.userAwardModel.findOne({
           userId: new Types.ObjectId(userId),
           stickerAwardId: award._id,
           isCorrect: true,
         });
 
         console.log(
-          `[getSubActivityAwardsStatus] SubActivity ${subActivityId}: completed = ${!!completed}, awardId = ${award._id}`,
+          `[getSubActivityAwardsStatus] SubActivity ${subActivityId}: completed = ${completedByProgress || !!completedByAward}, awardId = ${award._id}`,
         );
 
         result.set(subActivityId, {
           hasAward: true,
-          completed: !!completed,
+          completed: completedByProgress || !!completedByAward,
         });
       } else {
         result.set(subActivityId, {
