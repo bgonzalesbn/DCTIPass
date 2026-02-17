@@ -178,7 +178,7 @@ export default function CompletedModal({
                 Respuesta Incorrecta
               </h2>
               <p className="text-red-100 text-sm sm:text-base">
-                No te preocupes, puedes intentarlo de nuevo
+                No te preocupes, te damos la insignia
               </p>
             </div>
 

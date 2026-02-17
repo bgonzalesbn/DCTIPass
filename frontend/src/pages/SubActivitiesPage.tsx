@@ -471,7 +471,94 @@ export default function SubActivitiesPage() {
       return;
     }
 
-    await completeSubActivityWithoutAward(subActivity, true);
+    // Completar sesión sin reto: Mostrar modal de Felicitades con sticker
+    try {
+      const stickerId =
+        typeof subActivity.stickerId === "object" && subActivity.stickerId?._id
+          ? subActivity.stickerId._id
+          : undefined;
+
+      await usersAPI.completeSubActivity({
+        activityId: activityId!,
+        subActivityId: subActivity._id,
+        stickerId,
+        points: 10,
+      });
+
+      const completedId = subActivity._id;
+      setCompletedSubActivityIds((prev) =>
+        prev.includes(completedId) ? prev : [...prev, completedId],
+      );
+
+      const newAwardsStatus = {
+        ...awardsStatus,
+        [completedId]: { hasAward: false, completed: true },
+      };
+      setAwardsStatus(newAwardsStatus);
+
+      // Recalcular estados
+      setSubActivities((prevSubActivities) => {
+        let foundFirstUnlocked = false;
+        const updatedCompletedIds = new Set([
+          ...completedSubActivityIds,
+          completedId,
+        ]);
+
+        return prevSubActivities.map((sub, index) => {
+          const isCompleted =
+            updatedCompletedIds.has(sub._id) ||
+            newAwardsStatus[sub._id]?.completed;
+
+          let isUnlocked = false;
+          if (index === 0) {
+            isUnlocked = isWithinSchedule(sub, userSchedule);
+          } else {
+            const previousSub = prevSubActivities[index - 1];
+            const previousCompleted =
+              updatedCompletedIds.has(previousSub._id) ||
+              newAwardsStatus[previousSub._id]?.completed;
+            isUnlocked =
+              previousCompleted && isWithinSchedule(sub, userSchedule);
+          }
+
+          if (isCompleted) isUnlocked = true;
+
+          let isActive = false;
+          if (isUnlocked && !isCompleted && !foundFirstUnlocked) {
+            isActive = true;
+            foundFirstUnlocked = true;
+          }
+
+          return {
+            ...sub,
+            isUnlocked,
+            isActive,
+            isCompleted,
+            completed: isCompleted,
+            progress: isCompleted ? 100 : isActive ? 50 : 0,
+          };
+        });
+      });
+
+      // Mostrar modal de Felicitades con el sticker
+      setAnsweringSubActivity(subActivity);
+      const sticker =
+        typeof subActivity.stickerId === "object"
+          ? (subActivity.stickerId as Sticker)
+          : null;
+
+      setAnswerResult({
+        isCorrect: true,
+        pointsEarned: 10,
+        sticker,
+        explanation: "",
+      });
+      setSelectedActivity(null);
+      setShowCompletedModal(true);
+    } catch (err) {
+      console.error("Error completing session:", err);
+      alert("Error al completar la sesión");
+    }
   };
 
   const applyAwardResult = () => {
@@ -567,11 +654,25 @@ export default function SubActivitiesPage() {
       setPendingAwardResult(result);
       applyAwardResult();
 
-      if (!enableClarityQuestion) {
-        setAnswerResult(result);
+      // Si es respuesta incorrecta, no mostrar modal de completado
+      // Solo aplicar el resultado y cerrar la pregunta
+      if (!result.isCorrect) {
         setShowQuestionModal(false);
-        setShowCompletedModal(true);
+        // No mostrar completado modal para respuesta incorrecta
+        // El sticker ya fue asignado por applyAwardResult()
+        return result;
       }
+
+      // Si es correcta y hay claridad, esperar a clarity
+      if (enableClarityQuestion) {
+        // No mostrar completado aún, esperar a submitClarity
+        return result;
+      }
+
+      // Si es correcta y sin claridad, mostrar completado
+      setAnswerResult(result);
+      setShowQuestionModal(false);
+      setShowCompletedModal(true);
 
       return result;
     } catch (err) {
