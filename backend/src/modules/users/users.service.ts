@@ -224,6 +224,9 @@ export class UsersService {
     stickerId?: string,
     points?: number,
   ) {
+    console.log(
+      `[CompleteSubActivity] userId=${userId}, subId=${subActivityId}, stickerId=${stickerId}, points=${points}`,
+    );
     const objectId = new Types.ObjectId(userId);
     const user = await this.userModel.findById(objectId);
 
@@ -268,9 +271,17 @@ export class UsersService {
 
     // Agregar sticker ganado si lo hay
     if (stickerId) {
-      await this.userModel.updateOne(
+      console.log(
+        `[CompleteSubActivity] Adding stickerId=${stickerId} to user=${userId}`,
+      );
+      const result = await this.userModel.updateOne(
         { _id: objectId },
         { $addToSet: { earnedStickers: new Types.ObjectId(stickerId) } },
+      );
+      console.log(`[CompleteSubActivity] Update result:`, result);
+    } else {
+      console.log(
+        `[CompleteSubActivity] No stickerId provided, skipping sticker assignment`,
       );
     }
 

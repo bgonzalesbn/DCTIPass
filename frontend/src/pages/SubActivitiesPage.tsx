@@ -382,10 +382,16 @@ export default function SubActivitiesPage() {
     showAlert: boolean = true,
   ) => {
     try {
-      const stickerId =
-        typeof subActivity.stickerId === "object" && subActivity.stickerId?._id
-          ? subActivity.stickerId._id
-          : undefined;
+      // Extract stickerId - handle both string and object formats
+      let stickerId: string | undefined;
+      if (typeof subActivity.stickerId === "string") {
+        stickerId = subActivity.stickerId;
+      } else if (
+        typeof subActivity.stickerId === "object" &&
+        subActivity.stickerId?._id
+      ) {
+        stickerId = subActivity.stickerId._id;
+      }
       await usersAPI.completeSubActivity({
         activityId: activityId!,
         subActivityId: subActivity._id,
@@ -473,10 +479,16 @@ export default function SubActivitiesPage() {
 
     // Completar sesión sin reto: Mostrar modal de Felicitades con sticker
     try {
-      const stickerId =
-        typeof subActivity.stickerId === "object" && subActivity.stickerId?._id
-          ? subActivity.stickerId._id
-          : undefined;
+      // Extract stickerId - handle both string and object formats
+      let stickerId: string | undefined;
+      if (typeof subActivity.stickerId === "string") {
+        stickerId = subActivity.stickerId;
+      } else if (
+        typeof subActivity.stickerId === "object" &&
+        subActivity.stickerId?._id
+      ) {
+        stickerId = subActivity.stickerId._id;
+      }
 
       await usersAPI.completeSubActivity({
         activityId: activityId!,
@@ -787,9 +799,8 @@ export default function SubActivitiesPage() {
   const totalCount = subActivities.length;
   const progressPercentage =
     totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-  const earnedBadgesCount = Object.values(awardsStatus).filter(
-    (s) => s.completed,
-  ).length;
+  // Contar insignias ganadas desde subActivities que tiene la información correcta
+  const earnedBadgesCount = subActivities.filter((s) => s.isCompleted).length;
 
   if (loading) {
     return (
