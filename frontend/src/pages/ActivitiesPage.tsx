@@ -305,7 +305,7 @@ export default function ActivitiesPage() {
                       imgClassName="w-12 h-12 sm:w-16 sm:h-16"
                     />
                     <div className="bg-white/20 rounded-lg px-3 py-1.5 text-white text-xs sm:text-sm font-semibold whitespace-nowrap">
-                      {activity.subActivities?.length || 0} sub-actividades
+                      {activity.subActivities?.length || 0} Sesiones
                     </div>
                   </div>
                 </div>

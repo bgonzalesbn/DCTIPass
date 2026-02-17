@@ -1097,7 +1097,7 @@ export default function SubActivitiesPage() {
                           <div className="flex items-center gap-2 text-blue-700">
                             <span className="text-2xl">💭</span>
                             <span className="font-semibold">
-                              Esta sesión requiere evaluación de claridad para
+                              Esta sesión requiere evaluación al stand para
                               completarse
                             </span>
                           </div>
@@ -1131,7 +1131,7 @@ export default function SubActivitiesPage() {
                             <span className="text-xl">✅</span>
                             <span className="text-lg">
                               {selectedActivity.enableClarityQuestion
-                                ? "Responder Evaluación"
+                                ? "Responder evaluación al stand"
                                 : "Completar Sesión"}
                             </span>
                           </button>

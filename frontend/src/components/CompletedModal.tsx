@@ -24,13 +24,15 @@ export default function CompletedModal({
   onClose,
   isCorrect,
   sticker,
-  pointsEarned,
+  pointsEarned: _pointsEarned,
   explanation,
   correctAnswer,
   subActivityName,
   alreadyCompleted = false,
 }: CompletedModalProps) {
   const [showConfetti, setShowConfetti] = useState(false);
+  void _pointsEarned; // keep prop for compatibility while points are hidden
+  void subActivityName; // maintained for compatibility although copy is now generic
 
   useEffect(() => {
     if (isOpen && isCorrect && !alreadyCompleted) {
@@ -94,12 +96,12 @@ export default function CompletedModal({
                 <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">
                   {alreadyCompleted
                     ? "¡Ya completaste este reto!"
-                    : "¡Respuesta Correcta!"}
+                    : "¡Felicitades!"}
                 </h2>
                 <p className="text-green-100 text-sm sm:text-base">
                   {alreadyCompleted
                     ? "Ya habías ganado este sticker anteriormente"
-                    : `Has completado "${subActivityName}"`}
+                    : "Tarea completada"}
                 </p>
               </div>
             </div>
@@ -140,17 +142,6 @@ export default function CompletedModal({
                       {sticker.description}
                     </p>
                   )}
-                </div>
-              )}
-
-              {!alreadyCompleted && pointsEarned > 0 && (
-                <div className="bg-[#113780]/10 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
-                  <div className="flex items-center justify-center gap-2">
-                    <span className="text-xl sm:text-2xl">⭐</span>
-                    <span className="text-xl sm:text-2xl font-bold text-[#113780]">
-                      +{pointsEarned} puntos
-                    </span>
-                  </div>
                 </div>
               )}
 
