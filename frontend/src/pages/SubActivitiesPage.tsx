@@ -654,8 +654,13 @@ export default function SubActivitiesPage() {
       setPendingAwardResult(result);
       applyAwardResult();
 
-      // Si es respuesta incorrecta, no mostrar modal de completado
-      // Solo aplicar el resultado y cerrar la pregunta
+      // Si es respuesta incorrecta pero hay claridad, continuar con la evaluación
+      if (!result.isCorrect && enableClarityQuestion) {
+        // Mantener el modal abierto, solo ir a la evaluación de claridad
+        return result;
+      }
+
+      // Si es respuesta incorrecta y sin claridad, cerrar el modal
       if (!result.isCorrect) {
         setShowQuestionModal(false);
         // No mostrar completado modal para respuesta incorrecta
@@ -736,6 +741,8 @@ export default function SubActivitiesPage() {
       }
 
       // Refresh server-backed progress to keep UI in sync
+      setEnableClarityQuestion(false);
+      setShowQuestionModal(false);
       await loadActivityData();
     } catch (err) {
       console.error("Error saving clarity response:", err);
@@ -751,7 +758,9 @@ export default function SubActivitiesPage() {
     setAnswerResult(null);
     setCurrentAward(null);
     setAnsweringSubActivity(null); // Limpiar la referencia
-    // Recargar datos para actualizar el progreso
+    setEnableClarityQuestion(false);
+    setShowQuestionModal(false);
+    // Recargar datos para actualizar el progreso y el resumen
     loadActivityData();
   };
 
