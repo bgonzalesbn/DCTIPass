@@ -16,6 +16,11 @@ import {
 import { Group, GroupSchema } from "../groups/schemas/group.schema";
 import { UsersService } from "./users.service";
 import { UsersController } from "./users.controller";
+import {
+  Activity,
+  ActivitySchema,
+} from "../activities/schemas/activity.schema";
+import { Sticker, StickerSchema } from "../stickers/schemas/sticker.schema";
 
 @Module({
   imports: [
@@ -25,6 +30,8 @@ import { UsersController } from "./users.controller";
       { name: ActivityCompletion.name, schema: ActivityCompletionSchema },
       { name: LegacyStickerAward.name, schema: LegacyStickerAwardSchema },
       { name: Group.name, schema: GroupSchema },
+      { name: Activity.name, schema: ActivitySchema },
+      { name: Sticker.name, schema: StickerSchema },
     ]),
   ],
   controllers: [UsersController],

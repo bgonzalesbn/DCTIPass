@@ -81,6 +81,22 @@ interface Group {
   shift: string;
 }
 
+const IT_EXPERIENCE_BADGE_ID = "69823bf0d6bd58d3ea14ba91";
+
+const FINAL_SURVEY_QUESTIONS = [
+  "¿Entiendo cómo las direcciones de TI se conectan para generar valor?",
+  "¿Tengo claridad de cómo mi trabajo impacta a otras áreas dentro de TI?",
+  "¿Me siento parte de un sistema integrado dentro de TI?",
+];
+
+const LIKERT_OPTIONS = [
+  { value: 1, label: "Totalmente en desacuerdo" },
+  { value: 2, label: "En desacuerdo" },
+  { value: 3, label: "Neutral" },
+  { value: 4, label: "De acuerdo" },
+  { value: 5, label: "Totalmente de acuerdo" },
+];
+
 const getShiftLabel = (shift?: string | null) => {
   if (shift === "Morning") return "Mañana";
   if (shift === "Afternoon") return "Tarde";
@@ -193,6 +209,18 @@ export default function SubActivitiesPage() {
     useState<SubActivityWithStatus | null>(null);
   const [enableClarityQuestion, setEnableClarityQuestion] = useState(false);
   const [skipChallenge, setSkipChallenge] = useState(false);
+  const [finalSurveyAnswers, setFinalSurveyAnswers] = useState<number[]>(
+    Array(FINAL_SURVEY_QUESTIONS.length).fill(0),
+  );
+  const [finalSurveySubmitting, setFinalSurveySubmitting] = useState(false);
+  const [finalSurveySubmittedAt, setFinalSurveySubmittedAt] = useState<
+    string | null
+  >(null);
+  const [badgeUnlocked, setBadgeUnlocked] = useState(false);
+  const [finalSurveyFeedback, setFinalSurveyFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const navigate = useNavigate();
   const { calculateStatus, isWithinSchedule } = useSubActivityStatus();
@@ -225,6 +253,16 @@ export default function SubActivitiesPage() {
 
       setCompletedSubActivityIds(completedIds);
       setActivity(activityData);
+      const finalSurveyEntry = (userData.finalSurveys || []).find(
+        (survey: any) => survey.activityId === activityData._id,
+      );
+      setFinalSurveySubmittedAt(finalSurveyEntry?.submittedAt || null);
+      setBadgeUnlocked(
+        (userData.earnedStickers || []).some(
+          (stickerId: string) => stickerId === IT_EXPERIENCE_BADGE_ID,
+        ),
+      );
+      setFinalSurveyFeedback(null);
 
       // Combinar subactividades con horarios del schedule del usuario
       const subActivitiesWithSchedule = activityData.subActivities.map(
@@ -477,9 +515,7 @@ export default function SubActivitiesPage() {
       return;
     }
 
-    // Completar sesión sin reto: Mostrar modal de Felicitades con sticker
     try {
-      // Extract stickerId - handle both string and object formats
       let stickerId: string | undefined;
       if (typeof subActivity.stickerId === "string") {
         stickerId = subActivity.stickerId;
@@ -570,6 +606,62 @@ export default function SubActivitiesPage() {
     } catch (err) {
       console.error("Error completing session:", err);
       alert("Error al completar la sesión");
+    }
+  };
+
+  const handleSurveyAnswerChange = (questionIndex: number, value: number) => {
+    setFinalSurveyAnswers((prev) => {
+      const updated = [...prev];
+      updated[questionIndex] = value;
+      return updated;
+    });
+  };
+
+  const handleSubmitFinalSurvey = async () => {
+    if (!activityId || finalSurveySubmitting) {
+      return;
+    }
+
+    const pendingIndex = finalSurveyAnswers.findIndex((value) => value === 0);
+    if (pendingIndex !== -1) {
+      setFinalSurveyFeedback({
+        type: "error",
+        message: "Responde todas las preguntas antes de enviar.",
+      });
+      return;
+    }
+
+    setFinalSurveySubmitting(true);
+    setFinalSurveyFeedback(null);
+    try {
+      await usersAPI.submitFinalSurvey({
+        activityId,
+        answers: FINAL_SURVEY_QUESTIONS.map((question, index) => ({
+          question,
+          value: finalSurveyAnswers[index],
+        })),
+      });
+
+      const submittedAt = new Date().toISOString();
+      setFinalSurveySubmittedAt(submittedAt);
+      setBadgeUnlocked(true);
+      setFinalSurveyAnswers(Array(FINAL_SURVEY_QUESTIONS.length).fill(0));
+      setFinalSurveyFeedback({
+        type: "success",
+        message:
+          "¡Gracias por compartir tu experiencia! Ya desbloqueaste la insignia IT Experience.",
+      });
+      await loadActivityData();
+    } catch (err: any) {
+      console.error("Error submitting final survey:", err);
+      setFinalSurveyFeedback({
+        type: "error",
+        message:
+          err?.response?.data?.message ||
+          "No se pudo enviar la encuesta final. Intenta de nuevo.",
+      });
+    } finally {
+      setFinalSurveySubmitting(false);
     }
   };
 
@@ -801,6 +893,10 @@ export default function SubActivitiesPage() {
     totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
   // Contar insignias ganadas desde subActivities que tiene la información correcta
   const earnedBadgesCount = subActivities.filter((s) => s.isCompleted).length;
+  const allSessionsCompleted = totalCount > 0 && completedCount === totalCount;
+  const surveyCompleted = Boolean(finalSurveySubmittedAt);
+  const activityFullyCompleted =
+    allSessionsCompleted && surveyCompleted && badgeUnlocked;
 
   if (loading) {
     return (
@@ -921,6 +1017,17 @@ export default function SubActivitiesPage() {
               ></div>
             </div>
           </div>
+
+          {activityFullyCompleted && (
+            <div className="mt-4 sm:mt-6 bg-white/20 rounded-xl px-4 py-3 text-center">
+              <p className="text-sm uppercase tracking-widest text-blue-100 font-semibold">
+                Actividad completada
+              </p>
+              <p className="text-xl sm:text-2xl font-bold text-white mt-1">
+                ¡Felicitaciones, obtuviste la insignia IT Experience!
+              </p>
+            </div>
+          )}
         </div>
 
         {/* User Group & Schedule Info */}
@@ -958,6 +1065,128 @@ export default function SubActivitiesPage() {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {allSessionsCompleted && (
+          <div className="bg-white rounded-2xl shadow-xl border border-emerald-100 p-5 sm:p-6 mb-6">
+            {!surveyCompleted ? (
+              <>
+                <div className="text-center mb-6">
+                  <p className="text-sm uppercase tracking-widest text-emerald-500 font-semibold">
+                    🎉 ¡Sesiones completadas!
+                  </p>
+                  <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">
+                    Comparte tu experiencia final
+                  </h3>
+                  <p className="text-gray-500 mt-2">
+                    En una escala del 1 al 5, cuéntanos cómo te sientes antes de
+                    recibir tu insignia.
+                  </p>
+                </div>
+
+                <div className="space-y-5">
+                  {FINAL_SURVEY_QUESTIONS.map((question, questionIndex) => (
+                    <div
+                      key={question}
+                      className="border border-gray-100 rounded-2xl p-4 sm:p-5"
+                    >
+                      <p className="text-base sm:text-lg font-semibold text-gray-900">
+                        {questionIndex + 1}. {question}
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-4">
+                        {LIKERT_OPTIONS.map((option) => {
+                          const isSelected =
+                            finalSurveyAnswers[questionIndex] === option.value;
+                          return (
+                            <button
+                              type="button"
+                              key={`${questionIndex}-${option.value}`}
+                              onClick={() =>
+                                handleSurveyAnswerChange(
+                                  questionIndex,
+                                  option.value,
+                                )
+                              }
+                              className={`rounded-2xl border px-3 py-3 text-sm font-semibold transition flex flex-col items-center justify-center text-center shadow-sm ${isSelected ? "bg-emerald-500 text-white border-emerald-500 shadow-lg" : "bg-white border-gray-200 text-gray-600 hover:border-emerald-300"}`}
+                            >
+                              <span className="text-xl font-bold">
+                                {option.value}
+                              </span>
+                              <span className="text-[11px] leading-tight mt-1 opacity-80">
+                                {option.label}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {finalSurveyFeedback && (
+                  <div
+                    className={`mt-6 rounded-2xl border px-4 py-3 text-sm font-medium ${finalSurveyFeedback.type === "success" ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-red-50 border-red-200 text-red-700"}`}
+                  >
+                    {finalSurveyFeedback.message}
+                  </div>
+                )}
+
+                <button
+                  onClick={handleSubmitFinalSurvey}
+                  disabled={finalSurveySubmitting}
+                  className={`w-full mt-6 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold py-4 rounded-2xl shadow-xl transition-all duration-200 flex items-center justify-center gap-2 ${finalSurveySubmitting ? "opacity-70 cursor-not-allowed" : "hover:from-emerald-600 hover:to-teal-600"}`}
+                >
+                  {finalSurveySubmitting ? (
+                    <>
+                      <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                      Enviando encuesta...
+                    </>
+                  ) : (
+                    <>
+                      <span>Enviar encuesta final</span>
+                      <span>→</span>
+                    </>
+                  )}
+                </button>
+              </>
+            ) : (
+              <div className="text-center space-y-4">
+                <div className="text-5xl">🥳</div>
+                <h3 className="text-2xl font-bold text-gray-900">
+                  ¡Gracias por completar la encuesta final!
+                </h3>
+                <p className="text-gray-600 max-w-xl mx-auto">
+                  Tu retroalimentación es clave para seguir mejorando el
+                  programa.{" "}
+                  {badgeUnlocked
+                    ? "La insignia 'IT Experience' ya está en tu perfil."
+                    : "Estamos procesando tu insignia 'IT Experience'."}
+                </p>
+                <div className="flex flex-col items-center gap-3 mt-4">
+                  <div className="bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-3xl p-6 shadow-inner">
+                    <StickerIcon
+                      stickerId={activity?.stickerId}
+                      defaultIcon="🏅"
+                      className="text-6xl"
+                      imgClassName="w-20 h-20"
+                    />
+                  </div>
+                  {finalSurveySubmittedAt && (
+                    <p className="text-xs uppercase tracking-wide text-gray-400">
+                      Enviado el{" "}
+                      {new Date(finalSurveySubmittedAt).toLocaleString(
+                        "es-CR",
+                        {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        },
+                      )}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

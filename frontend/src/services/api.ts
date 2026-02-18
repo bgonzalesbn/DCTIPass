@@ -161,6 +161,10 @@ export const usersAPI = {
     scheduleId: string;
     response: string;
   }) => apiClient.post("/users/clarity-response", data),
+  submitFinalSurvey: (data: {
+    activityId: string;
+    answers: { question: string; value: number }[];
+  }) => apiClient.post("/users/final-survey", data),
 };
 
 // Activities endpoints

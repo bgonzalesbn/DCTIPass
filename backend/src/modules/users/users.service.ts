@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
 import { User, UserDocument } from "./schemas/user.schema";
@@ -15,6 +19,17 @@ import {
   LegacyStickerAwardDocument,
 } from "../activities/schemas/legacy-sticker-award.schema";
 import { Group, GroupDocument } from "../groups/schemas/group.schema";
+import {
+  Activity,
+  ActivityDocument,
+} from "../activities/schemas/activity.schema";
+
+const IT_EXPERIENCE_BADGE_ID = "69823bf0d6bd58d3ea14ba91";
+
+interface FinalSurveyAnswerInput {
+  question: string;
+  value: number;
+}
 
 @Injectable()
 export class UsersService {
@@ -28,6 +43,8 @@ export class UsersService {
     private stickerAwardModel: Model<LegacyStickerAwardDocument>,
     @InjectModel(Group.name)
     private groupModel: Model<GroupDocument>,
+    @InjectModel(Activity.name)
+    private activityModel: Model<ActivityDocument>,
   ) {}
 
   /**
@@ -108,6 +125,24 @@ export class UsersService {
         totalActivities,
         stickerCount,
       },
+      earnedStickers: (user.earnedStickers || []).map((sticker: any) =>
+        sticker?.toString(),
+      ),
+      finalSurveys: (user.finalSurveyResponses || []).map((survey: any) => ({
+        activityId: survey.activityId?.toString(),
+        submittedAt: survey.submittedAt,
+        answers: (survey.answers || []).map((answer: any) => ({
+          question: answer.question,
+          value: answer.value,
+        })),
+      })),
+      activityProgress: (user.activityProgress || []).map((progress: any) => ({
+        activityId: progress.activityId?.toString(),
+        completedSubActivities: progress.completedSubActivities || 0,
+        totalSubActivities: progress.totalSubActivities || 0,
+        completed: !!progress.completed,
+        completedAt: progress.completedAt,
+      })),
     };
   }
 
@@ -435,5 +470,142 @@ export class UsersService {
     }
 
     return { success: true, message: "Clarity response saved successfully" };
+  }
+
+  async submitFinalSurvey(
+    userId: string,
+    activityId: string,
+    answers: FinalSurveyAnswerInput[],
+  ) {
+    if (!answers || answers.length === 0) {
+      throw new BadRequestException(
+        "Debe enviar las respuestas de la encuesta final.",
+      );
+    }
+
+    const objectId = new Types.ObjectId(userId);
+    const activityObjectId = new Types.ObjectId(activityId);
+
+    const user = await this.userModel.findById(objectId);
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    const alreadySubmitted = (user.finalSurveyResponses || []).some(
+      (response: any) =>
+        response.activityId?.toString() === activityObjectId.toString(),
+    );
+
+    if (alreadySubmitted) {
+      throw new BadRequestException(
+        "Ya completaste la encuesta final para esta actividad.",
+      );
+    }
+
+    const activity = await this.activityModel.findById(activityObjectId);
+    if (!activity) {
+      throw new NotFoundException("Activity not found");
+    }
+
+    const totalSubActivities = activity.subActivities?.length || 0;
+    if (totalSubActivities === 0) {
+      throw new BadRequestException(
+        "La actividad no tiene sesiones configuradas.",
+      );
+    }
+
+    const completedSubIds = new Set(
+      (user.subActivityProgress || [])
+        .filter((progress: any) => progress.completed)
+        .map((progress: any) => progress.subActivityId?.toString()),
+    );
+
+    const missingSession = activity.subActivities.find(
+      (subActivity) => !completedSubIds.has(subActivity._id.toString()),
+    );
+
+    if (missingSession) {
+      throw new BadRequestException(
+        "Debes completar todas las sesiones antes de contestar la encuesta final.",
+      );
+    }
+
+    const sanitizedAnswers = answers.map((answer, index) => {
+      if (
+        typeof answer.value !== "number" ||
+        answer.value < 1 ||
+        answer.value > 5
+      ) {
+        throw new BadRequestException(
+          `La respuesta ${index + 1} debe estar entre 1 y 5.`,
+        );
+      }
+      return {
+        question: answer.question || `Pregunta ${index + 1}`,
+        value: Math.round(answer.value),
+      };
+    });
+
+    const submissionDate = new Date();
+    const updatedFinalSurveys = [
+      ...(user.finalSurveyResponses || []),
+      {
+        activityId: activityObjectId,
+        answers: sanitizedAnswers,
+        submittedAt: submissionDate,
+      },
+    ];
+
+    const badgeObjectId = new Types.ObjectId(IT_EXPERIENCE_BADGE_ID);
+    const alreadyHasBadge = (user.earnedStickers || []).some(
+      (sticker: any) => sticker?.toString() === badgeObjectId.toString(),
+    );
+
+    const now = new Date();
+    let updatedProgress = false;
+    const updatedActivityProgress = (user.activityProgress || []).map(
+      (progress: any) => {
+        if (progress.activityId?.toString() === activityObjectId.toString()) {
+          updatedProgress = true;
+          return {
+            ...progress,
+            completedSubActivities: totalSubActivities,
+            totalSubActivities,
+            completed: true,
+            completedAt: now,
+          };
+        }
+        return progress;
+      },
+    );
+
+    if (!updatedProgress) {
+      updatedActivityProgress.push({
+        activityId: activityObjectId,
+        completedSubActivities: totalSubActivities,
+        totalSubActivities,
+        completed: true,
+        completedAt: now,
+      });
+    }
+
+    await this.userModel.updateOne(
+      { _id: objectId },
+      {
+        $set: {
+          finalSurveyResponses: updatedFinalSurveys,
+          activityProgress: updatedActivityProgress,
+        },
+        $addToSet: { earnedStickers: badgeObjectId },
+      },
+    );
+
+    return {
+      success: true,
+      message: "Encuesta final registrada y badge asignado.",
+      badgeId: badgeObjectId.toString(),
+      badgeAssigned: !alreadyHasBadge,
+      submittedAt: submissionDate,
+    };
   }
 }
