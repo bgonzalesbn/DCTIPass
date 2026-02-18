@@ -1,7 +1,6 @@
 ﻿import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { activitiesAPI, usersAPI, awardsAPI } from "../services/api";
-import { useSubActivityStatus } from "../hooks/useSubActivityStatus";
 import ClarityQuestionModal from "../components/ClarityQuestionModal";
 import CompletedModal from "../components/CompletedModal";
 
@@ -195,7 +194,6 @@ export default function SubActivitiesPage() {
   const [skipChallenge, setSkipChallenge] = useState(false);
 
   const navigate = useNavigate();
-  const { calculateStatus, isWithinSchedule } = useSubActivityStatus();
 
   const loadActivityData = useCallback(async () => {
     try {
@@ -286,13 +284,44 @@ export default function SubActivitiesPage() {
         }
       }
 
-      // Calcular estado de cada subactividad usando el hook reutilizable
-      const subActivitiesWithStatus = calculateStatus({
-        subActivities: subActivitiesWithSchedule,
-        completedIds,
-        awardsStatus: awardsStatusData,
-        schedule: userData.schedule,
-      });
+      // Calcular estado secuencial de cada subactividad (sin bloqueo por horario)
+      let foundFirstUnlocked = false;
+      const completedIdsSet = new Set(completedIds);
+      const subActivitiesWithStatus = subActivitiesWithSchedule.map(
+        (sub: SubActivity, index: number) => {
+          const isCompleted =
+            completedIdsSet.has(sub._id) ||
+            awardsStatusData[sub._id]?.completed;
+
+          let isUnlocked = index === 0;
+          if (index > 0) {
+            const previousSub = subActivitiesWithSchedule[index - 1];
+            const previousCompleted =
+              completedIdsSet.has(previousSub._id) ||
+              awardsStatusData[previousSub._id]?.completed;
+            isUnlocked = previousCompleted;
+          }
+
+          if (isCompleted) {
+            isUnlocked = true;
+          }
+
+          let isActive = false;
+          if (isUnlocked && !isCompleted && !foundFirstUnlocked) {
+            isActive = true;
+            foundFirstUnlocked = true;
+          }
+
+          return {
+            ...sub,
+            isUnlocked,
+            isActive,
+            isCompleted,
+            completed: isCompleted,
+            progress: isCompleted ? 100 : isActive ? 50 : 0,
+          };
+        },
+      );
 
       setSubActivities(subActivitiesWithStatus);
     } catch (err) {
@@ -301,7 +330,7 @@ export default function SubActivitiesPage() {
     } finally {
       setLoading(false);
     }
-  }, [activityId, calculateStatus]);
+  }, [activityId]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -425,14 +454,13 @@ export default function SubActivitiesPage() {
 
           let isUnlocked = false;
           if (index === 0) {
-            isUnlocked = isWithinSchedule(sub, userSchedule);
+            isUnlocked = true;
           } else {
             const previousSub = prevSubActivities[index - 1];
             const previousCompleted =
               updatedCompletedIds.has(previousSub._id) ||
               newAwardsStatus[previousSub._id]?.completed;
-            isUnlocked =
-              previousCompleted && isWithinSchedule(sub, userSchedule);
+            isUnlocked = previousCompleted;
           }
 
           if (isCompleted) isUnlocked = true;
@@ -464,7 +492,7 @@ export default function SubActivitiesPage() {
     }
   };
 
-  // Función para completar una sesión sin reto (basado en horario)
+  // Función para completar una sesión sin reto
   const handleCompleteWithoutChallenge = async (
     subActivity: SubActivityWithStatus,
   ) => {
@@ -523,14 +551,13 @@ export default function SubActivitiesPage() {
 
           let isUnlocked = false;
           if (index === 0) {
-            isUnlocked = isWithinSchedule(sub, userSchedule);
+            isUnlocked = true;
           } else {
             const previousSub = prevSubActivities[index - 1];
             const previousCompleted =
               updatedCompletedIds.has(previousSub._id) ||
               newAwardsStatus[previousSub._id]?.completed;
-            isUnlocked =
-              previousCompleted && isWithinSchedule(sub, userSchedule);
+            isUnlocked = previousCompleted;
           }
 
           if (isCompleted) isUnlocked = true;
@@ -608,13 +635,13 @@ export default function SubActivitiesPage() {
 
         let isUnlocked = false;
         if (index === 0) {
-          isUnlocked = isWithinSchedule(sub, userSchedule);
+          isUnlocked = true;
         } else {
           const previousSub = prevSubActivities[index - 1];
           const previousCompleted =
             updatedCompletedIds.has(previousSub._id) ||
             newAwardsStatus[previousSub._id]?.completed;
-          isUnlocked = previousCompleted && isWithinSchedule(sub, userSchedule);
+          isUnlocked = previousCompleted;
         }
 
         if (isCompleted) {
