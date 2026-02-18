@@ -18,6 +18,25 @@ class ClarityResponse {
   answeredAt: Date;
 }
 
+class FinalSurveyAnswer {
+  @Prop({ required: true })
+  question: string;
+
+  @Prop({ required: true, min: 1, max: 5 })
+  value: number;
+}
+
+class FinalSurveyResponse {
+  @Prop({ type: Types.ObjectId, ref: "Activity", required: true })
+  activityId: Types.ObjectId;
+
+  @Prop({ type: [FinalSurveyAnswer], default: [] })
+  answers: FinalSurveyAnswer[];
+
+  @Prop({ type: Date, default: Date.now })
+  submittedAt: Date;
+}
+
 // Sub-schema para progreso de subactividad
 class SubActivityProgress {
   @Prop({ type: Types.ObjectId, ref: "SubActivity" })
@@ -104,6 +123,9 @@ export class User {
 
   @Prop({ type: [Object], default: [] })
   clarityResponses: ClarityResponse[]; // Respuestas a la pregunta de claridad
+
+  @Prop({ type: [Object], default: [] })
+  finalSurveyResponses: FinalSurveyResponse[];
 
   // Security question for password recovery
   @Prop({ type: String, default: null })

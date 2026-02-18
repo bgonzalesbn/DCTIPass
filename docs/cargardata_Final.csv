@@ -1,0 +1,297 @@
+NÚMERO GRUPO,Número de grupo,Día,Grupo,Nombre del funcionario,Número de empleado,Direccion,Sub área
+1.M18,1,2026-02-18,Mañana,Carlos Méndez Quesada,14122.0,Operaciones,Transiciones
+2.M18,2,2026-02-18,Mañana,Hannia Vásquez Chacón,12991.0,Operaciones,"Gestión de Infraestructura, Seguridad y Nube"
+3.M18,3,2026-02-18,Mañana,Erick Miranda Sánchez,12095.0,Operaciones,"Gestión de Infraestructura, Seguridad y Nube"
+4.M18,4,2026-02-18,Mañana,Mario Gomez Navarro,17478.0,Operaciones,"Gestión de Infraestructura, Seguridad y Nube"
+3.T18,3,2026-02-18,Tarde,Josue Díaz Sandí,13538.0,Operaciones,"Gestión de Infraestructura, Seguridad y Nube"
+2.M18,2,2026-02-18,Mañana,Alexa Yoseth Solis Gonzalez,17676.0,Operaciones,"Gestión de Infraestructura, Seguridad y Nube"
+3.M18,3,2026-02-18,Mañana,Roy Varela Melendez,10168.0,Operaciones,"Gestión de Infraestructura, Seguridad y Nube"
+4.M18,4,2026-02-18,Mañana,Gabriel Thomas Barrantes Cano,17677.0,Operaciones,"Gestión de Infraestructura, Seguridad y Nube"
+1.M18,1,2026-02-18,Mañana,Jorge Sancho Wilson,8200.0,Operaciones,"Gestión de Infraestructura, Seguridad y Nube"
+2.M18,2,2026-02-18,Mañana,Allan Viquez Alfaro,18205.0,Operaciones,"Gestión de Infraestructura, Seguridad y Nube"
+3.T18,3,2026-02-18,Tarde,Tommy Santiesteban Solano,18198.0,Operaciones,"Gestión de Infraestructura, Seguridad y Nube"
+4.M18,4,2026-02-18,Mañana,María Fernanda Zuñiga Marchena,13173.0,Operaciones,"Gestión de Infraestructura, Seguridad y Nube"
+1.M18,1,2026-02-18,Mañana,Eduardo Solano Retana,15329.0,Operaciones,"Gestión de Infraestructura, Seguridad y Nube"
+2.M18,2,2026-02-18,Mañana,Fabiola Retana Guevara,,Operaciones,"Gestión de Infraestructura, Seguridad y Nube"
+3.T18,3,2026-02-18,Tarde,Verónica González Salmerón,11739.0,Operaciones,"Gestión de Infraestructura, Seguridad y Nube"
+4.M18,4,2026-02-18,Mañana,Carlos Hernandez Miranda,14998.0,Operaciones,"Gestión de Infraestructura, Seguridad y Nube"
+3.T18,3,2026-02-18,Tarde,Eidhyl Ortiz Centeno,10666.0,Operaciones,"Gestión de Infraestructura, Seguridad y Nube"
+2.M18,2,2026-02-18,Mañana,María del Milagro Cartín Godinez,15703.0,Operaciones,"Gestión de Infraestructura, Seguridad y Nube"
+3.M18,3,2026-02-18,Mañana,Fabio González Corrales,12726.0,Operaciones,"Gestión de Infraestructura, Seguridad y Nube"
+4.M18,4,2026-02-18,Mañana,Laura Sibaja Ureña,13687.0,Operaciones,"Gestión de Infraestructura, Seguridad y Nube"
+1.M18,1,2026-02-18,Mañana,María José Guevara Madrigal,13825.0,Operaciones,Operación y Monitoreo
+2.M18,2,2026-02-18,Mañana,Victor Ismael Moya Fernandez,17869.0,Operaciones,Operación y Monitoreo
+3.M18,3,2026-02-18,Mañana,Daniel Román Campos,,Operaciones,Operación y Monitoreo
+4.M18,4,2026-02-18,Mañana,Michael Ballestero Brenes,,Operaciones,Operación y Monitoreo
+1.M18,1,2026-02-18,Mañana,Jorge Luis Castillo Arguedas,,Operaciones,Operación y Monitoreo
+4.T18,4,2026-02-18,Tarde,Sergio Jiménez Contreras,14744.0,Operaciones,Centro de Servicios Tecnológicos
+3.M18,3,2026-02-18,Mañana,José Francisco Guillén Zúñiga,10048.0,Operaciones,Centro de Servicios Tecnológicos
+4.M18,4,2026-02-18,Mañana,Jorge Chacón Gómez,7773.0,Operaciones,Centro de Servicios Tecnológicos
+1.M18,1,2026-02-18,Mañana,Adriana Murillo Alvarez,12935.0,Operaciones,Centro de Servicios Tecnológicos
+2.M18,2,2026-02-18,Mañana,Andrey Chavarría Araya,16627.0,Operaciones,Centro de Servicios Tecnológicos
+3.M18,3,2026-02-18,Mañana,David Alarcón Retana,15478.0,Operaciones,Centro de Servicios Tecnológicos
+4.M18,4,2026-02-18,Mañana,Jimmy Aguilar Zúñiga,7717.0,Operaciones,Centro de Servicios Tecnológicos
+1.M18,1,2026-02-18,Mañana,Milagro Gamboa Olivares,11919.0,Operaciones,Centro de Servicios Tecnológicos
+2.M18,2,2026-02-18,Mañana,Nestor Arce Campos,8672.0,Operaciones,Centro de Servicios Tecnológicos
+3.M18,3,2026-02-18,Mañana,Ana Cristina Ulloa Infante,17185.0,Operaciones,Centro de Servicios Tecnológicos
+4.M18,4,2026-02-18,Mañana,Alejandro Solis Agüero,7658.0,Operaciones,Centro de Servicios Tecnológicos
+3.T18,3,2026-02-18,Tarde,Alexis Fallas Monge,15312.0,Operaciones,Centro de Servicios Tecnológicos
+2.M18,2,2026-02-18,Mañana,Carlos Vargas Campos,9932.0,Operaciones,Centro de Servicios Tecnológicos
+3.M18,3,2026-02-18,Mañana,David Arias Rojas,10493.0,Operaciones,Centro de Servicios Tecnológicos
+4.M18,4,2026-02-18,Mañana,Francisco Rodriguez Arauz,8823.0,Operaciones,Centro de Servicios Tecnológicos
+1.M18,1,2026-02-18,Mañana,Josette Villafuerte Araya,18298.0,Operaciones,Centro de Servicios Tecnológicos
+4.T18,4,2026-02-18,Tarde,Jostin Ignacio Retes Gutierrez,18497.0,Operaciones,Centro de Servicios Tecnológicos
+2.M18,2,2026-02-18,Mañana,Mario Arias Rojas,9025.0,Operaciones,Analista de Transición de Cambios Senior
+3.M18,3,2026-02-18,Mañana,Leonel Rivera Fernandez,15437.0,Operaciones,Analista de Transición de Cambios Junior
+4.M18,4,2026-02-18,Mañana,Karen Toval Altamirano,11388.0,Operaciones,Líder - Transición de Cambios
+2.T18,2,2026-02-18,Tarde,Orlando Conejo Salazar,9573.0,Operaciones,Analista de Transición de Cambios Senior
+1.T18,1,2026-02-18,Tarde,Roberto Ramírez Bolaños,13657.0,Operaciones,Analista de Transición de Cambios Senior
+3.T18,3,2026-02-18,Tarde,Manuel Solís Chavarría,9106.0,Operaciones,Analista de Transición de Cambios Senior
+4.T18,4,2026-02-18,Tarde,Cesar Esteban Ugalde Ramírez,17830.0,Operaciones,Analista de Transición de Cambios Junior
+1.T18,1,2026-02-18,Tarde,María Luisa Cruz Castillo,17168.0,Operaciones,Gestor de Configuración
+2.T18,2,2026-02-18,Tarde,Pablo A. Rodríguez Castro,5924.0,Operaciones,Especialista en Sistemas Operativos
+3.T18,2,2026-02-18,Tarde,Kennett Francisco Chacon Agüero,17182.0,Operaciones,Analistas - Gestión Servicios de Seguridad Operativa Senior
+4.T18,4,2026-02-18,Tarde,Carlos Moreira Campos,13936.0,Operaciones,Analistas - Gestión Servicios de Seguridad Operativa Senior
+1.T18,1,2026-02-18,Tarde,Gabriel Jimenez Burgos,18592.0,Operaciones,Analista de Seguridad Entornos Nube
+2.T18,2,2026-02-18,Tarde,Maria Fernanda Miranda Cubillo,17919.0,Operaciones,Analistas - Administrador de Virtualización
+3.T18,3,2026-02-18,Tarde,Fauricio Alonso Calderon Quintana,17227.0,Operaciones,Analistas - Analista de Respaldo
+4.T18,4,2026-02-18,Tarde,Carlos Aguilar Bogantes,11369.0,Operaciones,Analista - Gestión Servicios Redes y Telecomunicaciones Senior
+1.T18,1,2026-02-18,Tarde,Josua Quesada Carvajal,14797.0,Operaciones,Técnico - Gestión Servicios Redes y Telecomunicaciones
+2.T18,2,2026-02-18,Tarde,Alberto Solano Abarca,16748.0,Operaciones,Analista - Administrador de Servidores
+3.M18,3,2026-02-18,Mañana,Alexander Díaz Rojas,17814.0,Operaciones,Analista - Administrador de Servidores
+4.M18,4,2026-02-18,Mañana,Alexander Rodriguez Rodriguez,17181.0,Operaciones,Analista - Administrador de Servidores
+1.M18,1,2026-02-18,Mañana,Monica Lizano Quiros,17794.0,Operaciones,Analista - Administrador de Servidores
+2.T18,2,2026-02-18,Tarde,Andrea Espinoza Obando,18627.0,Operaciones,Analista - Administrador de Servidores
+3.T18,3,2026-02-18,Tarde,Andres Quesada Cascante,17180.0,Operaciones,Analista - Administrador de Plataformas
+4.T18,4,2026-02-18,Tarde,Nicole Monge Gamboa,18673.0,Operaciones,Gestión de Herramientas Monitoreo
+1.T18,1,2026-02-18,Tarde,Ricardo Chaves Mora,8170.0,Operaciones,Líder - Monitoreo de Servicios (NOC)
+2.T18,2,2026-02-18,Tarde,Sergio Andres Loria Fernandez,17324.0,Operaciones,Gestión de Herramientas Monitoreo
+3.T18,3,2026-02-18,Tarde,Vivian Díaz Sánchez,12417.0,Operaciones,Líder turno - Gestión de las Operaciones
+4.T18,4,2026-02-18,Tarde,Saúl Castro Camacho,10342.0,Operaciones,Líder turno - Gestión de las Operaciones
+1.T18,1,2026-02-18,Tarde,Fernando Jimenez Zuñiga,5814.0,Operaciones,Atención Nivel 1
+2.T18,2,2026-02-18,Tarde,Hermer Zuñiga Agüero,7086.0,Operaciones,Atención Nivel 1
+3.T18,3,2026-02-18,Tarde,Juliana Campos Alfaro,15622.0,Operaciones,Atención Nivel 1
+4.T18,4,2026-02-18,Tarde,Lizeth Carolina Porras Abarca,15467.0,Operaciones,Atención Nivel 1
+1.T18,1,2026-02-18,Tarde,Luis Diego Zamora Jimenez,12601.0,Operaciones,Atención Nivel 1
+2.T18,2,2026-02-18,Tarde,Mauricio Esquivel Castro,6920.0,Operaciones,Atención Nivel 1
+3.T18,3,2026-02-18,Tarde,Andrey Daniel Arias Arce,18178.0,Operaciones,Atención Nivel 2
+4.T18,4,2026-02-18,Tarde,Edwin Javier Martínez Chavarría,10516.0,Operaciones,Atención Nivel 2
+1.T18,1,2026-02-18,Tarde,Jorge Armando Salas Zuñiga,10118.0,Operaciones,Atención Nivel 2
+2.T18,2,2026-02-18,Tarde,Juan Carlos Rubi Espinoza,8676.0,Operaciones,Atención Nivel 2
+3.T18,3,2026-02-18,Tarde,Moises Vargas Fallas,17826.0,Operaciones,Atención Nivel 2
+4.T18,4,2026-02-18,Tarde,Victor Perez Urbina,18234.0,Operaciones,Atención Nivel 2
+1.M19,1,2026-02-19,Mañana,Juan Diego Quirós León,14001.0,Operaciones,Analista de Transición de Cambios Senior
+2.M19,2,2026-02-19,Mañana,Armando Muñoz Gaitán,13387.0,Operaciones,Analista de Transición de Cambios Junior
+3.T18,3,2026-02-18,Tarde,Jose Joaquín Cordero Zuñiga,17836.0,Operaciones,Analista de Transición de Cambios Junior
+4.M19,4,2026-02-19,Mañana,Luis Esteban Morales Granados,12589.0,Operaciones,Líder - Transición de Cambios
+1.M19,1,2026-02-19,Mañana,Alexis Aguilar Cordero,13872.0,Operaciones,Especialista de Ciberseguridad
+2.M19,2,2026-02-19,Mañana,Cristian Mendez Rivera,11904.0,Operaciones,Analistas - Gestión Servicios de Seguridad Operativa Senior
+3.M19,3,2026-02-19,Mañana,Johnny Brenes Hidalgo,10620.0,Operaciones,Analista de Identidades y Accesos PAM
+4.M19,4,2026-02-19,Mañana,Nixon Chavez Jiménez,,Operaciones,Analistas - Gestión Servicios de Almacenamiento Junior
+1.M19,1,2026-02-19,Mañana,Kevin Ridings Zuñiga,17857.0,Operaciones,Analistas - Administrador de Virtualización
+2.M19,2,2026-02-19,Mañana,Jean Carlo Marín Guerrero,,Operaciones,Analistas - Analista de Respaldo
+3.M19,3,2026-02-19,Mañana,Kennett Espinoza Flores,10357.0,Operaciones,Analista - Gestión Servicios Redes y Telecomunicaciones Senior
+4.M19,4,2026-02-19,Mañana,José Miguel Vargas Villanueva,7914.0,Operaciones,Técnico - Gestión Servicios Redes y Telecomunicaciones
+1.T19,1,2026-02-19,Tarde,Joel Estrada Viquez,17352.0,Operaciones,Analista - Administrador de Servidores
+2.M19,2,2026-02-19,Mañana,Gary Sequeira Gómez,17163.0,Operaciones,Analista - Administrador de Servidores
+3.M19,3,2026-02-19,Mañana,Jose Carlos Perez Fallas,14072.0,Operaciones,Analista - Administrador de Servidores
+4.M19,4,2026-02-19,Mañana,Rolando Monestel Sánchez,7986.0,Operaciones,Analista - Administrador de Servidores
+1.M19,1,2026-02-19,Mañana,Juan Miguel Vargas Paniagua,10951.0,Operaciones,Analista - Administrador de Servidores
+2.M19,2,2026-02-19,Mañana,José Henry Jara Ibarra,8706.0,Operaciones,Analista - Administrador de Servidores
+3.M19,3,2026-02-19,Mañana,Tiffanny Avendaño Rodriguez,17286.0,Operaciones,Analista - Administrador de Plataformas
+4.M19,4,2026-02-19,Mañana,José Pablo Porras Morales,15801.0,Operaciones,"Líder - Soluciones Telecomunicaciones, Almacenamiento y Respaldo"
+1.M19,1,2026-02-19,Mañana,Wendy Sánchez Madrigal,10373.0,Operaciones,Líder - Soluciones procesamiento y virtualización
+2.M19,2,2026-02-19,Mañana,Greivin Mora Calvo,8164.0,Operaciones,Líder - Monitoreo de Servicios (NOC)
+3.M19,3,2026-02-19,Mañana,Jose Manuel Montero Brenes,12164.0,Operaciones,Técnicos de Monitoreo de Seguridad (SOC)
+4.M19,4,2026-02-19,Mañana,Melissa Bolaños Torres,14956.0,Operaciones,Líder turno - Gestión de las Operaciones
+1.M19,1,2026-02-19,Mañana,Róger Martínez Carvajal,8194.0,Operaciones,Técnico - Gestión de las Operaciones
+2.M19,2,2026-02-19,Mañana,Walter Navarro Alvarado,9244.0,Operaciones,Gestor de Recuperación y Respaldo
+3.M19,3,2026-02-19,Mañana,Ricardo Mora Herrera,11838.0,Operaciones,Gestor Data Center
+4.M19,4,2026-02-19,Mañana,Adriana Sanchez Gonzalez,13753.0,Operaciones,Atención Nivel 1
+1.M19,1,2026-02-19,Mañana,Javier Leon Cerdas,8106.0,Operaciones,Atención Nivel 1
+2.M19,2,2026-02-19,Mañana,Jimmy Pagani Chavarría,16755.0,Operaciones,Atención Nivel 1
+3.M19,3,2026-02-19,Mañana,María Gabriela Alvarado Sanabria,13537.0,Operaciones,Atención Nivel 1
+4.M19,4,2026-02-19,Mañana,Carolina María Nuñez Salazar,17003.0,Operaciones,Atención Nivel 1
+1.M19,1,2026-02-19,Mañana,Yasdanie Rojas Marin,11712.0,Operaciones,Atención Nivel 1
+2.M19,2,2026-02-19,Mañana,Alba Iris Blandón R,10232.0,Operaciones,Atención Nivel 2
+3.M19,3,2026-02-19,Mañana,Evelio Miranda Matarrita,6939.0,Operaciones,Atención Nivel 2
+4.M19,4,2026-02-19,Mañana,Luis Diego Morales Vindas,12589.0,Operaciones,Atención Nivel 2
+1.M19,1,2026-02-19,Mañana,Mauricio Rivera Alfaro,16272.0,Operaciones,Atención Nivel 2
+2.M19,2,2026-02-19,Mañana,Rafael Sanchez Barquero,10186.0,Operaciones,Atención Nivel 2
+3.M19,3,2026-02-19,Mañana,Roberto Caravaca Mora,9809.0,Operaciones,Atención Nivel 2
+4.M19,4,2026-02-19,Mañana,Roger Brenes Valerin,7520.0,Operaciones,Atención Nivel 2
+1.T19,1,2026-02-19,Tarde,Randall Garita Brenes,9817.0,Operaciones,Analista de Transición de Cambios Senior
+4.M18,4,2026-02-18,Mañana,Miguel Ortega Carranza,10267.0,Operaciones,Analista de Transición de Cambios Senior
+3.T19,3,2026-02-19,Tarde,Gustavo Mendez Gutierrez,17022.0,Operaciones,Analista de Transición de Cambios Junior
+4.T19,4,2026-02-19,Tarde,Susana Rojas Zamora,12018.0,Operaciones,Analista de Transición de Cambios Junior
+1.T19,1,2026-02-19,Tarde,Andrea Taylor Chaves,12569.0,Operaciones,Líder - Transición de Cambios
+2.T19,2,2026-02-19,Tarde,Steven Gabriel Dávila Corea,17685.0,Operaciones,Analistas - Gestión Servicios de Seguridad Operativa Senior
+3.T19,3,2026-02-19,Tarde,Christian Adolfo Campos Villalobos,9263.0,Operaciones,Analistas - Gestión Servicios de Seguridad Operativa Senior
+4.T19,4,2026-02-19,Tarde,Kailor Murillo Prado,16933.0,Operaciones,Analista de Ciberamenazas de Plataformas
+1.T19,1,2026-02-19,Tarde,Alejandro Bolaños Alpizar,18568.0,Operaciones,Analista de Aseguramiento de Plataformas
+2.T19,2,2026-02-19,Tarde,José Eduardo Aguilar Fallas,11957.0,Operaciones,Analistas - Gestión Servicios de Almacenamiento Senior
+3.T19,3,2026-02-19,Tarde,Johnny González Barboza,12502.0,Operaciones,Analista - Gestión Servicios Redes y Telecomunicaciones Senior
+4.T19,4,2026-02-19,Tarde,David Coto Hernández,18216.0,Operaciones,Analista - Gestión Servicios Redes y Telecomunicaciones Junior
+1.M19,1,2026-02-19,Mañana,Anahiz Rodriguez Porras,9918.0,Operaciones,Analista - Administrador de Servidores
+2.T19,2,2026-02-19,Tarde,Gilberth Alonso Marín Rojas,15515.0,Operaciones,Analista - Administrador de Servidores
+3.T19,3,2026-02-19,Tarde,Brandon Umaña Brenes,17842.0,Operaciones,Analista - Administrador de Servidores
+4.T19,4,2026-02-19,Tarde,Josue Arturo Valles Carranza,17851.0,Operaciones,Analista - Administrador de Servidores
+1.T19,1,2026-02-19,Tarde,Johnny Vargas Jiménez,17164.0,Operaciones,Analista - Administrador de Plataformas
+2.T19,2,2026-02-19,Tarde,Minor Vargas Gómez,17288.0,Operaciones,Analista - Administrador de Plataformas
+3.T19,3,2026-02-19,Tarde,Alvaro Jimenez Castro,7817.0,Operaciones,Gestión de Servicios Administrados NOC
+4.T19,4,2026-02-19,Tarde,Daniel Alfaro Arrieta,18671.0,Operaciones,Gestión de Herramientas Monitoreo
+1.T19,1,2026-02-19,Tarde,Henry Gerardo Cespedes Molina,18560.0,Operaciones,Técnicos de Monitoreo de Seguridad (SOC)
+2.T19,2,2026-02-19,Tarde,Joanna Diaz Monge,11543.0,Operaciones,Atención Nivel 1
+3.T19,3,2026-02-19,Tarde,Manuel Enrique Delgado Lopez,15396.0,Operaciones,Atención Nivel 1
+4.T19,4,2026-02-19,Tarde,María Laura Solis Rojas,16834.0,Operaciones,Atención Nivel 1
+1.T19,1,2026-02-19,Tarde,Nestor Garro Briceño,10329.0,Operaciones,Atención Nivel 1
+2.T19,2,2026-02-19,Tarde,Rafael Solis Morales,7107.0,Operaciones,Atención Nivel 1
+3.T19,3,2026-02-19,Tarde,Brian Francisco Gonzalez Mayorga,17593.0,Operaciones,Atención Nivel 2
+4.T19,4,2026-02-19,Tarde,Henry Quesada Hernandez,8307.0,Operaciones,Líder Atención Nivel 2
+1.T19,1,2026-02-19,Tarde,Mauricio Chacon Solis,9057.0,Operaciones,Atención Nivel 2
+2.T19,2,2026-02-19,Tarde,Ricardo Corrales Calvo,7774.0,Operaciones,Atención Nivel 2
+1.M18,1,2026-02-18,Mañana,Krissya Fonseca Cortes,13906.0,Estrategia Digital,YEISON
+1.T18,1,2026-02-18,Tarde,Yerlin Serrano Ramirez,16858.0,Estrategia Digital,YEISON
+1.T19,1,2026-02-19,Tarde,Luis Carlos Arias Artavia,14929.0,Estrategia Digital,YEISON
+1.M19,1,2026-02-19,Mañana,Fabiola Corrales Rodriguez,13946.0,Estrategia Digital,YEISON
+2.M19,2,2026-02-19,Mañana,Ronny Zuniga Pineda,10050.0,Estrategia Digital,YEISON
+1.M18,1,2026-02-18,Mañana,Evelyn Dormond Montero,9802.0,Dirección de Gestión y Mejora de Soluciones,Maureen Rojas
+1.T18,1,2026-02-18,Tarde,Freiman Calderón Gutiérrez,8913.0,Dirección de Gestión y Mejora de Soluciones,Maureen Rojas
+2.M18,2,2026-02-18,Mañana,Jenny Montero Rojas,11541.0,Dirección de Gestión y Mejora de Soluciones,Maureen Rojas
+3.T19,3,2026-02-19,Tarde,José Parajeles Fernández,14127.0,Dirección de Gestión y Mejora de Soluciones,Carlos Osorio
+2.T18,2,2026-02-18,Tarde,María Laura Solis Rojas,16834.0,Dirección de Gestión y Mejora de Soluciones,Oscar Chaves
+4.M18,4,2026-02-18,Mañana,Melissa Jimenez Monge,14398.0,Dirección de Gestión y Mejora de Soluciones,Oscar Chaves
+1.M19,1,2026-02-19,Mañana,Yarellys Garita Lizano,14428.0,Dirección de Gestión y Mejora de Soluciones,Carlos Osorio
+2.T19,2,2026-02-19,Tarde,Daniela León Calvo,14396.0,Dirección de Gestión y Mejora de Soluciones,Oscar Chaves
+1.M18,1,2026-02-18,Mañana,Gaudy Esquivel Chaves,14634.0,Dirección de Gestión y Mejora de Soluciones,Carlos Osorio
+3.T18,3,2026-02-18,Tarde,Marcenette Fonseca Madrigal,8205.0,Dirección de Gestión y Mejora de Soluciones,Carlos Osorio
+1.T19,1,2026-02-19,Tarde,Mónica Bermudez Murillo,9125.0,Dirección de Gestión y Mejora de Soluciones,Maureen Rojas
+2.M19,2,2026-02-19,Mañana,Natasha Monge Segura,12844.0,Dirección de Gestión y Mejora de Soluciones,Maureen Rojas
+3.M19,3,2026-02-19,Mañana,Rebeca Salas Soto,15620.0,Dirección de Gestión y Mejora de Soluciones,Oscar Chaves
+1.M18,1,2026-02-18,Mañana,Maribel Ocampo,9805.0,Arquitectura,Noelia Zumbado Badilla
+2.M18,2,2026-02-18,Mañana,Roxana Lopez,9203.0,Arquitectura,Noelia Zumbado Badilla
+4.M18,4,2026-02-18,Mañana,Abraham Cerdas Arce,12933.0,Arquitectura,Johan Abarca Conejo
+1.M18,1,2026-02-18,Mañana,Claudia Alvarado Garcia,10323.0,Arquitectura,Johan Abarca Conejo
+2.M18,2,2026-02-18,Mañana,Kelber Vargas Paniagua,,Arquitectura,Johan Abarca Conejo
+3.M18,3,2026-02-18,Mañana,Nowell Rowe,9030.0,Arquitectura,David Ramírez
+4.M18,4,2026-02-18,Mañana,Rainiero Gomez,8728.0,Arquitectura,David Ramírez
+1.M18,1,2026-02-18,Mañana,Alejandro Sanabria Hernandez,8767.0,Arquitectura,Cilliam Cuadra Chavarría
+2.M18,2,2026-02-18,Mañana,Francisco Javier Hernandez Chavarria,18566.0,Arquitectura,Cilliam Cuadra Chavarría
+3.M18,3,2026-02-18,Mañana,Jairo Molina Salgado,18025.0,Arquitectura,Cilliam Cuadra Chavarría
+1.T18,1,2026-02-18,Tarde,Danny Diaz,13845.0,Arquitectura,
+4.T48,4,2026-02-18,Tarde,Jose Pablo Porras Mora,15801.0,Arquitectura,
+1.T18,1,2026-02-18,Tarde,Wilbert Gamboa Araya,18578.0,Arquitectura,
+2.T28,2,2026-02-18,Tarde,Adrian Madrigal,10177.0,Arquitectura,
+3.T38,3,2026-02-18,Tarde,Ezequiel Silva,14067.0,Arquitectura,
+4.T48,4,2026-02-18,Tarde,Carlos Francisco Dittel Cordero,,Arquitectura,
+2.T28,2,2026-02-18,Tarde,Waddy Cruz Solano,8748.0,Arquitectura,
+3.T38,3,2026-02-18,Tarde,Silvia Coto,10047.0,Arquitectura,
+4.T48,4,2026-02-18,Tarde,Adriana Cardona,15634.0,Arquitectura,
+1.T18,1,2026-02-18,Tarde,Wilfrido Castilla,10893.0,Arquitectura,
+2.M19,2,2026-02-19,Mañana,Cristian Madriz,8848.0,Arquitectura,
+3.M19,3,2026-02-19,Mañana,Laura Rojas,9060.0,Arquitectura,
+4.M19,4,2026-02-19,Mañana,Ana Lidieth Araya Alpizar,,Arquitectura,
+1.M19,1,2026-02-19,Mañana,Jorge Isaac Gomez Mora,17643.0,Arquitectura,
+2.M19,2,2026-02-19,Mañana,Nasser Paramo Cano,18577.0,Arquitectura,
+3.M19,3,2026-02-19,Mañana,Maxin Rojas,,Arquitectura,
+1.M19,1,2026-02-19,Mañana,Anthony Gabriel Carballo Romero,18576.0,Arquitectura,
+2.M19,2,2026-02-19,Mañana,Errol Andrey Santamaria Herrera,18467.0,Arquitectura,
+3.M19,3,2026-02-19,Mañana,Oscar Campos Solano,,Arquitectura,
+1.M19,1,2026-02-19,Mañana,Carlos Quirós,17211.0,Arquitectura,
+2.T19,2,2026-02-19,Tarde,Grethel Cordero,11387.0,Arquitectura,
+4.T19,4,2026-02-19,Tarde,Felipe Jimenez Quiros,14139.0,Arquitectura,
+1.T19,1,2026-02-19,Tarde,Juan Jose Grant Otarola,,Arquitectura,
+2.T19,2,2026-02-19,Tarde,Greivin Agüero,11401.0,Arquitectura,
+4.T19,4,2026-02-19,Tarde,Christian Madrigal Solano,10505.0,Arquitectura,
+1.T19,1,2026-02-19,Tarde,Geovanny Zamora Urena,7092.0,Arquitectura,
+2.T19,2,2026-02-19,Tarde,Luis Diego Martinez,,Arquitectura,
+3.T18,3,2026-02-18,Tarde,Veronica Obando,15897.0,Supervision y Control Digital,
+4.M18,4,2026-02-18,Mañana,Alexander Zuñiga,9751.0,Supervision y Control Digital,
+1.T18,1,2026-02-18,Tarde,Alex Navarro,18731.0,Supervision y Control Digital,
+2.M19,2,2026-02-19,Mañana,Tatiana Gutierrez,18903.0,Supervision y Control Digital,
+1.M18,1,2026-02-18,Mañana,Jefry Sanabria Salazar,18682.0,Entrega,
+2.M18,2,2026-02-18,Mañana,Richard Ugalde Alfaro,18868.0,Entrega,
+3.M18,3,2026-02-18,Mañana,Alberto Rodríguez Madriz,7175.0,Entrega,
+3.M18,3,2026-02-18,Mañana,Emmanuel Zamora Chavarria,11346.0,Entrega,
+1.T18,1,2026-02-18,Tarde,Hayrol Vargas Diaz,9875.0,Entrega,
+2.M19,2,2026-02-19,Mañana,Horacio Rivera Montero,10098.0,Entrega,
+3.T18,3,2026-02-18,Tarde,Magda Segura Jimenez,9819.0,Entrega,
+4.T18,4,2026-02-18,Tarde,Pedro Molina Vega,7967.0,Entrega,
+1.M18,1,2026-02-18,Mañana,Ronald Leon Murillo,10178.0,Entrega,
+2.M18,2,2026-02-18,Mañana,Yurguen Leonardo Salazar Loria,18099.0,Entrega,
+3.M18,3,2026-02-18,Mañana,William Barahona Ortega,8607.0,Entrega,
+4.M18,4,2026-02-18,Mañana,Nixon Steven Espinoza Matamoros,17520.0,Entrega,
+1.T18,1,2026-02-18,Tarde,Brayan González Sanchez,18732.0,Entrega,
+2.T18,2,2026-02-18,Tarde,Pamela Cordoba Montes,10457.0,Entrega,
+3.T18,3,2026-02-18,Tarde,Agustin Cerdas Arcia,10256.0,Entrega,
+4.T18,4,2026-02-18,Tarde,Franklin Obando Mata,7519.0,Entrega,
+1.M18,1,2026-02-18,Mañana,Carmen Rodríguez Rojas,11383.0,Entrega,
+2.M18,2,2026-02-18,Mañana,Karla Cascante Cascante,12440.0,Entrega,
+3.M18,3,2026-02-18,Mañana,Laura Robles Amador,11398.0,Entrega,
+4.M18,4,2026-02-18,Mañana,Rogby Venegas Barboza,12174.0,Entrega,
+1.T18,1,2026-02-18,Tarde,Erick Jimenez Brenes,7171.0,Entrega,
+2.T18,2,2026-02-18,Tarde,Heriel Josue Irias Morales,17592.0,Entrega,
+3.T18,3,2026-02-18,Tarde,Kevin Ramírez Vega,18727.0,Entrega,
+4.T18,4,2026-02-18,Tarde,Allan Daniel Figueroa Martinez,18614.0,Entrega,
+1.M18,1,2026-02-18,Mañana,Esteban Quiros Alvarado,17961.0,Entrega,
+2.M18,2,2026-02-18,Mañana,Guido Mora Mora,18413.0,Entrega,
+3.M18,3,2026-02-18,Mañana,Gustavo Castro Cespedes,17354.0,Entrega,
+4.M18,4,2026-02-18,Mañana,Yorleny Calderon Sibaja,9823.0,Entrega,
+1.T18,1,2026-02-18,Tarde,Andrea Maria Flores Chaves,18722.0,Entrega,
+2.T18,2,2026-02-18,Tarde,Yariela Hernandez Artola,18723.0,Entrega,
+3.T18,3,2026-02-18,Tarde,Justin Moises Leon Castro,18692.0,Entrega,
+4.T18,4,2026-02-18,Tarde,Alexander Porras Mendez,12144.0,Entrega,
+1.M18,1,2026-02-18,Mañana,Henry Guevara Guevara,14138.0,Entrega,
+2.M18,2,2026-02-18,Mañana,Jeffrey Salguero Sanchez,10891.0,Entrega,
+3.M18,3,2026-02-18,Mañana,Paulo Chavarria Agüero,,Entrega,
+4.M18,4,2026-02-18,Mañana,Erick Jimenez Carmona,7171.0,Entrega,
+2.T18,4,2026-02-19,Mañana,Diego Armando Piedra Marin,17295.0,Entrega,
+2.T18,2,2026-02-18,Tarde,Diego Lopez Espinoza,14131.0,Entrega,
+3.T18,3,2026-02-18,Tarde,Greivin Rojas Diaz,12979.0,Entrega,
+4.T18,4,2026-02-18,Tarde,Joaquin Arias Robles,10077.0,Entrega,
+1.M19,1,2026-02-19,Mañana,Viviana Ledezma Cabezas,10287.0,Entrega,
+2.M19,2,2026-02-19,Mañana,Jonathan Fernandez Parajeles,11951.0,Entrega,
+3.M19,3,2026-02-19,Mañana,Randall González Leiton,7411.0,Entrega,
+4.M19,4,2026-02-19,Mañana,Roger Villalobos Gonzalez,7842.0,Entrega,
+1.T19,1,2026-02-19,Tarde,Jahanel Rivera Barboza,18733.0,Entrega,
+2.T19,2,2026-02-19,Tarde,Edwin Soto Ramirez,11835.0,Entrega,
+3.T19,3,2026-02-19,Tarde,Giovanni Marin Rodríguez,11357.0,Entrega,
+4.T19,4,2026-02-19,Tarde,Jose Pablo Hernandez Fallas,15344.0,Entrega,
+1.M19,1,2026-02-19,Mañana,Luis Eduardo Barboza Quiros,7475.0,Entrega,
+2.M19,2,2026-02-19,Mañana,Orlando Vargas Miranda,8270.0,Entrega,
+3.M19,3,2026-02-19,Mañana,Ileym Chow Com,8920.0,Entrega,
+4.M19,4,2026-02-19,Mañana,Greddy Quesada Azofeifa,8934.0,Entrega,
+1.T19,1,2026-02-19,Tarde,Roberto Lopez Mora,18741.0,Entrega,
+2.T19,2,2026-02-19,Tarde,Claudio Garita Garita,16245.0,Entrega,
+3.T19,3,2026-02-19,Tarde,Randall Chacon Villalobos,16244.0,Entrega,
+4.T19,4,2026-02-19,Tarde,Cinthya Zarate Ferreto,13105.0,Entrega,
+1.M19,1,2026-02-19,Mañana,Carlos Badilla Sanchez,12116.0,Entrega,
+3.M19,3,2026-02-19,Mañana,Jean Carlo Zarate Valverde,18629.0,Entrega,
+4.M19,4,2026-02-19,Mañana,Esteban Valverde Rodríguez,,Entrega,
+1.T19,1,2026-02-19,Tarde,Sergio Jimenez Soto,14744.0,Entrega,
+2.T19,2,2026-02-19,Tarde,Allan Gonzalez Brenes,17580.0,Entrega,
+3.T19,3,2026-02-19,Tarde,Allan Ivan Mora Alvarado,17708.0,Entrega,
+4.T19,4,2026-02-19,Tarde,Cesar Ignacio Quiros Sanchez,16111.0,Entrega,
+1.M19,1,2026-02-19,Mañana,Katy Maria Alfaro Ramirez,8557.0,Entrega,
+2.M19,2,2026-02-19,Mañana,Christian Gonzalez Vargas,9645.0,Entrega,
+3.M19,3,2026-02-19,Mañana,Ronald Saborio Blanco,9699.0,Entrega,
+4.M19,4,2026-02-19,Mañana,Alejandra Zúñiga Méndez,7442.0,Entrega,
+1.T19,1,2026-02-19,Tarde,Danny Muñoz Ruiz,9713.0,Entrega,
+2.T19,2,2026-02-19,Tarde,Efrén Pereira Avendaño,11664.0,Entrega,
+3.T19,3,2026-02-19,Tarde,Alejandro Casasola Vizcaino,17723.0,Entrega,
+4.T19,4,2026-02-19,Tarde,Antonny Fabian Fernandez Gonzalez,16389.0,Entrega,
+1.M19,1,2026-02-19,Mañana,Jonnathan Chacón Diaz,8841.0,Entrega,
+2.M19,2,2026-02-19,Mañana,Jose Paulo Araya Acuña,9184.0,Entrega,
+3.M19,3,2026-02-19,Mañana,Maricel Herrera Odio,10325.0,Entrega,
+1.MT18,1,2026-02-18,Mañana,Daniela Cubillo Fallas,14075.0,Estrategia Digital,
+2.T18,2,2026-02-18,Tarde,Jenny Darce Astolingon,15116.0,Estrategia Digital,
+3.M18,3,2026-02-18,Mañana,Rigo Alberto Novo Ramirez,14272.0,Estrategia Digital,
+4.T18,4,2026-02-18,Tarde,Rowland Garro Fallas,7898.0,Estrategia Digital,
+1.T18,1,2026-02-18,Tarde,Allan Gutierrez Aiza,7136.0,Estrategia Digital,
+2.M19,2,2026-02-19,Mañana,Greivin Corrales Carrillo,11753.0,Estrategia Digital,
+3.M19,3,2026-02-19,Mañana,Maria Vasquez Hernandez,8057.0,Estrategia Digital,
+4.T19,4,2026-02-19,Tarde,Danny Matamoros Zamora,13271.0,Estrategia Digital,
+1.T19,1,2026-02-19,Tarde,Leonardo Alizaga Alvarado,10309.0,Estrategia Digital,
+2.M19,2,2026-02-19,Mañana,Maria del Milagro Quiros Cedeño,17599.0,Estrategia Digital,
+4.T19,4,2026-02-19,Mañana,Jairo Mora Araya,15576.0,Estrategia Digital,
+3.T19,3,2026-02-19,Tarde,Ramon Cespedes,9422.0,Estrategia Digital,

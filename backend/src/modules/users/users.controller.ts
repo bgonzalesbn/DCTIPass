@@ -1,7 +1,18 @@
 import { Controller, Get, Put, Post, Body, Param, Req } from "@nestjs/common";
 import { UsersService } from "./users.service";
 import { Request } from "express";
-import { IsOptional, IsString, IsArray, IsEmail } from "class-validator";
+import {
+  IsOptional,
+  IsString,
+  IsArray,
+  IsEmail,
+  ValidateNested,
+  IsNumber,
+  Min,
+  Max,
+  ArrayMinSize,
+} from "class-validator";
+import { Type } from "class-transformer";
 
 class UpdateProfileDto {
   @IsOptional()
@@ -42,6 +53,27 @@ class SaveClarityResponseDto {
 
   @IsString()
   response: string; // "Nada claro", "Claro", "Muy claro", "Clarísimo"
+}
+
+class FinalSurveyAnswerDto {
+  @IsString()
+  question: string;
+
+  @IsNumber()
+  @Min(1)
+  @Max(5)
+  value: number;
+}
+
+class SubmitFinalSurveyDto {
+  @IsString()
+  activityId: string;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => FinalSurveyAnswerDto)
+  answers: FinalSurveyAnswerDto[];
 }
 
 @Controller("users")
@@ -128,6 +160,22 @@ export class UsersController {
       dto.subActivityId,
       dto.scheduleId,
       dto.response,
+    );
+  }
+
+  @Post("final-survey")
+  async submitFinalSurvey(
+    @Req() req: Request,
+    @Body() dto: SubmitFinalSurveyDto,
+  ) {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return { error: "No authenticated user" };
+    }
+    return this.usersService.submitFinalSurvey(
+      userId,
+      dto.activityId,
+      dto.answers,
     );
   }
 

@@ -60,6 +60,8 @@ const getShiftLabel = (shift?: string | null) => {
   return shift || "";
 };
 
+const IT_EXPERIENCE_BADGE_ID = "69823bf0d6bd58d3ea14ba91";
+
 // Helper para obtener el icono/imagen del sticker
 const getStickerDisplay = (
   stickerId?: Sticker | string,
@@ -122,6 +124,21 @@ export default function ActivitiesPage() {
   const [completedSubActivityIds, setCompletedSubActivityIds] = useState<
     string[]
   >([]);
+  const [finalSurveysMap, setFinalSurveysMap] = useState<
+    Record<string, { submittedAt: string }>
+  >({});
+  const [earnedStickerIds, setEarnedStickerIds] = useState<string[]>([]);
+  const [activityProgressMap, setActivityProgressMap] = useState<
+    Record<
+      string,
+      {
+        completed: boolean;
+        completedAt?: string;
+        completedSubActivities?: number;
+        totalSubActivities?: number;
+      }
+    >
+  >({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [noGroupAssigned, setNoGroupAssigned] = useState(false);
@@ -156,6 +173,23 @@ export default function ActivitiesPage() {
       } catch (err) {
         // Silenciar - sin data
       }
+
+      const surveysMap: Record<string, { submittedAt: string }> = {};
+      (userData.finalSurveys || []).forEach((survey: any) => {
+        if (survey.activityId) {
+          surveysMap[survey.activityId] = survey;
+        }
+      });
+      setFinalSurveysMap(surveysMap);
+      setEarnedStickerIds(userData.earnedStickers || []);
+
+      const progressMap: Record<string, any> = {};
+      (userData.activityProgress || []).forEach((progress: any) => {
+        if (progress.activityId) {
+          progressMap[progress.activityId] = progress;
+        }
+      });
+      setActivityProgressMap(progressMap);
 
       if (userData.group && userData.schedule) {
         setUserGroup(userData.group);
@@ -287,6 +321,27 @@ export default function ActivitiesPage() {
           {activities.map((activity) => {
             const progress = calculateProgress(activity);
             const gradientClasses = getActivityGradient(activity.color);
+            const totalSubActivities = activity.subActivities?.length || 0;
+            const completedSessions = activity.subActivities
+              ? activity.subActivities.filter((sub) =>
+                  completedSubActivityIds.includes(sub._id),
+                ).length
+              : 0;
+            const allSessionsComplete =
+              totalSubActivities > 0 &&
+              completedSessions === totalSubActivities;
+            const surveyDone = Boolean(finalSurveysMap[activity._id]);
+            const activityStickerId =
+              typeof activity.stickerId === "string"
+                ? activity.stickerId
+                : activity.stickerId?._id;
+            const requiredBadgeId = activityStickerId || IT_EXPERIENCE_BADGE_ID;
+            const badgeEarned = requiredBadgeId
+              ? earnedStickerIds.includes(requiredBadgeId)
+              : false;
+            const fullyCompleted =
+              Boolean(activityProgressMap[activity._id]?.completed) ||
+              (allSessionsComplete && surveyDone && badgeEarned);
             return (
               <div
                 key={activity._id}
@@ -319,6 +374,20 @@ export default function ActivitiesPage() {
                     {activity.description}
                   </p>
 
+                  {fullyCompleted && (
+                    <div className="mb-4 rounded-2xl bg-emerald-50 text-emerald-700 px-4 py-2 text-sm font-semibold flex items-center gap-2">
+                      <span>🎉</span>
+                      <span>Actividad completada</span>
+                    </div>
+                  )}
+
+                  {!fullyCompleted && allSessionsComplete && !surveyDone && (
+                    <div className="mb-4 rounded-2xl bg-orange-50 text-orange-700 px-4 py-2 text-sm font-semibold flex items-center gap-2">
+                      <span>📝</span>
+                      <span>Responde la encuesta final para concluir</span>
+                    </div>
+                  )}
+
                   {/* Progress Bar */}
                   <div className="mb-4">
                     <div className="flex justify-between text-sm mb-1">
@@ -337,12 +406,28 @@ export default function ActivitiesPage() {
 
                   {/* Footer */}
                   <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                    <div className="flex items-center gap-2 text-gray-400 text-sm">
-                      <span>🏆</span>
-                      <span>Insignias disponibles</span>
+                    <div
+                      className={`flex items-center gap-2 text-sm ${fullyCompleted ? "text-emerald-600 font-semibold" : allSessionsComplete && !surveyDone ? "text-orange-500 font-semibold" : "text-gray-400"}`}
+                    >
+                      <span>
+                        {fullyCompleted
+                          ? "🏁"
+                          : allSessionsComplete && !surveyDone
+                            ? "📝"
+                            : "🏆"}
+                      </span>
+                      <span>
+                        {fullyCompleted
+                          ? "Actividad completada"
+                          : allSessionsComplete && !surveyDone
+                            ? "Encuesta final pendiente"
+                            : "Insignias disponibles"}
+                      </span>
                     </div>
-                    <span className="text-[#113780] font-semibold group-hover:translate-x-1 transition-transform flex items-center gap-1 text-sm">
-                      Explorar
+                    <span
+                      className={`${fullyCompleted ? "text-emerald-600" : "text-[#113780]"} font-semibold group-hover:translate-x-1 transition-transform flex items-center gap-1 text-sm`}
+                    >
+                      {fullyCompleted ? "Ver detalles" : "Explorar"}
                       <svg
                         className="w-4 h-4"
                         fill="none"
