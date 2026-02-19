@@ -23,6 +23,10 @@ import {
   Activity,
   ActivityDocument,
 } from "../activities/schemas/activity.schema";
+import {
+  FinalSurveyResponse,
+  FinalSurveyResponseDocument,
+} from "./schemas/final-survey-response.schema";
 
 const IT_EXPERIENCE_BADGE_ID = "69823bf0d6bd58d3ea14ba91";
 
@@ -45,6 +49,8 @@ export class UsersService {
     private groupModel: Model<GroupDocument>,
     @InjectModel(Activity.name)
     private activityModel: Model<ActivityDocument>,
+    @InjectModel(FinalSurveyResponse.name)
+    private finalSurveyResponseModel: Model<FinalSurveyResponseDocument>,
   ) {}
 
   /**
@@ -109,6 +115,14 @@ export class UsersService {
     // TODO: Get total activities count
     const totalActivities = 0; // Placeholder
 
+    const finalSurveyDocs = await this.finalSurveyResponseModel
+      .find({ userId: objectId })
+      .lean();
+    const finalSurveys =
+      finalSurveyDocs.length > 0
+        ? finalSurveyDocs
+        : user.finalSurveyResponses || [];
+
     return {
       id: user._id.toString(),
       email: user.email,
@@ -128,7 +142,7 @@ export class UsersService {
       earnedStickers: (user.earnedStickers || []).map((sticker: any) =>
         sticker?.toString(),
       ),
-      finalSurveys: (user.finalSurveyResponses || []).map((survey: any) => ({
+      finalSurveys: finalSurveys.map((survey: any) => ({
         activityId: survey.activityId?.toString(),
         submittedAt: survey.submittedAt,
         answers: (survey.answers || []).map((answer: any) => ({
@@ -341,16 +355,25 @@ export class UsersService {
     const objectId = new Types.ObjectId(userId);
     const activityObjectId = new Types.ObjectId(activityId);
 
-    // Contar subactividades completadas para esta actividad
-    // Necesitamos obtener las subactividades de la actividad desde la colección de awards
-    const completedCount = await this.stickerAwardModel.countDocuments({
-      activityId: activityObjectId,
-    });
+    const activity = await this.activityModel.findById(activityObjectId).lean();
+    if (!activity) {
+      return;
+    }
+
+    const activitySubActivityIds = new Set(
+      (activity.subActivities || []).map((sub: any) => sub._id?.toString()),
+    );
+    const totalSubActivities = activitySubActivityIds.size;
 
     const user = await this.userModel.findById(objectId);
     const completedSubActivities = (user?.subActivityProgress || []).filter(
-      (p: any) => p.completed,
+      (progress: any) =>
+        progress.completed &&
+        activitySubActivityIds.has(progress.subActivityId?.toString()),
     ).length;
+
+    const activityCompleted =
+      totalSubActivities > 0 && completedSubActivities >= totalSubActivities;
 
     // Buscar o crear el progreso de la actividad
     const existingActivityProgress = (user?.activityProgress || []).find(
@@ -360,12 +383,12 @@ export class UsersService {
     const activityProgressItem = {
       activityId: activityObjectId,
       completedSubActivities: completedSubActivities,
-      totalSubActivities: completedCount,
-      completed: completedSubActivities >= completedCount && completedCount > 0,
+      totalSubActivities,
+      completed: activityCompleted,
       completedAt:
-        completedSubActivities >= completedCount && completedCount > 0
+        activityCompleted && !existingActivityProgress?.completed
           ? new Date()
-          : null,
+          : existingActivityProgress?.completedAt || null,
     };
 
     if (existingActivityProgress) {
@@ -377,6 +400,17 @@ export class UsersService {
       await this.userModel.updateOne(
         { _id: objectId },
         { $push: { activityProgress: activityProgressItem } },
+      );
+    }
+
+    if (activityCompleted) {
+      await this.userModel.updateOne(
+        { _id: objectId },
+        {
+          $addToSet: {
+            earnedStickers: new Types.ObjectId(IT_EXPERIENCE_BADGE_ID),
+          },
+        },
       );
     }
   }
@@ -491,10 +525,10 @@ export class UsersService {
       throw new NotFoundException("User not found");
     }
 
-    const alreadySubmitted = (user.finalSurveyResponses || []).some(
-      (response: any) =>
-        response.activityId?.toString() === activityObjectId.toString(),
-    );
+    const alreadySubmitted = await this.finalSurveyResponseModel.exists({
+      userId: objectId,
+      activityId: activityObjectId,
+    });
 
     if (alreadySubmitted) {
       throw new BadRequestException(
@@ -547,14 +581,22 @@ export class UsersService {
     });
 
     const submissionDate = new Date();
-    const updatedFinalSurveys = [
-      ...(user.finalSurveyResponses || []),
-      {
+
+    try {
+      await this.finalSurveyResponseModel.create({
+        userId: objectId,
         activityId: activityObjectId,
         answers: sanitizedAnswers,
         submittedAt: submissionDate,
-      },
-    ];
+      });
+    } catch (error: any) {
+      if (error?.code === 11000) {
+        throw new BadRequestException(
+          "Ya completaste la encuesta final para esta actividad.",
+        );
+      }
+      throw error;
+    }
 
     const badgeObjectId = new Types.ObjectId(IT_EXPERIENCE_BADGE_ID);
     const alreadyHasBadge = (user.earnedStickers || []).some(
@@ -593,7 +635,6 @@ export class UsersService {
       { _id: objectId },
       {
         $set: {
-          finalSurveyResponses: updatedFinalSurveys,
           activityProgress: updatedActivityProgress,
         },
         $addToSet: { earnedStickers: badgeObjectId },

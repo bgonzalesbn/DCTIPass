@@ -675,8 +675,7 @@ export default function SubActivitiesPage() {
       setFinalSurveyAnswers(Array(FINAL_SURVEY_QUESTIONS.length).fill(0));
       setFinalSurveyFeedback({
         type: "success",
-        message:
-          "¡Gracias por compartir tu experiencia! Ya desbloqueaste la insignia IT Experience.",
+        message: "¡Gracias por compartir tu experiencia final!",
       });
       await loadActivityData();
     } catch (err: any) {
@@ -1107,8 +1106,8 @@ export default function SubActivitiesPage() {
                     Comparte tu experiencia final
                   </h3>
                   <p className="text-gray-500 mt-2">
-                    En una escala del 1 al 5, cuéntanos cómo te sientes antes de
-                    recibir tu insignia.
+                    En una escala del 1 al 5, cuéntanos cómo te sientes al
+                    finalizar todas las sesiones.
                   </p>
                 </div>
 

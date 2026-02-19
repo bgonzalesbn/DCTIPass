@@ -21,6 +21,10 @@ import {
   ActivitySchema,
 } from "../activities/schemas/activity.schema";
 import { Sticker, StickerSchema } from "../stickers/schemas/sticker.schema";
+import {
+  FinalSurveyResponse,
+  FinalSurveyResponseSchema,
+} from "./schemas/final-survey-response.schema";
 
 @Module({
   imports: [
@@ -32,6 +36,7 @@ import { Sticker, StickerSchema } from "../stickers/schemas/sticker.schema";
       { name: Group.name, schema: GroupSchema },
       { name: Activity.name, schema: ActivitySchema },
       { name: Sticker.name, schema: StickerSchema },
+      { name: FinalSurveyResponse.name, schema: FinalSurveyResponseSchema },
     ]),
   ],
   controllers: [UsersController],
