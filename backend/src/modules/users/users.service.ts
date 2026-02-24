@@ -29,6 +29,7 @@ import {
 } from "./schemas/final-survey-response.schema";
 
 const IT_EXPERIENCE_BADGE_ID = "69823bf0d6bd58d3ea14ba91";
+const IT_EXPERIENCE_ACTIVITY_NAME = "IT Experience";
 
 interface FinalSurveyAnswerInput {
   question: string;
@@ -123,6 +124,35 @@ export class UsersService {
         ? finalSurveyDocs
         : user.finalSurveyResponses || [];
 
+    const itExperienceActivity = await this.activityModel
+      .findOne({ name: IT_EXPERIENCE_ACTIVITY_NAME, active: true })
+      .select("_id subActivities")
+      .lean();
+
+    const itExperienceActivityId =
+      itExperienceActivity?._id?.toString() || null;
+    const itExperienceTotalSubActivities =
+      itExperienceActivity?.subActivities?.length || 0;
+
+    const itExperienceSurveySubmitted = !!(
+      itExperienceActivityId &&
+      finalSurveys.some(
+        (survey: any) =>
+          survey?.activityId?.toString() === itExperienceActivityId,
+      )
+    );
+
+    const itExperienceProgress = (user.activityProgress || []).find(
+      (progress: any) =>
+        progress?.activityId?.toString() === itExperienceActivityId,
+    );
+
+    const itExperienceCompletedSubActivities =
+      itExperienceProgress?.completedSubActivities || 0;
+    const itExperienceSessionsCompleted =
+      itExperienceTotalSubActivities > 0 &&
+      itExperienceCompletedSubActivities >= itExperienceTotalSubActivities;
+
     return {
       id: user._id.toString(),
       email: user.email,
@@ -157,6 +187,12 @@ export class UsersService {
         completed: !!progress.completed,
         completedAt: progress.completedAt,
       })),
+      itExperienceFinalSurvey: {
+        activityId: itExperienceActivityId,
+        submitted: itExperienceSurveySubmitted,
+        pending: !itExperienceSurveySubmitted,
+        sessionsCompleted: itExperienceSessionsCompleted,
+      },
     };
   }
 
@@ -545,22 +581,6 @@ export class UsersService {
     if (totalSubActivities === 0) {
       throw new BadRequestException(
         "La actividad no tiene sesiones configuradas.",
-      );
-    }
-
-    const completedSubIds = new Set(
-      (user.subActivityProgress || [])
-        .filter((progress: any) => progress.completed)
-        .map((progress: any) => progress.subActivityId?.toString()),
-    );
-
-    const missingSession = activity.subActivities.find(
-      (subActivity) => !completedSubIds.has(subActivity._id.toString()),
-    );
-
-    if (missingSession) {
-      throw new BadRequestException(
-        "Debes completar todas las sesiones antes de contestar la encuesta final.",
       );
     }
 

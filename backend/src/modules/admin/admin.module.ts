@@ -5,6 +5,10 @@ import { AdminService } from "./admin.service";
 import { AdminGuard } from "../../common/guards/admin.guard";
 import { User, UserSchema } from "../users/schemas/user.schema";
 import {
+  FinalSurveyResponse,
+  FinalSurveyResponseSchema,
+} from "../users/schemas/final-survey-response.schema";
+import {
   Activity,
   ActivitySchema,
 } from "../activities/schemas/activity.schema";
@@ -31,6 +35,7 @@ import { Quiz, QuizSchema } from "../awards/schemas/quiz.schema";
   imports: [
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
+      { name: FinalSurveyResponse.name, schema: FinalSurveyResponseSchema },
       { name: Activity.name, schema: ActivitySchema },
       { name: Schedule.name, schema: ScheduleSchema },
       { name: Challenge.name, schema: ChallengeSchema },

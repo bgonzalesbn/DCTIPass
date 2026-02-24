@@ -1,7 +1,22 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { usersAPI } from "../services/api";
+import { activitiesAPI, usersAPI } from "../services/api";
 import { useAuthStore } from "../store/authStore";
+import FinalSurveyLoginModal from "../components/FinalSurveyLoginModal";
+
+const FINAL_SURVEY_QUESTIONS = [
+  "¿Entiendo cómo las direcciones de TI se conectan para generar valor?",
+  "¿Tengo claridad de cómo mi trabajo impacta a otras áreas dentro de TI?",
+  "¿Me siento parte de un sistema integrado dentro de TI?",
+];
+
+const LIKERT_OPTIONS = [
+  { value: 1, label: "Totalmente en desacuerdo" },
+  { value: 2, label: "En desacuerdo" },
+  { value: 3, label: "Neutral" },
+  { value: 4, label: "De acuerdo" },
+  { value: 5, label: "Totalmente de acuerdo" },
+];
 
 interface User {
   id: string;
@@ -17,6 +32,18 @@ interface User {
 
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null);
+  const [showFinalSurveyModal, setShowFinalSurveyModal] = useState(false);
+  const [itExperienceActivityId, setItExperienceActivityId] = useState<
+    string | null
+  >(null);
+  const [finalSurveyAnswers, setFinalSurveyAnswers] = useState<number[]>(
+    Array(FINAL_SURVEY_QUESTIONS.length).fill(0),
+  );
+  const [finalSurveySubmitting, setFinalSurveySubmitting] = useState(false);
+  const [finalSurveyFeedback, setFinalSurveyFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
   const navigate = useNavigate();
   const { setUser: setStoreUser } = useAuthStore();
 
@@ -48,6 +75,15 @@ export default function HomePage() {
         setUser(userData);
         setStoreUser(userData);
 
+        const surveyStatus = userDat.itExperienceFinalSurvey;
+        if (surveyStatus?.activityId) {
+          setItExperienceActivityId(surveyStatus.activityId);
+        }
+
+        if (surveyStatus?.pending) {
+          setShowFinalSurveyModal(true);
+        }
+
         // Admin users go directly to admin panel
         if (userData.isAdmin) {
           navigate("/admin", { replace: true });
@@ -69,6 +105,70 @@ export default function HomePage() {
         setUser(userData);
       });
   }, [navigate]);
+
+  const handleSurveyAnswerChange = (questionIndex: number, value: number) => {
+    setFinalSurveyAnswers((previous) => {
+      const next = [...previous];
+      next[questionIndex] = value;
+      return next;
+    });
+    setFinalSurveyFeedback(null);
+  };
+
+  const resolveITExperienceActivityId = async () => {
+    if (itExperienceActivityId) {
+      return itExperienceActivityId;
+    }
+
+    const activityResponse =
+      await activitiesAPI.getActivityByName("IT Experience");
+    const resolvedId = activityResponse?.data?._id;
+    if (!resolvedId) {
+      throw new Error("No se encontró la actividad IT Experience");
+    }
+
+    setItExperienceActivityId(resolvedId);
+    return resolvedId;
+  };
+
+  const handleSubmitFinalSurvey = async () => {
+    if (finalSurveySubmitting) {
+      return;
+    }
+
+    if (finalSurveyAnswers.some((value) => value < 1 || value > 5)) {
+      setFinalSurveyFeedback({
+        type: "error",
+        message: "Debes responder todas las preguntas con valores del 1 al 5.",
+      });
+      return;
+    }
+
+    setFinalSurveySubmitting(true);
+    setFinalSurveyFeedback(null);
+
+    try {
+      const activityId = await resolveITExperienceActivityId();
+
+      await usersAPI.submitFinalSurvey({
+        activityId,
+        answers: FINAL_SURVEY_QUESTIONS.map((question, index) => ({
+          question,
+          value: finalSurveyAnswers[index],
+        })),
+      });
+
+      setShowFinalSurveyModal(false);
+      setFinalSurveyFeedback(null);
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        "No fue posible guardar la encuesta final. Intenta de nuevo.";
+      setFinalSurveyFeedback({ type: "error", message });
+    } finally {
+      setFinalSurveySubmitting(false);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -115,36 +215,6 @@ export default function HomePage() {
       {/* Main Content — overlaps the hero */}
       <main className="max-w-2xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 -mt-12 pb-8 relative z-20">
         <div className="space-y-3">
-          <button
-            onClick={() => navigate("/activities")}
-            className="w-full bg-white rounded-2xl shadow-md border border-gray-100 p-5 sm:p-6 text-left transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 group flex items-center gap-4"
-          >
-            <div className="w-12 h-12 rounded-xl bg-[#113780]/10 flex items-center justify-center text-2xl flex-shrink-0 group-hover:bg-[#113780]/15 transition">
-              ✅
-            </div>
-            <div className="min-w-0">
-              <h2 className="text-base sm:text-lg font-bold text-gray-900 group-hover:text-[#113780] transition">
-                Actividades
-              </h2>
-              <p className="text-gray-500 text-sm">
-                Completa actividades y gana puntos
-              </p>
-            </div>
-            <svg
-              className="w-5 h-5 text-gray-300 group-hover:text-[#113780] transition ml-auto flex-shrink-0"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
-          </button>
-
           <button
             onClick={() => navigate("/badges")}
             className="w-full bg-white rounded-2xl shadow-md border border-gray-100 p-5 sm:p-6 text-left transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 group flex items-center gap-4"
@@ -234,38 +304,19 @@ export default function HomePage() {
               />
             </svg>
           </button>
-
-          <button
-            onClick={() => navigate("/rally-photos")}
-            className="w-full bg-white rounded-2xl shadow-md border border-gray-100 p-5 sm:p-6 text-left transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 group flex items-center gap-4"
-          >
-            <div className="w-12 h-12 rounded-xl bg-[#113780]/10 flex items-center justify-center text-2xl flex-shrink-0 group-hover:bg-[#113780]/15 transition">
-              📸
-            </div>
-            <div className="min-w-0">
-              <h2 className="text-base sm:text-lg font-bold text-gray-900 group-hover:text-[#113780] transition">
-                Subí tus fotos del Rally
-              </h2>
-              <p className="text-gray-500 text-sm">
-                Comparte tus mejores momentos del Rally DCTI
-              </p>
-            </div>
-            <svg
-              className="w-5 h-5 text-gray-300 group-hover:text-[#113780] transition ml-auto flex-shrink-0"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
-          </button>
         </div>
       </main>
+
+      <FinalSurveyLoginModal
+        open={showFinalSurveyModal}
+        questions={FINAL_SURVEY_QUESTIONS}
+        likertOptions={LIKERT_OPTIONS}
+        answers={finalSurveyAnswers}
+        submitting={finalSurveySubmitting}
+        feedback={finalSurveyFeedback}
+        onAnswerChange={handleSurveyAnswerChange}
+        onSubmit={handleSubmitFinalSurvey}
+      />
     </div>
   );
 }

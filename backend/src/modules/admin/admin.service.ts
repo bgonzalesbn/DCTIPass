@@ -45,6 +45,10 @@ import {
   AdminUpdateAwardDto,
   AdminUpdateUserDto,
 } from "./dto/admin.dto";
+import {
+  FinalSurveyResponse,
+  FinalSurveyResponseDocument,
+} from "../users/schemas/final-survey-response.schema";
 
 // Import sticker from the stickers module
 import { Sticker, StickerDocument } from "../stickers/schemas/sticker.schema";
@@ -128,6 +132,8 @@ export class AdminService {
   }
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(FinalSurveyResponse.name)
+    private finalSurveyResponseModel: Model<FinalSurveyResponseDocument>,
     @InjectModel(Activity.name) private activityModel: Model<ActivityDocument>,
     @InjectModel(Schedule.name) private scheduleModel: Model<ScheduleDocument>,
     @InjectModel(Challenge.name)
@@ -167,6 +173,160 @@ export class AdminService {
       )
       .sort({ createdAt: -1 })
       .lean();
+  }
+
+  async getPendingFinalSurveyByGroup() {
+    const itExperienceActivity = await this.activityModel
+      .findOne({ name: "IT Experience", active: true })
+      .select("_id name")
+      .lean();
+
+    if (!itExperienceActivity?._id) {
+      throw new NotFoundException("Activity IT Experience not found");
+    }
+
+    const users = await this.userModel
+      .find({ deletedAt: null, active: true })
+      .select("employeeNumber firstName lastName direction")
+      .lean();
+
+    const responses = await this.finalSurveyResponseModel
+      .find({ activityId: itExperienceActivity._id })
+      .select("userId")
+      .lean();
+
+    const respondedUserIds = new Set(
+      responses.map((response) => response.userId?.toString()).filter(Boolean),
+    );
+
+    const pendingUsers = users.filter(
+      (user: any) => !respondedUserIds.has(user._id.toString()),
+    );
+
+    if (pendingUsers.length === 0) {
+      return {
+        activityName: itExperienceActivity.name,
+        totalPendingUsers: 0,
+        totalGroups: 0,
+        groups: [],
+        generatedAt: new Date(),
+      };
+    }
+
+    const pendingUserIds = pendingUsers.map((user: any) => user._id);
+
+    const memberships = await this.membershipModel
+      .find({
+        deletedAt: null,
+        userId: { $in: pendingUserIds },
+      })
+      .select("userId groupId assignedAt")
+      .sort({ assignedAt: -1 })
+      .lean();
+
+    const latestMembershipByUser = new Map<string, any>();
+    for (const membership of memberships) {
+      const userId = membership.userId?.toString();
+      if (!userId || latestMembershipByUser.has(userId)) {
+        continue;
+      }
+      latestMembershipByUser.set(userId, membership);
+    }
+
+    const groupIds = Array.from(
+      new Set(
+        Array.from(latestMembershipByUser.values())
+          .map((membership: any) => membership.groupId?.toString())
+          .filter(Boolean),
+      ),
+    ).map((groupId) => new Types.ObjectId(groupId));
+
+    const groups =
+      groupIds.length > 0
+        ? await this.groupModel
+            .find({ _id: { $in: groupIds } })
+            .select("name shift")
+            .lean()
+        : [];
+
+    const groupsMap = new Map(
+      groups.map((group: any) => [group._id.toString(), group]),
+    );
+
+    const grouped = new Map<
+      string,
+      {
+        groupId: string | null;
+        groupName: string;
+        shift: string | null;
+        users: {
+          id: string;
+          employeeNumber: string;
+          fullName: string;
+          direction: string;
+        }[];
+      }
+    >();
+
+    for (const user of pendingUsers as any[]) {
+      const membership = latestMembershipByUser.get(user._id.toString());
+      const groupId = membership?.groupId?.toString() || null;
+      const groupData = groupId ? groupsMap.get(groupId) : null;
+      const bucketKey = groupId || "NO_GROUP";
+
+      if (!grouped.has(bucketKey)) {
+        grouped.set(bucketKey, {
+          groupId,
+          groupName: groupData?.name || "Sin grupo asignado",
+          shift: groupData?.shift || null,
+          users: [],
+        });
+      }
+
+      grouped.get(bucketKey)!.users.push({
+        id: user._id.toString(),
+        employeeNumber: user.employeeNumber || "N/A",
+        fullName: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+        direction: user.direction || "Sin dirección",
+      });
+    }
+
+    const normalizeEmployeeNumber = (value: string) => {
+      const parsed = Number.parseInt(value, 10);
+      return Number.isNaN(parsed) ? value : parsed;
+    };
+
+    const groupList = Array.from(grouped.values())
+      .map((group) => ({
+        ...group,
+        users: group.users.sort((a, b) => {
+          const aParsed = normalizeEmployeeNumber(a.employeeNumber);
+          const bParsed = normalizeEmployeeNumber(b.employeeNumber);
+          if (typeof aParsed === "number" && typeof bParsed === "number") {
+            return aParsed - bParsed;
+          }
+          return String(a.employeeNumber).localeCompare(
+            String(b.employeeNumber),
+          );
+        }),
+      }))
+      .sort((a, b) => {
+        if (a.groupName === "Sin grupo asignado") return 1;
+        if (b.groupName === "Sin grupo asignado") return -1;
+        return a.groupName.localeCompare(b.groupName);
+      })
+      .map((group) => ({
+        ...group,
+        totalUsers: group.users.length,
+      }));
+
+    return {
+      activityName: itExperienceActivity.name,
+      totalPendingUsers: pendingUsers.length,
+      totalGroups: groupList.length,
+      groups: groupList,
+      generatedAt: new Date(),
+    };
   }
 
   async updateUser(userId: string, data: AdminUpdateUserDto) {

@@ -8,6 +8,9 @@
   "scripts": {
     "prebuild": "rm -rf dist",
     "build": "npx nest build",
+    "report:pending-final-survey": "node report-users-without-final-survey.mjs",
+    "itexp:complete-sessions:dry": "node complete-it-experience-sessions-without-final-badge.mjs --dry-run",
+    "itexp:complete-sessions": "node complete-it-experience-sessions-without-final-badge.mjs",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
