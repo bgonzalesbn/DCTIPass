@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { adminAPI } from "../../../services/api";
+import * as XLSX from "xlsx";
 
 type PendingUser = {
   id: string;
@@ -277,6 +278,81 @@ export default function AdminPendingSurveyTab() {
     }, 300);
   };
 
+  const handleGenerateExcel = () => {
+    if (!report) {
+      return;
+    }
+
+    const groupsToExport = [...filteredGroups].sort((a, b) =>
+      a.groupName.localeCompare(b.groupName, "es"),
+    );
+
+    const normalizeEmployeeNumber = (value: string) => {
+      const parsed = Number.parseInt(value, 10);
+      return Number.isNaN(parsed) ? value : parsed;
+    };
+
+    const detailData = groupsToExport.flatMap((group) =>
+      [...group.users]
+        .sort((a, b) => {
+          const aValue = normalizeEmployeeNumber(a.employeeNumber);
+          const bValue = normalizeEmployeeNumber(b.employeeNumber);
+          if (typeof aValue === "number" && typeof bValue === "number") {
+            return aValue - bValue;
+          }
+          return String(a.employeeNumber).localeCompare(
+            String(b.employeeNumber),
+          );
+        })
+        .map((user) => ({
+          Grupo: group.groupName,
+          Turno: formatShift(group.shift),
+          "Número de empleado": user.employeeNumber,
+          Nombre: user.fullName,
+          Dirección: user.direction,
+        })),
+    );
+
+    const generatedAt = new Date().toLocaleString("es-CR");
+    const summaryRows = [
+      ["Campo", "Valor"],
+      ["Actividad", report.activityName],
+      ["Usuarios pendientes", filteredTotalUsers],
+      ["Grupos mostrados", groupsToExport.length],
+      ["Generado el", generatedAt],
+      [
+        "Filtro aplicado",
+        groupFilter ? "Grupo específico" : "Todos los grupos",
+      ],
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    const summarySheet = XLSX.utils.aoa_to_sheet(summaryRows);
+    const detailSheet = XLSX.utils.json_to_sheet(detailData);
+
+    summarySheet["!cols"] = [{ wch: 24 }, { wch: 45 }];
+    summarySheet["!autofilter"] = { ref: "A1:B6" };
+
+    const detailLastRow = Math.max(detailData.length + 1, 2);
+    detailSheet["!cols"] = [
+      { wch: 28 },
+      { wch: 14 },
+      { wch: 22 },
+      { wch: 36 },
+      { wch: 28 },
+    ];
+    detailSheet["!autofilter"] = { ref: `A1:E${detailLastRow}` };
+
+    XLSX.utils.book_append_sheet(workbook, summarySheet, "Resumen");
+    XLSX.utils.book_append_sheet(workbook, detailSheet, "PendientesTabla");
+
+    const timestamp = new Date()
+      .toISOString()
+      .slice(0, 19)
+      .replace(/[:T]/g, "-");
+    XLSX.writeFile(workbook, `pendientes-encuesta-final-${timestamp}.xlsx`);
+  };
+
   if (loading) {
     return <div className="text-center py-8">Cargando reporte...</div>;
   }
@@ -303,12 +379,20 @@ export default function AdminPendingSurveyTab() {
               {(report?.totalPendingUsers || 0) === 1 ? "" : "s"} pendientes
             </p>
           </div>
-          <button
-            onClick={handleGeneratePdf}
-            className="bg-gradient-to-r from-[#113780] to-[#0C2A5C] hover:opacity-95 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
-          >
-            📄 Generar PDF
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleGenerateExcel}
+              className="bg-[#113780] hover:bg-[#0C2A5C] text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+            >
+              📊 Generar Excel
+            </button>
+            <button
+              onClick={handleGeneratePdf}
+              className="bg-gradient-to-r from-[#113780] to-[#0C2A5C] hover:opacity-95 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+            >
+              📄 Generar PDF
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
