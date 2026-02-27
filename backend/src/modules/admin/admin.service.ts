@@ -601,7 +601,20 @@ export class AdminService {
   }
 
   async getSurveysComparisonReport() {
+    const canonicalQuestions = [
+      "¿Entiendo cómo las direcciones de TI se conectan para generar valor?",
+      "¿Tengo claridad de cómo mi trabajo impacta a otras áreas dentro de TI?",
+      "¿Me siento parte de un sistema integrado dentro de TI?",
+    ];
+
     const levels = [1, 2, 3, 4, 5];
+
+    const normalizeText = (value: string) =>
+      value
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
 
     const buildDistribution = (values: number[]) => {
       const total = values.length;
@@ -628,8 +641,17 @@ export class AdminService {
 
     const finalDocs = await this.finalSurveyResponseModel
       .find({})
-      .select("answers")
+      .select("userId answers submittedAt")
       .lean();
+
+    const users = await this.userModel
+      .find({ deletedAt: null })
+      .select("_id employeeNumber")
+      .lean();
+
+    const employeeByUserId = new Map(
+      (users as any[]).map((u) => [String(u._id), String(u.employeeNumber)]),
+    );
 
     const generalByQuestion = {
       question_1: (generalDocs as any[])
@@ -652,18 +674,41 @@ export class AdminService {
     const finalByQuestionMap = new Map<string, number[]>();
     const finalAll: number[] = [];
 
+    const latestFinalByEmployee = new Map<string, any>();
+
+    for (const doc of finalDocs as any[]) {
+      const employeeNumber = employeeByUserId.get(String(doc.userId));
+      if (!employeeNumber) continue;
+
+      const current = latestFinalByEmployee.get(employeeNumber);
+      const currentDate = current?.submittedAt
+        ? new Date(current.submittedAt).getTime()
+        : 0;
+      const nextDate = doc.submittedAt
+        ? new Date(doc.submittedAt).getTime()
+        : 0;
+
+      if (!current || nextDate >= currentDate) {
+        latestFinalByEmployee.set(employeeNumber, doc);
+      }
+    }
+
     for (const doc of finalDocs as any[]) {
       for (const answer of doc.answers || []) {
-        const question = String(
-          answer.question || "Pregunta sin nombre",
-        ).trim();
+        const rawQuestion = String(answer.question || "").trim();
+        const canonicalQuestion =
+          canonicalQuestions.find(
+            (q) => normalizeText(q) === normalizeText(rawQuestion),
+          ) ||
+          rawQuestion ||
+          "Pregunta sin nombre";
         const value = Number(answer.value);
         if (!Number.isFinite(value) || value < 1 || value > 5) continue;
 
-        if (!finalByQuestionMap.has(question)) {
-          finalByQuestionMap.set(question, []);
+        if (!finalByQuestionMap.has(canonicalQuestion)) {
+          finalByQuestionMap.set(canonicalQuestion, []);
         }
-        finalByQuestionMap.get(question)!.push(value);
+        finalByQuestionMap.get(canonicalQuestion)!.push(value);
         finalAll.push(value);
       }
     }
@@ -693,6 +738,117 @@ export class AdminService {
         average: average(values),
       }))
       .sort((a, b) => b.responses - a.responses);
+
+    const generalByQuestionLabel = new Map<string, number[]>([
+      [canonicalQuestions[0], generalByQuestion.question_1],
+      [canonicalQuestions[1], generalByQuestion.question_2],
+      [canonicalQuestions[2], generalByQuestion.question_3],
+    ]);
+
+    const questionComparison = canonicalQuestions.map((question) => {
+      const generalValues = generalByQuestionLabel.get(question) || [];
+      const finalValues = finalByQuestionMap.get(question) || [];
+
+      return {
+        question,
+        generalAverage: average(generalValues),
+        finalAverage: average(finalValues),
+        generalDistribution: buildDistribution(generalValues),
+        finalDistribution: buildDistribution(finalValues),
+      };
+    });
+
+    const generalByEmployee = new Map<
+      string,
+      { q1: number; q2: number; q3: number }
+    >();
+    for (const doc of generalDocs as any[]) {
+      const employeeNumber = String(doc.employeeNumber || "").trim();
+      if (!employeeNumber) continue;
+
+      const q1 = Number(doc.question_1);
+      const q2 = Number(doc.question_2);
+      const q3 = Number(doc.question_3);
+      if (![q1, q2, q3].every((n) => Number.isFinite(n) && n >= 1 && n <= 5)) {
+        continue;
+      }
+
+      generalByEmployee.set(employeeNumber, {
+        q1,
+        q2,
+        q3,
+      });
+    }
+
+    const userVotes = Array.from(generalByEmployee.entries())
+      .map(([employeeNumber, initialAnswers]) => {
+        const finalDoc = latestFinalByEmployee.get(employeeNumber);
+        let finalAnswers: { q1: number; q2: number; q3: number } | null = null;
+
+        if (finalDoc?.answers?.length) {
+          const normalizedToValue = new Map<string, number>();
+          for (const answer of finalDoc.answers) {
+            const rawQuestion = String(answer.question || "").trim();
+            const normalized = normalizeText(rawQuestion);
+            const value = Number(answer.value);
+            if (Number.isFinite(value) && value >= 1 && value <= 5) {
+              normalizedToValue.set(normalized, value);
+            }
+          }
+
+          const q1 =
+            normalizedToValue.get(normalizeText(canonicalQuestions[0])) ??
+            Number(finalDoc.answers?.[0]?.value);
+          const q2 =
+            normalizedToValue.get(normalizeText(canonicalQuestions[1])) ??
+            Number(finalDoc.answers?.[1]?.value);
+          const q3 =
+            normalizedToValue.get(normalizeText(canonicalQuestions[2])) ??
+            Number(finalDoc.answers?.[2]?.value);
+
+          if (
+            [q1, q2, q3].every((n) => Number.isFinite(n) && n >= 1 && n <= 5)
+          ) {
+            finalAnswers = {
+              q1,
+              q2,
+              q3,
+            };
+          }
+        }
+
+        const initialAverage = average([
+          initialAnswers.q1,
+          initialAnswers.q2,
+          initialAnswers.q3,
+        ]);
+        const finalAverage = finalAnswers
+          ? average([finalAnswers.q1, finalAnswers.q2, finalAnswers.q3])
+          : null;
+
+        return {
+          employeeNumber,
+          initial: {
+            q1: initialAnswers.q1,
+            q2: initialAnswers.q2,
+            q3: initialAnswers.q3,
+            average: initialAverage,
+          },
+          final: finalAnswers
+            ? {
+                q1: finalAnswers.q1,
+                q2: finalAnswers.q2,
+                q3: finalAnswers.q3,
+                average: finalAverage,
+              }
+            : null,
+          deltaAverage:
+            finalAverage !== null
+              ? Math.round((finalAverage - initialAverage) * 100) / 100
+              : null,
+        };
+      })
+      .sort((a, b) => a.employeeNumber.localeCompare(b.employeeNumber));
 
     const generalDistribution = buildDistribution(generalAll);
     const finalDistribution = buildDistribution(finalAll);
@@ -753,6 +909,9 @@ export class AdminService {
         differences,
         significantDifferences,
       },
+      questions: canonicalQuestions,
+      questionComparison,
+      userVotes,
     };
   }
 

@@ -278,4 +278,18 @@ export interface AdminSurveysComparisonResponse {
   generalSurvey: SurveySectionReport;
   finalSurvey: SurveySectionReport;
   comparison: SurveyComparisonReport;
+  questions?: string[];
+  questionComparison?: {
+    question: string;
+    generalAverage: number;
+    finalAverage: number;
+    generalDistribution: SurveyDistributionItem[];
+    finalDistribution: SurveyDistributionItem[];
+  }[];
+  userVotes?: {
+    employeeNumber: string;
+    initial: { q1: number; q2: number; q3: number; average: number };
+    final: { q1: number; q2: number; q3: number; average: number } | null;
+    deltaAverage: number | null;
+  }[];
 }
