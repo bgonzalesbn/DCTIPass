@@ -8,6 +8,7 @@ const tabs = [
   { key: "schedules", label: "Horarios", icon: "📅" },
   { key: "activities", label: "Actividades", icon: "✅" },
   { key: "challenges", label: "Retos", icon: "🎯" },
+  { key: "awardsAnalytics", label: "Análisis Retos", icon: "📊" },
   { key: "pendingSurvey", label: "Encuesta Final", icon: "📝" },
   { key: "stickers", label: "Stickers", icon: "🏆" },
   { key: "groups", label: "Grupos", icon: "👥" },
@@ -23,6 +24,7 @@ import AdminStickersTab from "./tabs/AdminStickersTab";
 import AdminGroupsTab from "./tabs/AdminGroupsTab";
 import AdminUsersTab from "./tabs/AdminUsersTab";
 import AdminPendingSurveyTab from "./tabs/AdminPendingSurveyTab";
+import AdminAwardsAnalyticsTab from "./tabs/AdminAwardsAnalyticsTab";
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
@@ -53,6 +55,8 @@ export default function AdminDashboardPage() {
         return <AdminActivitiesTab />;
       case "challenges":
         return <AdminAwardsTab />;
+      case "awardsAnalytics":
+        return <AdminAwardsAnalyticsTab />;
       case "pendingSurvey":
         return <AdminPendingSurveyTab />;
       case "stickers":

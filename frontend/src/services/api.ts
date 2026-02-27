@@ -355,6 +355,7 @@ export const adminAPI = {
 
   // Awards
   getAwards: () => apiClient.get("/admin/awards"),
+  getAwardsAnalytics: () => apiClient.get("/admin/awards/analytics"),
   createAward: (data: Record<string, unknown>) =>
     apiClient.post("/admin/awards", data),
   updateAward: (id: string, data: Record<string, unknown>) =>

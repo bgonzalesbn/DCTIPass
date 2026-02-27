@@ -28,6 +28,10 @@ import {
   StickerAward,
   StickerAwardSchema,
 } from "../awards/schemas/sticker-award.schema";
+import {
+  UserAward,
+  UserAwardSchema,
+} from "../awards/schemas/user-award.schema";
 
 import { Quiz, QuizSchema } from "../awards/schemas/quiz.schema";
 
@@ -43,6 +47,7 @@ import { Quiz, QuizSchema } from "../awards/schemas/quiz.schema";
       { name: GroupMembership.name, schema: GroupMembershipSchema },
       { name: Sticker.name, schema: StickerSchema },
       { name: StickerAward.name, schema: StickerAwardSchema },
+      { name: UserAward.name, schema: UserAwardSchema },
       { name: Quiz.name, schema: QuizSchema },
     ]),
   ],

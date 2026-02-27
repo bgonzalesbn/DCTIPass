@@ -282,6 +282,11 @@ export class AdminController {
     return this.adminService.getAllAwards();
   }
 
+  @Get("awards/analytics")
+  async getAwardsAnalytics() {
+    return this.adminService.getAwardsAnalytics();
+  }
+
   @Post("awards")
   async createAward(@Body() data: AdminCreateAwardDto) {
     this.logger.log("Creating award with data:", JSON.stringify(data));

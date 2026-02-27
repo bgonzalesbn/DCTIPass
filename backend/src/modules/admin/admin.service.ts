@@ -58,6 +58,10 @@ import {
   StickerAward,
   StickerAwardDocument,
 } from "../awards/schemas/sticker-award.schema";
+import {
+  UserAward,
+  UserAwardDocument,
+} from "../awards/schemas/user-award.schema";
 
 import { Quiz, QuizDocument } from "../awards/schemas/quiz.schema";
 
@@ -144,6 +148,8 @@ export class AdminService {
     @InjectModel(Sticker.name) private stickerModel: Model<StickerDocument>,
     @InjectModel(StickerAward.name)
     private stickerAwardModel: Model<StickerAwardDocument>,
+    @InjectModel(UserAward.name)
+    private userAwardModel: Model<UserAwardDocument>,
     @InjectModel(Quiz.name)
     private quizModel: Model<QuizDocument>,
   ) {}
@@ -1016,6 +1022,124 @@ export class AdminService {
       throw new NotFoundException("Award not found");
     }
     return { message: "Award deleted successfully" };
+  }
+
+  async getAwardsAnalytics() {
+    const [awards, attempts] = await Promise.all([
+      this.stickerAwardModel
+        .find({ deletedAt: null, active: true })
+        .populate("scheduleId", "_id title date startTime endTime")
+        .lean(),
+      this.userAwardModel
+        .aggregate([
+          {
+            $group: {
+              _id: "$stickerAwardId",
+              totalResponses: { $sum: 1 },
+              correctResponses: {
+                $sum: { $cond: [{ $eq: ["$isCorrect", true] }, 1, 0] },
+              },
+              incorrectResponses: {
+                $sum: { $cond: [{ $eq: ["$isCorrect", false] }, 1, 0] },
+              },
+            },
+          },
+        ])
+        .exec(),
+    ]);
+
+    const responseByAwardId = new Map(
+      attempts.map((item: any) => [
+        String(item._id),
+        {
+          totalResponses: item.totalResponses || 0,
+          correctResponses: item.correctResponses || 0,
+          incorrectResponses: item.incorrectResponses || 0,
+        },
+      ]),
+    );
+
+    const activityIds = Array.from(
+      new Set(awards.map((a: any) => String(a.activityId)).filter(Boolean)),
+    ).map((id) => new Types.ObjectId(id));
+
+    const activities =
+      activityIds.length > 0
+        ? await this.activityModel
+            .find({ _id: { $in: activityIds } })
+            .select("_id subActivities")
+            .lean()
+        : [];
+
+    const subActivityNameById = new Map<string, string>();
+    for (const activity of activities as any[]) {
+      for (const subActivity of activity.subActivities || []) {
+        subActivityNameById.set(
+          String(subActivity._id),
+          subActivity.name || "Sesión sin nombre",
+        );
+      }
+    }
+
+    const items = awards.map((award: any) => {
+      const stats = responseByAwardId.get(String(award._id)) || {
+        totalResponses: 0,
+        correctResponses: 0,
+        incorrectResponses: 0,
+      };
+      const total = stats.totalResponses;
+      const correctRate =
+        total > 0 ? Math.round((stats.correctResponses / total) * 100) : 0;
+
+      return {
+        awardId: String(award._id),
+        question: award.question || "Sin pregunta",
+        activityId:
+          typeof award.activityId === "object"
+            ? String(award.activityId._id || award.activityId)
+            : String(award.activityId),
+        subActivityId: String(award.subActivityId),
+        sessionName:
+          subActivityNameById.get(String(award.subActivityId)) ||
+          "Sesión sin nombre",
+        scheduleId: award.scheduleId?._id ? String(award.scheduleId._id) : null,
+        scheduleTitle: award.scheduleId?.title || "Horario no definido",
+        scheduleDate: award.scheduleId?.date || null,
+        totalResponses: stats.totalResponses,
+        correctResponses: stats.correctResponses,
+        incorrectResponses: stats.incorrectResponses,
+        correctRate,
+      };
+    });
+
+    const mostCorrect = [...items]
+      .sort(
+        (a, b) =>
+          b.correctResponses - a.correctResponses ||
+          b.correctRate - a.correctRate ||
+          b.totalResponses - a.totalResponses,
+      )
+      .slice(0, 5);
+
+    const leastCertainty = [...items]
+      .filter((item) => item.totalResponses > 0)
+      .sort(
+        (a, b) =>
+          a.correctRate - b.correctRate ||
+          b.incorrectResponses - a.incorrectResponses ||
+          b.totalResponses - a.totalResponses,
+      )
+      .slice(0, 5);
+
+    return {
+      generatedAt: new Date(),
+      totalChallenges: items.length,
+      answeredChallenges: items.filter((item) => item.totalResponses > 0)
+        .length,
+      mostCorrect,
+      leastCertainty,
+      items,
+    };
   }
 
   // ==================== QUIZZES ====================

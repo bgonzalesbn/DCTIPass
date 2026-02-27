@@ -182,3 +182,27 @@ export interface DashboardStats {
   totalChallenges: number;
   totalAwards: number;
 }
+
+export interface AdminAwardAnalyticsItem {
+  awardId: string;
+  question: string;
+  activityId: string;
+  subActivityId: string;
+  sessionName: string;
+  scheduleId: string | null;
+  scheduleTitle: string;
+  scheduleDate: string | null;
+  totalResponses: number;
+  correctResponses: number;
+  incorrectResponses: number;
+  correctRate: number;
+}
+
+export interface AdminAwardAnalyticsResponse {
+  generatedAt: string;
+  totalChallenges: number;
+  answeredChallenges: number;
+  mostCorrect: AdminAwardAnalyticsItem[];
+  leastCertainty: AdminAwardAnalyticsItem[];
+  items: AdminAwardAnalyticsItem[];
+}
