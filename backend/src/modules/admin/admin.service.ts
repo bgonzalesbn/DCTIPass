@@ -460,6 +460,7 @@ export class AdminService {
         sessionName: string;
         totalResponses: number;
         scoreSum: number;
+        scheduleTitles: Set<string>;
         responsesByOption: Record<string, number>;
       }
     >();
@@ -475,18 +476,19 @@ export class AdminService {
 
       const schedule = scheduleById.get(scheduleId);
       const subMeta = subActivityMetaById.get(subActivityId);
-      const key = `${scheduleId}-${subActivityId}`;
+      const key = subActivityId;
 
       if (!chartMap.has(key)) {
         chartMap.set(key, {
           sessionId: subActivityId,
-          scheduleId,
-          scheduleTitle: schedule?.title || "Horario sin nombre",
-          scheduleDate: schedule?.date || null,
+          scheduleId: `ALL-${subActivityId}`,
+          scheduleTitle: "Todos los horarios",
+          scheduleDate: null,
           standName: subMeta?.standName || "Stand sin nombre",
           sessionName: subMeta?.sessionName || "Sesión sin nombre",
           totalResponses: 0,
           scoreSum: 0,
+          scheduleTitles: new Set<string>(),
           responsesByOption: {
             "Nada claro": 0,
             Claro: 0,
@@ -499,6 +501,9 @@ export class AdminService {
       const row = chartMap.get(key)!;
       row.totalResponses += 1;
       row.scoreSum += scoreByLabel.get(normalizedLabel) || 0;
+      if (schedule?.title) {
+        row.scheduleTitles.add(String(schedule.title));
+      }
       row.responsesByOption[normalizedLabel] =
         (row.responsesByOption[normalizedLabel] || 0) + 1;
     }
@@ -509,10 +514,18 @@ export class AdminService {
           row.totalResponses > 0 ? row.scoreSum / row.totalResponses : 0;
         const averageScore = Math.round(averageScoreRaw * 100) / 100;
 
+        const scheduleTitles = Array.from(row.scheduleTitles.values());
+        const scheduleTitle =
+          scheduleTitles.length === 0
+            ? "Todos los horarios"
+            : scheduleTitles.length === 1
+              ? scheduleTitles[0]
+              : `Todos los horarios (${scheduleTitles.length})`;
+
         return {
           sessionId: row.sessionId,
           scheduleId: row.scheduleId,
-          scheduleTitle: row.scheduleTitle,
+          scheduleTitle,
           scheduleDate: row.scheduleDate,
           standName: row.standName,
           sessionName: row.sessionName,
@@ -533,9 +546,9 @@ export class AdminService {
         };
       })
       .sort((a, b) => {
-        const dateA = a.scheduleDate ? new Date(a.scheduleDate).getTime() : 0;
-        const dateB = b.scheduleDate ? new Date(b.scheduleDate).getTime() : 0;
-        return dateA - dateB;
+        const standCompare = a.standName.localeCompare(b.standName);
+        if (standCompare !== 0) return standCompare;
+        return a.sessionName.localeCompare(b.sessionName);
       });
 
     const standSummaryMap = new Map<

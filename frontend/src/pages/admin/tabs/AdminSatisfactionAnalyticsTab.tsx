@@ -295,7 +295,9 @@ export default function AdminSatisfactionAnalyticsTab() {
             <h3 className="font-semibold text-gray-900">{session.standName}</h3>
             <p className="text-sm text-gray-700">{session.sessionName}</p>
             <p className="text-xs text-gray-500">
-              {session.scheduleTitle} • {formatDate(session.scheduleDate)}
+              {session.scheduleDate
+                ? `${session.scheduleTitle} • ${formatDate(session.scheduleDate)}`
+                : session.scheduleTitle}
             </p>
           </div>
 
