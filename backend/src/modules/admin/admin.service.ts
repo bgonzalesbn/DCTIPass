@@ -727,14 +727,16 @@ export class AdminService {
     return {
       generatedAt: new Date(),
       generalSurvey: {
-        totalResponses: generalAll.length,
+        totalResponses: generalDocs.length,
+        totalAnswerValues: generalAll.length,
         participants: generalDocs.length,
         averageScore: generalAverage,
         distribution: generalDistribution,
         byQuestion: generalQuestionStats,
       },
       finalSurvey: {
-        totalResponses: finalAll.length,
+        totalResponses: finalDocs.length,
+        totalAnswerValues: finalAll.length,
         participants: finalDocs.length,
         averageScore: finalAverage,
         distribution: finalDistribution,

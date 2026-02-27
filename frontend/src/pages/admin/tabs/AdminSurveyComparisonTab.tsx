@@ -11,17 +11,22 @@ const DistributionChart = ({
   title,
   subtitle,
   average,
+  analyzedValues,
   data,
 }: {
   title: string;
   subtitle: string;
   average: number;
+  analyzedValues?: number;
   data: SurveyDistributionItem[];
 }) => {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
       <h3 className="font-semibold text-gray-900">{title}</h3>
       <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
+      <p className="text-xs text-gray-500 mt-1">
+        Valores analizados para distribución: {analyzedValues ?? 0}
+      </p>
       <p className="text-sm text-[#113780] font-semibold mt-2">
         Promedio: {average.toFixed(2)} / 5
       </p>
@@ -109,7 +114,7 @@ export default function AdminSurveyComparisonTab() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
           <div className="bg-blue-50 rounded-lg p-3">
             <p className="text-xs text-blue-700">
-              Encuesta general (respuestas)
+              Encuesta general (registros)
             </p>
             <p className="text-xl font-bold text-[#113780]">
               {data.generalSurvey.totalResponses}
@@ -117,7 +122,7 @@ export default function AdminSurveyComparisonTab() {
           </div>
           <div className="bg-indigo-50 rounded-lg p-3">
             <p className="text-xs text-indigo-700">
-              Encuesta final (respuestas)
+              Encuesta final (registros)
             </p>
             <p className="text-xl font-bold text-indigo-700">
               {data.finalSurvey.totalResponses}
@@ -137,6 +142,7 @@ export default function AdminSurveyComparisonTab() {
           title="Encuesta General"
           subtitle={`Participantes: ${data.generalSurvey.participants}`}
           average={data.generalSurvey.averageScore}
+          analyzedValues={data.generalSurvey.totalAnswerValues}
           data={data.generalSurvey.distribution}
         />
 
@@ -144,6 +150,7 @@ export default function AdminSurveyComparisonTab() {
           title="Encuesta Final"
           subtitle={`Participantes: ${data.finalSurvey.participants}`}
           average={data.finalSurvey.averageScore}
+          analyzedValues={data.finalSurvey.totalAnswerValues}
           data={data.finalSurvey.distribution}
         />
       </div>

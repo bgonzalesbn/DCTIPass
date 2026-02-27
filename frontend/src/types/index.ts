@@ -252,6 +252,7 @@ export interface SurveyQuestionStat {
 
 export interface SurveySectionReport {
   totalResponses: number;
+  totalAnswerValues?: number;
   participants: number;
   averageScore: number;
   distribution: SurveyDistributionItem[];
