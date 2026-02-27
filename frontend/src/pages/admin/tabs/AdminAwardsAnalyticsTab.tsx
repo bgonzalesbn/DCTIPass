@@ -1,9 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { adminAPI } from "../../../services/api";
 import type {
   AdminAwardAnalyticsItem,
   AdminAwardAnalyticsResponse,
 } from "../../../types";
+
+type JsPdfWithAutoTable = jsPDF & {
+  lastAutoTable?: {
+    finalY: number;
+  };
+};
 
 type SessionGroup = {
   key: string;
@@ -28,6 +36,7 @@ export default function AdminAwardsAnalyticsTab() {
   const [data, setData] = useState<AdminAwardAnalyticsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -85,6 +94,137 @@ export default function AdminAwardsAnalyticsTab() {
       });
   }, [data]);
 
+  const handleDownloadPdf = async () => {
+    if (!data) return;
+
+    setExporting(true);
+    try {
+      const doc = new jsPDF({ unit: "pt", format: "a4" });
+      const pdfDoc = doc as JsPdfWithAutoTable;
+
+      doc.setFontSize(16);
+      doc.text("Informe de Análisis de Retos", 40, 40);
+      doc.setFontSize(10);
+      doc.setTextColor(90, 90, 90);
+      doc.text(`Generado: ${new Date().toLocaleString("es-MX")}`, 40, 58);
+
+      autoTable(doc, {
+        startY: 72,
+        head: [["Métrica", "Valor"]],
+        body: [
+          ["Retos configurados", String(data.totalChallenges)],
+          ["Retos con respuestas", String(data.answeredChallenges)],
+          [
+            "Fecha de corte del análisis",
+            new Date(data.generatedAt).toLocaleString("es-MX"),
+          ],
+        ],
+        theme: "striped",
+        headStyles: { fillColor: [17, 55, 128] },
+      });
+
+      let currentY = (pdfDoc.lastAutoTable?.finalY || 72) + 18;
+
+      doc.setFontSize(12);
+      doc.setTextColor(20, 20, 20);
+      doc.text("Top retos con más respuestas correctas", 40, currentY);
+      autoTable(doc, {
+        startY: currentY + 8,
+        head: [["Pregunta", "Sesión", "Correctas", "Respondieron", "Acierto"]],
+        body: (data.mostCorrect.length ? data.mostCorrect : []).map((item) => [
+          item.question,
+          `${item.scheduleTitle} - ${item.sessionName}`,
+          String(item.correctResponses),
+          String(item.totalResponses),
+          `${item.correctRate}%`,
+        ]),
+        theme: "grid",
+        headStyles: { fillColor: [22, 163, 74] },
+        styles: { fontSize: 9, cellPadding: 4 },
+        columnStyles: {
+          0: { cellWidth: 220 },
+          1: { cellWidth: 130 },
+        },
+      });
+
+      currentY = (pdfDoc.lastAutoTable?.finalY || currentY + 8) + 18;
+
+      if (currentY > 720) {
+        doc.addPage();
+        currentY = 40;
+      }
+
+      doc.setFontSize(12);
+      doc.text("Top retos con menor certeza", 40, currentY);
+      autoTable(doc, {
+        startY: currentY + 8,
+        head: [
+          ["Pregunta", "Sesión", "Incorrectas", "Respondieron", "Acierto"],
+        ],
+        body: (data.leastCertainty.length ? data.leastCertainty : []).map(
+          (item) => [
+            item.question,
+            `${item.scheduleTitle} - ${item.sessionName}`,
+            String(item.incorrectResponses),
+            String(item.totalResponses),
+            `${item.correctRate}%`,
+          ],
+        ),
+        theme: "grid",
+        headStyles: { fillColor: [220, 38, 38] },
+        styles: { fontSize: 9, cellPadding: 4 },
+        columnStyles: {
+          0: { cellWidth: 220 },
+          1: { cellWidth: 130 },
+        },
+      });
+
+      currentY = (pdfDoc.lastAutoTable?.finalY || currentY + 8) + 18;
+
+      for (const group of groupedBySession) {
+        if (currentY > 700) {
+          doc.addPage();
+          currentY = 40;
+        }
+
+        doc.setFontSize(11);
+        doc.setTextColor(20, 20, 20);
+        doc.text(
+          `${group.sessionName} | ${group.scheduleTitle} | ${formatDate(group.scheduleDate)}`,
+          40,
+          currentY,
+        );
+
+        autoTable(doc, {
+          startY: currentY + 8,
+          head: [
+            ["Pregunta", "Respondieron", "Correctas", "Incorrectas", "Acierto"],
+          ],
+          body: group.items.map((item) => [
+            item.question,
+            String(item.totalResponses),
+            String(item.correctResponses),
+            String(item.incorrectResponses),
+            `${item.correctRate}%`,
+          ]),
+          theme: "grid",
+          headStyles: { fillColor: [17, 55, 128] },
+          styles: { fontSize: 9, cellPadding: 4 },
+          columnStyles: {
+            0: { cellWidth: 280 },
+          },
+        });
+
+        currentY = (pdfDoc.lastAutoTable?.finalY || currentY + 8) + 14;
+      }
+
+      const dateSuffix = new Date().toISOString().slice(0, 10);
+      doc.save(`informe-retos-${dateSuffix}.pdf`);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -113,9 +253,18 @@ export default function AdminAwardsAnalyticsTab() {
   return (
     <div className="space-y-4">
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-        <h2 className="text-lg font-bold text-gray-900">
-          Análisis de Retos por Sesión
-        </h2>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h2 className="text-lg font-bold text-gray-900">
+            Análisis de Retos por Sesión
+          </h2>
+          <button
+            onClick={handleDownloadPdf}
+            disabled={exporting || !data.items.length}
+            className="bg-[#113780] hover:bg-[#0C2A5C] disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg text-sm font-medium"
+          >
+            {exporting ? "Generando PDF..." : "Descargar PDF"}
+          </button>
+        </div>
         <p className="text-sm text-gray-500 mt-1">
           Recomendación: usar barras apiladas horizontales por pregunta para
           comparar respuestas correctas vs incorrectas.
