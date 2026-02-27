@@ -278,6 +278,8 @@ export const adminAPI = {
   getUsers: () => apiClient.get("/admin/users"),
   getPendingFinalSurveyByGroup: () =>
     apiClient.get("/admin/reports/pending-final-survey-by-group"),
+  getSatisfactionBySessionReport: () =>
+    apiClient.get("/admin/reports/satisfaction-by-session"),
   getAvailableUsers: () => apiClient.get("/admin/users/available"),
   updateUser: (id: string, data: Record<string, unknown>) =>
     apiClient.patch(`/admin/users/${id}`, data),

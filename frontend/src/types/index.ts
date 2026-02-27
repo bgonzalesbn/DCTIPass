@@ -206,3 +206,34 @@ export interface AdminAwardAnalyticsResponse {
   leastCertainty: AdminAwardAnalyticsItem[];
   items: AdminAwardAnalyticsItem[];
 }
+
+export interface SatisfactionOptionMetric {
+  label: string;
+  count: number;
+  percentage: number;
+}
+
+export interface SatisfactionSessionChart {
+  sessionId: string;
+  scheduleId: string;
+  scheduleTitle: string;
+  scheduleDate: string | null;
+  standName: string;
+  sessionName: string;
+  totalResponses: number;
+  averageScore: number;
+  responsesByOption: SatisfactionOptionMetric[];
+}
+
+export interface SatisfactionStandSummary {
+  standName: string;
+  totalResponses: number;
+  averageScore: number;
+}
+
+export interface AdminSatisfactionReportResponse {
+  generatedAt: string;
+  totalResponses: number;
+  standSummary: SatisfactionStandSummary[];
+  sessionCharts: SatisfactionSessionChart[];
+}

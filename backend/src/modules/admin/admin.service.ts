@@ -335,6 +335,225 @@ export class AdminService {
     };
   }
 
+  async getSatisfactionBySessionReport() {
+    const satisfactionLabels = [
+      "Nada claro",
+      "Claro",
+      "Muy claro",
+      "Clarísimo",
+    ];
+
+    const scoreByLabel = new Map<string, number>([
+      ["Nada claro", 1],
+      ["Claro", 2],
+      ["Muy claro", 3],
+      ["Clarísimo", 4],
+    ]);
+
+    const users = await this.userModel
+      .find({ deletedAt: null, active: true })
+      .select("clarityResponses")
+      .lean();
+
+    const responses = (users as any[])
+      .flatMap((user) => user.clarityResponses || [])
+      .filter(
+        (r: any) =>
+          r?.subActivityId &&
+          r?.scheduleId &&
+          typeof r.response === "string" &&
+          r.response.trim().length > 0,
+      );
+
+    if (responses.length === 0) {
+      return {
+        generatedAt: new Date(),
+        totalResponses: 0,
+        standSummary: [],
+        sessionCharts: [],
+      };
+    }
+
+    const scheduleIds = Array.from(
+      new Set(responses.map((r: any) => String(r.scheduleId))),
+    ).map((id) => new Types.ObjectId(id));
+
+    const schedules =
+      scheduleIds.length > 0
+        ? await this.scheduleModel
+            .find({ _id: { $in: scheduleIds } })
+            .select("_id title date activityId")
+            .lean()
+        : [];
+
+    const scheduleById = new Map(
+      (schedules as any[]).map((s) => [String(s._id), s]),
+    );
+
+    const activityIds = Array.from(
+      new Set(
+        (schedules as any[])
+          .map((s) => s.activityId?.toString())
+          .filter(Boolean),
+      ),
+    ).map((id) => new Types.ObjectId(id));
+
+    const activities =
+      activityIds.length > 0
+        ? await this.activityModel
+            .find({ _id: { $in: activityIds } })
+            .select("_id name subActivities")
+            .lean()
+        : [];
+
+    const subActivityMetaById = new Map<
+      string,
+      {
+        standName: string;
+        sessionName: string;
+      }
+    >();
+
+    for (const activity of activities as any[]) {
+      const standName = activity.name || "Stand sin nombre";
+      for (const subActivity of activity.subActivities || []) {
+        subActivityMetaById.set(String(subActivity._id), {
+          standName,
+          sessionName: subActivity.name || "Sesión sin nombre",
+        });
+      }
+    }
+
+    const chartMap = new Map<
+      string,
+      {
+        sessionId: string;
+        scheduleId: string;
+        scheduleTitle: string;
+        scheduleDate: Date | null;
+        standName: string;
+        sessionName: string;
+        totalResponses: number;
+        scoreSum: number;
+        responsesByOption: Record<string, number>;
+      }
+    >();
+
+    for (const response of responses as any[]) {
+      const subActivityId = String(response.subActivityId);
+      const scheduleId = String(response.scheduleId);
+      const normalizedLabel = satisfactionLabels.includes(response.response)
+        ? response.response
+        : response.response;
+
+      const schedule = scheduleById.get(scheduleId);
+      const subMeta = subActivityMetaById.get(subActivityId);
+      const key = `${scheduleId}-${subActivityId}`;
+
+      if (!chartMap.has(key)) {
+        chartMap.set(key, {
+          sessionId: subActivityId,
+          scheduleId,
+          scheduleTitle: schedule?.title || "Horario sin nombre",
+          scheduleDate: schedule?.date || null,
+          standName: subMeta?.standName || "Stand sin nombre",
+          sessionName: subMeta?.sessionName || "Sesión sin nombre",
+          totalResponses: 0,
+          scoreSum: 0,
+          responsesByOption: {
+            "Nada claro": 0,
+            Claro: 0,
+            "Muy claro": 0,
+            Clarísimo: 0,
+          },
+        });
+      }
+
+      const row = chartMap.get(key)!;
+      row.totalResponses += 1;
+      row.scoreSum += scoreByLabel.get(normalizedLabel) || 0;
+      row.responsesByOption[normalizedLabel] =
+        (row.responsesByOption[normalizedLabel] || 0) + 1;
+    }
+
+    const sessionCharts = Array.from(chartMap.values())
+      .map((row) => {
+        const averageScoreRaw =
+          row.totalResponses > 0 ? row.scoreSum / row.totalResponses : 0;
+        const averageScore = Math.round(averageScoreRaw * 100) / 100;
+
+        return {
+          sessionId: row.sessionId,
+          scheduleId: row.scheduleId,
+          scheduleTitle: row.scheduleTitle,
+          scheduleDate: row.scheduleDate,
+          standName: row.standName,
+          sessionName: row.sessionName,
+          totalResponses: row.totalResponses,
+          averageScore,
+          responsesByOption: satisfactionLabels.map((label) => {
+            const count = row.responsesByOption[label] || 0;
+            const percentage =
+              row.totalResponses > 0
+                ? Math.round((count / row.totalResponses) * 100)
+                : 0;
+            return {
+              label,
+              count,
+              percentage,
+            };
+          }),
+        };
+      })
+      .sort((a, b) => {
+        const dateA = a.scheduleDate ? new Date(a.scheduleDate).getTime() : 0;
+        const dateB = b.scheduleDate ? new Date(b.scheduleDate).getTime() : 0;
+        return dateA - dateB;
+      });
+
+    const standSummaryMap = new Map<
+      string,
+      {
+        standName: string;
+        totalResponses: number;
+        scoreSum: number;
+      }
+    >();
+
+    for (const row of sessionCharts) {
+      const key = row.standName;
+      if (!standSummaryMap.has(key)) {
+        standSummaryMap.set(key, {
+          standName: row.standName,
+          totalResponses: 0,
+          scoreSum: 0,
+        });
+      }
+
+      const target = standSummaryMap.get(key)!;
+      target.totalResponses += row.totalResponses;
+      target.scoreSum += row.averageScore * row.totalResponses;
+    }
+
+    const standSummary = Array.from(standSummaryMap.values())
+      .map((row) => ({
+        standName: row.standName,
+        totalResponses: row.totalResponses,
+        averageScore:
+          row.totalResponses > 0
+            ? Math.round((row.scoreSum / row.totalResponses) * 100) / 100
+            : 0,
+      }))
+      .sort((a, b) => b.averageScore - a.averageScore);
+
+    return {
+      generatedAt: new Date(),
+      totalResponses: responses.length,
+      standSummary,
+      sessionCharts,
+    };
+  }
+
   async updateUser(userId: string, data: AdminUpdateUserDto) {
     const user = await this.userModel
       .findByIdAndUpdate(userId, { $set: data }, { new: true })

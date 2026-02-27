@@ -64,6 +64,11 @@ export class AdminController {
     return this.adminService.getPendingFinalSurveyByGroup();
   }
 
+  @Get("reports/satisfaction-by-session")
+  async getSatisfactionBySessionReport() {
+    return this.adminService.getSatisfactionBySessionReport();
+  }
+
   @Patch("users/:id")
   async updateUser(@Param("id") id: string, @Body() data: AdminUpdateUserDto) {
     return this.adminService.updateUser(id, data);
