@@ -69,6 +69,11 @@ export class AdminController {
     return this.adminService.getSatisfactionBySessionReport();
   }
 
+  @Get("reports/surveys-comparison")
+  async getSurveysComparisonReport() {
+    return this.adminService.getSurveysComparisonReport();
+  }
+
   @Patch("users/:id")
   async updateUser(@Param("id") id: string, @Body() data: AdminUpdateUserDto) {
     return this.adminService.updateUser(id, data);

@@ -22,6 +22,10 @@ import {
   GroupMembership,
   GroupMembershipSchema,
 } from "../groups/schemas/group-membership.schema";
+import {
+  GeneralSurvey,
+  GeneralSurveySchema,
+} from "../auth/schemas/general-survey.schema";
 import { Sticker, StickerSchema } from "../stickers/schemas/sticker.schema";
 
 import {
@@ -45,6 +49,7 @@ import { Quiz, QuizSchema } from "../awards/schemas/quiz.schema";
       { name: Challenge.name, schema: ChallengeSchema },
       { name: Group.name, schema: GroupSchema },
       { name: GroupMembership.name, schema: GroupMembershipSchema },
+      { name: GeneralSurvey.name, schema: GeneralSurveySchema },
       { name: Sticker.name, schema: StickerSchema },
       { name: StickerAward.name, schema: StickerAwardSchema },
       { name: UserAward.name, schema: UserAwardSchema },

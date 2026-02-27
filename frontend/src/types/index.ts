@@ -237,3 +237,44 @@ export interface AdminSatisfactionReportResponse {
   standSummary: SatisfactionStandSummary[];
   sessionCharts: SatisfactionSessionChart[];
 }
+
+export interface SurveyDistributionItem {
+  value: number;
+  count: number;
+  percentage: number;
+}
+
+export interface SurveyQuestionStat {
+  question: string;
+  responses: number;
+  average: number;
+}
+
+export interface SurveySectionReport {
+  totalResponses: number;
+  participants: number;
+  averageScore: number;
+  distribution: SurveyDistributionItem[];
+  byQuestion: SurveyQuestionStat[];
+}
+
+export interface SurveyComparisonDifference {
+  value: number;
+  generalPercentage: number;
+  finalPercentage: number;
+  deltaPercentage: number;
+}
+
+export interface SurveyComparisonReport {
+  averageDelta: number;
+  trend: string;
+  differences: SurveyComparisonDifference[];
+  significantDifferences: SurveyComparisonDifference[];
+}
+
+export interface AdminSurveysComparisonResponse {
+  generatedAt: string;
+  generalSurvey: SurveySectionReport;
+  finalSurvey: SurveySectionReport;
+  comparison: SurveyComparisonReport;
+}

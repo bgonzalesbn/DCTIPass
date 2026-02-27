@@ -49,6 +49,10 @@ import {
   FinalSurveyResponse,
   FinalSurveyResponseDocument,
 } from "../users/schemas/final-survey-response.schema";
+import {
+  GeneralSurvey,
+  GeneralSurveyDocument,
+} from "../auth/schemas/general-survey.schema";
 
 // Import sticker from the stickers module
 import { Sticker, StickerDocument } from "../stickers/schemas/sticker.schema";
@@ -145,6 +149,8 @@ export class AdminService {
     @InjectModel(Group.name) private groupModel: Model<GroupDocument>,
     @InjectModel(GroupMembership.name)
     private membershipModel: Model<GroupMembershipDocument>,
+    @InjectModel(GeneralSurvey.name)
+    private generalSurveyModel: Model<GeneralSurveyDocument>,
     @InjectModel(Sticker.name) private stickerModel: Model<StickerDocument>,
     @InjectModel(StickerAward.name)
     private stickerAwardModel: Model<StickerAwardDocument>,
@@ -591,6 +597,160 @@ export class AdminService {
       totalResponses: responses.length,
       standSummary,
       sessionCharts,
+    };
+  }
+
+  async getSurveysComparisonReport() {
+    const levels = [1, 2, 3, 4, 5];
+
+    const buildDistribution = (values: number[]) => {
+      const total = values.length;
+      return levels.map((level) => {
+        const count = values.filter((value) => value === level).length;
+        return {
+          value: level,
+          count,
+          percentage: total > 0 ? Math.round((count / total) * 100) : 0,
+        };
+      });
+    };
+
+    const average = (values: number[]) => {
+      if (values.length === 0) return 0;
+      const sum = values.reduce((acc, value) => acc + value, 0);
+      return Math.round((sum / values.length) * 100) / 100;
+    };
+
+    const generalDocs = await this.generalSurveyModel
+      .find({})
+      .select("question_1 question_2 question_3")
+      .lean();
+
+    const finalDocs = await this.finalSurveyResponseModel
+      .find({})
+      .select("answers")
+      .lean();
+
+    const generalByQuestion = {
+      question_1: (generalDocs as any[])
+        .map((d) => Number(d.question_1))
+        .filter((n) => Number.isFinite(n) && n >= 1 && n <= 5),
+      question_2: (generalDocs as any[])
+        .map((d) => Number(d.question_2))
+        .filter((n) => Number.isFinite(n) && n >= 1 && n <= 5),
+      question_3: (generalDocs as any[])
+        .map((d) => Number(d.question_3))
+        .filter((n) => Number.isFinite(n) && n >= 1 && n <= 5),
+    };
+
+    const generalAll = [
+      ...generalByQuestion.question_1,
+      ...generalByQuestion.question_2,
+      ...generalByQuestion.question_3,
+    ];
+
+    const finalByQuestionMap = new Map<string, number[]>();
+    const finalAll: number[] = [];
+
+    for (const doc of finalDocs as any[]) {
+      for (const answer of doc.answers || []) {
+        const question = String(
+          answer.question || "Pregunta sin nombre",
+        ).trim();
+        const value = Number(answer.value);
+        if (!Number.isFinite(value) || value < 1 || value > 5) continue;
+
+        if (!finalByQuestionMap.has(question)) {
+          finalByQuestionMap.set(question, []);
+        }
+        finalByQuestionMap.get(question)!.push(value);
+        finalAll.push(value);
+      }
+    }
+
+    const generalQuestionStats = [
+      {
+        question: "question_1",
+        responses: generalByQuestion.question_1.length,
+        average: average(generalByQuestion.question_1),
+      },
+      {
+        question: "question_2",
+        responses: generalByQuestion.question_2.length,
+        average: average(generalByQuestion.question_2),
+      },
+      {
+        question: "question_3",
+        responses: generalByQuestion.question_3.length,
+        average: average(generalByQuestion.question_3),
+      },
+    ];
+
+    const finalQuestionStats = Array.from(finalByQuestionMap.entries())
+      .map(([question, values]) => ({
+        question,
+        responses: values.length,
+        average: average(values),
+      }))
+      .sort((a, b) => b.responses - a.responses);
+
+    const generalDistribution = buildDistribution(generalAll);
+    const finalDistribution = buildDistribution(finalAll);
+
+    const differences = levels.map((level) => {
+      const generalPct =
+        generalDistribution.find((item) => item.value === level)?.percentage ||
+        0;
+      const finalPct =
+        finalDistribution.find((item) => item.value === level)?.percentage || 0;
+      const delta = finalPct - generalPct;
+
+      return {
+        value: level,
+        generalPercentage: generalPct,
+        finalPercentage: finalPct,
+        deltaPercentage: delta,
+      };
+    });
+
+    const significantDifferences = differences
+      .filter((item) => Math.abs(item.deltaPercentage) >= 10)
+      .sort(
+        (a, b) => Math.abs(b.deltaPercentage) - Math.abs(a.deltaPercentage),
+      );
+
+    const generalAverage = average(generalAll);
+    const finalAverage = average(finalAll);
+    const averageDelta =
+      Math.round((finalAverage - generalAverage) * 100) / 100;
+
+    return {
+      generatedAt: new Date(),
+      generalSurvey: {
+        totalResponses: generalAll.length,
+        participants: generalDocs.length,
+        averageScore: generalAverage,
+        distribution: generalDistribution,
+        byQuestion: generalQuestionStats,
+      },
+      finalSurvey: {
+        totalResponses: finalAll.length,
+        participants: finalDocs.length,
+        averageScore: finalAverage,
+        distribution: finalDistribution,
+        byQuestion: finalQuestionStats,
+      },
+      comparison: {
+        averageDelta,
+        trend:
+          averageDelta > 0
+            ? "La encuesta final tiene promedio más alto"
+            : averageDelta < 0
+              ? "La encuesta final tiene promedio más bajo"
+              : "Ambas encuestas tienen promedio similar",
+        differences,
+        significantDifferences,
+      },
     };
   }
 
