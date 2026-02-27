@@ -343,6 +343,31 @@ export class AdminService {
       "Clarísimo",
     ];
 
+    const normalizeText = (value: string) =>
+      value
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
+
+    const normalizeSatisfactionLabel = (value: string): string => {
+      const normalized = normalizeText(value);
+
+      if (normalized === "nada claro") return "Nada claro";
+      if (normalized === "claro") return "Claro";
+      if (normalized === "muy claro") return "Muy claro";
+      if (normalized === "clarisimo") return "Clarísimo";
+
+      if (normalized.includes("nada") && normalized.includes("claro"))
+        return "Nada claro";
+      if (normalized.includes("muy") && normalized.includes("claro"))
+        return "Muy claro";
+      if (normalized.includes("clarisimo")) return "Clarísimo";
+      if (normalized.includes("claro")) return "Claro";
+
+      return value.trim();
+    };
+
     const scoreByLabel = new Map<string, number>([
       ["Nada claro", 1],
       ["Claro", 2],
@@ -351,7 +376,7 @@ export class AdminService {
     ]);
 
     const users = await this.userModel
-      .find({ deletedAt: null, active: true })
+      .find({ deletedAt: null })
       .select("clarityResponses")
       .lean();
 
@@ -359,8 +384,8 @@ export class AdminService {
       .flatMap((user) => user.clarityResponses || [])
       .filter(
         (r: any) =>
-          r?.subActivityId &&
-          r?.scheduleId &&
+          (r?.subActivityId || r?.subactivityId) &&
+          (r?.scheduleId || r?.activityScheduleId) &&
           typeof r.response === "string" &&
           r.response.trim().length > 0,
       );
@@ -440,11 +465,13 @@ export class AdminService {
     >();
 
     for (const response of responses as any[]) {
-      const subActivityId = String(response.subActivityId);
-      const scheduleId = String(response.scheduleId);
-      const normalizedLabel = satisfactionLabels.includes(response.response)
-        ? response.response
-        : response.response;
+      const subActivityId = String(
+        response.subActivityId || response.subactivityId,
+      );
+      const scheduleId = String(
+        response.scheduleId || response.activityScheduleId,
+      );
+      const normalizedLabel = normalizeSatisfactionLabel(response.response);
 
       const schedule = scheduleById.get(scheduleId);
       const subMeta = subActivityMetaById.get(subActivityId);
