@@ -18,6 +18,21 @@ const PDF_FONT_SIZE = {
   footnote: 9,
 };
 
+const sanitizePdfText = (value: string) => {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[¿¡]/g, "")
+    .replace(/→/g, "->")
+    .replace(/Δ/g, "Delta")
+    .replace(/•/g, "-")
+    .replace(/“|”/g, '"')
+    .replace(/‘|’/g, "'")
+    .replace(/\u00A0/g, " ");
+};
+
+const s = (value: string | number) => sanitizePdfText(String(value));
+
 type JsPdfWithAutoTable = jsPDF & {
   lastAutoTable?: {
     finalY: number;
@@ -198,13 +213,13 @@ const buildDynamicAnalysis = (
 
   const generatedSummary =
     `Con ${participantsInitial} registros iniciales y ${participantsFinal} finales ` +
-    `(cobertura final ${completionRate}%), el análisis muestra ${gainText} ` +
-    `en conocimiento promedio (${round2(baseInitialAverage)} → ${round2(baseFinalAverage)}; Δ ${round2(knowledgeDelta)}). ` +
-    `La percepción positiva (respuestas 4-5) pasó de ${topBoxInitial}% a ${topBoxFinal}% ` +
-    `y la percepción negativa (1-2) de ${lowBoxInitial}% a ${lowBoxFinal}%.`;
+    `(cobertura final ${completionRate}%), el analisis muestra ${gainText} ` +
+    `en conocimiento promedio (${round2(baseInitialAverage)} -> ${round2(baseFinalAverage)}; Delta ${round2(knowledgeDelta)}). ` +
+    `La percepcion positiva (respuestas 4-5) paso de ${topBoxInitial}% a ${topBoxFinal}% ` +
+    `y la percepcion negativa (1-2) de ${lowBoxInitial}% a ${lowBoxFinal}%.`;
 
   const insightItems: string[] = [
-    `Índice de conocimiento (0-100): inicial ${knowledgeIndexInitial}, final ${knowledgeIndexFinal}, cambio ${knowledgeIndexDelta} puntos.`,
+    `Indice de conocimiento (0-100): inicial ${knowledgeIndexInitial}, final ${knowledgeIndexFinal}, cambio ${knowledgeIndexDelta} puntos.`,
     `Usuarios con mejora: ${improvedCount}/${pairedCount || 0} (${improvedRate}%). Sin cambio: ${stableRate}%. Descenso: ${declinedRate}%.`,
     `Delta mediano por usuario: ${round2(median(pairedDeltas))}. Este valor reduce el efecto de casos atípicos.`,
     `Diferencia global de encuesta final vs inicial: ${round2(source.comparison.averageDelta)} en escala 1-5.`,
@@ -218,7 +233,7 @@ const buildDynamicAnalysis = (
 
   if (topOpportunity) {
     insightItems.push(
-      `Mayor área de oportunidad: "${topOpportunity.question}" (Δ ${topOpportunity.delta}).`,
+      `Mayor area de oportunidad: "${topOpportunity.question}" (Delta ${topOpportunity.delta}).`,
     );
   }
 
@@ -263,7 +278,7 @@ const buildDynamicAnalysis = (
   }
 
   const adaptiveNote =
-    "Este análisis se recalcula automáticamente con cada nueva respuesta de encuesta inicial/final, ajustando métricas, hallazgos y recomendaciones en función del comportamiento real de los datos.";
+    "Este analisis se recalcula automaticamente con cada nueva respuesta de encuesta inicial/final, ajustando metricas, hallazgos y recomendaciones en funcion del comportamiento real de los datos.";
 
   return {
     generatedSummary,
@@ -372,29 +387,32 @@ export default function AdminSurveyComparisonTab() {
         PDF_THEME_COLOR[2],
       );
       doc.setFontSize(PDF_FONT_SIZE.title);
-      doc.text("Comparativo de Encuesta Inicial y Final", 40, 40);
+      doc.text(s("Comparativo de Encuesta Inicial y Final"), 40, 40);
       doc.setFont("helvetica", "normal");
       doc.setFontSize(PDF_FONT_SIZE.body);
       doc.setTextColor(90, 90, 90);
-      doc.text(`Generado: ${new Date().toLocaleString("es-MX")}`, 40, 58);
+      doc.text(s(`Generado: ${new Date().toLocaleString("es-MX")}`), 40, 58);
 
       autoTable(doc, {
         startY: 72,
-        head: [["Métrica", "Valor"]],
+        head: [[s("Metrica"), s("Valor")]],
         body: [
           [
-            "Registros encuesta inicial",
-            String(data.generalSurvey.totalResponses),
+            s("Registros encuesta inicial"),
+            s(data.generalSurvey.totalResponses),
           ],
-          ["Registros encuesta final", String(data.finalSurvey.totalResponses)],
-          ["Participantes inicial", String(data.generalSurvey.participants)],
-          ["Participantes final", String(data.finalSurvey.participants)],
+          [s("Registros encuesta final"), s(data.finalSurvey.totalResponses)],
+          [s("Participantes inicial"), s(data.generalSurvey.participants)],
+          [s("Participantes final"), s(data.finalSurvey.participants)],
           [
-            "Promedio inicial (1-5)",
-            data.generalSurvey.averageScore.toFixed(2),
+            s("Promedio inicial (1-5)"),
+            s(data.generalSurvey.averageScore.toFixed(2)),
           ],
-          ["Promedio final (1-5)", data.finalSurvey.averageScore.toFixed(2)],
-          ["Delta promedio", data.comparison.averageDelta.toFixed(2)],
+          [
+            s("Promedio final (1-5)"),
+            s(data.finalSurvey.averageScore.toFixed(2)),
+          ],
+          [s("Delta promedio"), s(data.comparison.averageDelta.toFixed(2))],
         ],
         theme: "striped",
         headStyles: {
@@ -409,24 +427,24 @@ export default function AdminSurveyComparisonTab() {
       doc.setTextColor(20, 20, 20);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(PDF_FONT_SIZE.section);
-      doc.text("Análisis inteligente de resultados", 40, currentY);
+      doc.text(s("Analisis inteligente de resultados"), 40, currentY);
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(PDF_FONT_SIZE.body);
       const summaryLines = doc.splitTextToSize(
-        dynamicAnalysis.generatedSummary,
+        s(dynamicAnalysis.generatedSummary),
         510,
       );
       doc.text(summaryLines, 40, currentY + 16);
       currentY += 16 + summaryLines.length * 12;
 
       const insightRows = dynamicAnalysis.insightItems.map((item, index) => [
-        `Hallazgo ${index + 1}`,
-        item,
+        s(`Hallazgo ${index + 1}`),
+        s(item),
       ]);
       autoTable(doc, {
         startY: currentY + 8,
-        head: [["Tipo", "Detalle"]],
+        head: [[s("Tipo"), s("Detalle")]],
         body: insightRows,
         theme: "grid",
         headStyles: {
@@ -441,8 +459,8 @@ export default function AdminSurveyComparisonTab() {
       currentY = (pdfDoc.lastAutoTable?.finalY || currentY) + 16;
       autoTable(doc, {
         startY: currentY,
-        head: [["Recomendaciones accionables"]],
-        body: dynamicAnalysis.recommendations.map((item) => [item]),
+        head: [[s("Recomendaciones accionables")]],
+        body: dynamicAnalysis.recommendations.map((item) => [s(item)]),
         theme: "grid",
         headStyles: {
           fillColor: PDF_THEME_COLOR,
@@ -455,14 +473,21 @@ export default function AdminSurveyComparisonTab() {
       currentY = (pdfDoc.lastAutoTable?.finalY || currentY) + 16;
       autoTable(doc, {
         startY: currentY,
-        head: [["Pregunta", "Promedio inicial", "Promedio final", "Delta"]],
+        head: [
+          [
+            s("Pregunta"),
+            s("Promedio inicial"),
+            s("Promedio final"),
+            s("Delta"),
+          ],
+        ],
         body: (data.questionComparison || []).map((question) => {
           const delta = question.finalAverage - question.generalAverage;
           return [
-            question.question,
-            question.generalAverage.toFixed(2),
-            question.finalAverage.toFixed(2),
-            `${delta > 0 ? "+" : ""}${delta.toFixed(2)}`,
+            s(question.question),
+            s(question.generalAverage.toFixed(2)),
+            s(question.finalAverage.toFixed(2)),
+            s(`${delta > 0 ? "+" : ""}${delta.toFixed(2)}`),
           ];
         }),
         theme: "grid",
@@ -485,19 +510,21 @@ export default function AdminSurveyComparisonTab() {
             "Promedio Ini",
             "Promedio Fin",
             "Delta",
-          ],
+          ].map((item) => s(item)),
         ],
         body: (data.userVotes || []).map((vote) => [
-          vote.employeeNumber,
-          `${vote.initial.q1}/${vote.initial.q2}/${vote.initial.q3}`,
+          s(vote.employeeNumber),
+          s(`${vote.initial.q1}/${vote.initial.q2}/${vote.initial.q3}`),
           vote.final
-            ? `${vote.final.q1}/${vote.final.q2}/${vote.final.q3}`
-            : "Sin final",
-          vote.initial.average.toFixed(2),
-          vote.final ? vote.final.average.toFixed(2) : "-",
+            ? s(`${vote.final.q1}/${vote.final.q2}/${vote.final.q3}`)
+            : s("Sin final"),
+          s(vote.initial.average.toFixed(2)),
+          s(vote.final ? vote.final.average.toFixed(2) : "-"),
           vote.deltaAverage === null
-            ? "-"
-            : `${vote.deltaAverage > 0 ? "+" : ""}${vote.deltaAverage.toFixed(2)}`,
+            ? s("-")
+            : s(
+                `${vote.deltaAverage > 0 ? "+" : ""}${vote.deltaAverage.toFixed(2)}`,
+              ),
         ]),
         theme: "grid",
         headStyles: {
@@ -532,33 +559,33 @@ export default function AdminSurveyComparisonTab() {
         PDF_THEME_COLOR[2],
       );
       doc.setFontSize(PDF_FONT_SIZE.title);
-      doc.text("Resumen Ejecutivo - Comparativo de Encuestas", 40, 40);
+      doc.text(s("Resumen Ejecutivo - Comparativo de Encuestas"), 40, 40);
       doc.setFont("helvetica", "normal");
       doc.setFontSize(PDF_FONT_SIZE.body);
       doc.setTextColor(90, 90, 90);
-      doc.text(`Generado: ${new Date().toLocaleString("es-MX")}`, 40, 58);
+      doc.text(s(`Generado: ${new Date().toLocaleString("es-MX")}`), 40, 58);
 
       autoTable(doc, {
         startY: 72,
-        head: [["Indicador clave", "Valor"]],
+        head: [[s("Indicador clave"), s("Valor")]],
         body: [
           [
-            "Participantes encuesta inicial",
-            String(data.generalSurvey.participants),
+            s("Participantes encuesta inicial"),
+            s(data.generalSurvey.participants),
+          ],
+          [s("Participantes encuesta final"), s(data.finalSurvey.participants)],
+          [
+            s("Promedio inicial (1-5)"),
+            s(data.generalSurvey.averageScore.toFixed(2)),
           ],
           [
-            "Participantes encuesta final",
-            String(data.finalSurvey.participants),
+            s("Promedio final (1-5)"),
+            s(data.finalSurvey.averageScore.toFixed(2)),
           ],
+          [s("Delta promedio"), s(data.comparison.averageDelta.toFixed(2))],
           [
-            "Promedio inicial (1-5)",
-            data.generalSurvey.averageScore.toFixed(2),
-          ],
-          ["Promedio final (1-5)", data.finalSurvey.averageScore.toFixed(2)],
-          ["Delta promedio", data.comparison.averageDelta.toFixed(2)],
-          [
-            "Diferencias significativas",
-            String(data.comparison.significantDifferences.length),
+            s("Diferencias significativas"),
+            s(data.comparison.significantDifferences.length),
           ],
         ],
         theme: "striped",
@@ -573,7 +600,7 @@ export default function AdminSurveyComparisonTab() {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(PDF_FONT_SIZE.section);
       doc.setTextColor(20, 20, 20);
-      doc.text("Semáforo de impacto (según delta promedio)", 40, currentY);
+      doc.text(s("Semaforo de impacto (segun delta promedio)"), 40, currentY);
 
       const circleY = currentY + 18;
       doc.setFillColor(229, 231, 235);
@@ -610,13 +637,15 @@ export default function AdminSurveyComparisonTab() {
       doc.setFontSize(PDF_FONT_SIZE.body);
       doc.setTextColor(55, 65, 81);
       doc.text(
-        `Estado: ${trafficLight.status} (Δ promedio: ${data.comparison.averageDelta.toFixed(2)})`,
+        s(
+          `Estado: ${trafficLight.status} (Delta promedio: ${data.comparison.averageDelta.toFixed(2)})`,
+        ),
         110,
         circleY + 3,
       );
 
       const interpretationLines = doc.splitTextToSize(
-        trafficLight.interpretation,
+        s(trafficLight.interpretation),
         440,
       );
       doc.text(interpretationLines, 110, circleY + 18);
@@ -625,12 +654,12 @@ export default function AdminSurveyComparisonTab() {
       doc.setTextColor(20, 20, 20);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(PDF_FONT_SIZE.section);
-      doc.text("Síntesis ejecutiva", 40, currentY);
+      doc.text(s("Sintesis ejecutiva"), 40, currentY);
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(PDF_FONT_SIZE.body);
       const summaryLines = doc.splitTextToSize(
-        dynamicAnalysis.generatedSummary,
+        s(dynamicAnalysis.generatedSummary),
         510,
       );
       doc.text(summaryLines, 40, currentY + 16);
@@ -638,8 +667,8 @@ export default function AdminSurveyComparisonTab() {
       currentY += 16 + summaryLines.length * 12;
       autoTable(doc, {
         startY: currentY + 10,
-        head: [["Hallazgos principales"]],
-        body: dynamicAnalysis.insightItems.slice(0, 5).map((item) => [item]),
+        head: [[s("Hallazgos principales")]],
+        body: dynamicAnalysis.insightItems.slice(0, 5).map((item) => [s(item)]),
         theme: "grid",
         headStyles: {
           fillColor: PDF_THEME_COLOR,
@@ -651,8 +680,8 @@ export default function AdminSurveyComparisonTab() {
       currentY = (pdfDoc.lastAutoTable?.finalY || currentY) + 14;
       autoTable(doc, {
         startY: currentY,
-        head: [["Recomendaciones para toma de decisión"]],
-        body: dynamicAnalysis.recommendations.map((item) => [item]),
+        head: [[s("Recomendaciones para toma de decision")]],
+        body: dynamicAnalysis.recommendations.map((item) => [s(item)]),
         theme: "grid",
         headStyles: {
           fillColor: PDF_THEME_COLOR,
@@ -665,7 +694,7 @@ export default function AdminSurveyComparisonTab() {
       doc.setFontSize(PDF_FONT_SIZE.footnote);
       doc.setTextColor(100, 100, 100);
       const adaptiveLines = doc.splitTextToSize(
-        dynamicAnalysis.adaptiveNote,
+        s(dynamicAnalysis.adaptiveNote),
         510,
       );
       doc.text(adaptiveLines, 40, currentY);
@@ -682,56 +711,92 @@ export default function AdminSurveyComparisonTab() {
 
     setExportingScreenPdf(true);
     try {
-      const canvas = await html2canvas(comparisonScreenRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-        windowWidth: comparisonScreenRef.current.scrollWidth,
-        windowHeight: comparisonScreenRef.current.scrollHeight,
-      });
-
-      const imageData = canvas.toDataURL("image/png", 1.0);
+      const target = comparisonScreenRef.current;
       const doc = new jsPDF({
         unit: "pt",
         format: "a4",
         orientation: "portrait",
       });
+
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
       const margin = 20;
       const printableWidth = pageWidth - margin * 2;
       const printableHeight = pageHeight - margin * 2;
-      const scaledImageHeight = (canvas.height * printableWidth) / canvas.width;
+      const totalHeight = target.scrollHeight;
+      const totalWidth = target.scrollWidth;
+      const chunkHeight = 1200;
+      let firstPage = true;
 
-      let remainingHeight = scaledImageHeight;
-      let offsetY = margin;
+      for (let offset = 0; offset < totalHeight; offset += chunkHeight) {
+        const currentChunkHeight = Math.min(chunkHeight, totalHeight - offset);
+        const canvas = await html2canvas(target, {
+          scale: Math.min(2, window.devicePixelRatio || 1.5),
+          useCORS: true,
+          backgroundColor: "#ffffff",
+          x: 0,
+          y: offset,
+          width: totalWidth,
+          height: currentChunkHeight,
+          windowWidth: totalWidth,
+          windowHeight: totalHeight,
+          scrollX: 0,
+          scrollY: -window.scrollY,
+        });
 
-      doc.addImage(
-        imageData,
-        "PNG",
-        margin,
-        offsetY,
-        printableWidth,
-        scaledImageHeight,
-        undefined,
-        "FAST",
-      );
-      remainingHeight -= printableHeight;
+        const imageData = canvas.toDataURL("image/png", 1.0);
+        const imageHeight = (canvas.height * printableWidth) / canvas.width;
 
-      while (remainingHeight > 0) {
-        doc.addPage();
-        offsetY = margin - (scaledImageHeight - remainingHeight);
+        if (!firstPage) {
+          doc.addPage();
+        }
+
+        if (imageHeight <= printableHeight) {
+          doc.addImage(
+            imageData,
+            "PNG",
+            margin,
+            margin,
+            printableWidth,
+            imageHeight,
+            undefined,
+            "FAST",
+          );
+          firstPage = false;
+          continue;
+        }
+
+        let remainingHeight = imageHeight;
+        let offsetY = margin;
         doc.addImage(
           imageData,
           "PNG",
           margin,
           offsetY,
           printableWidth,
-          scaledImageHeight,
+          imageHeight,
           undefined,
           "FAST",
         );
         remainingHeight -= printableHeight;
+
+        while (remainingHeight > 0) {
+          doc.addPage();
+          offsetY = margin - (imageHeight - remainingHeight);
+          doc.addImage(
+            imageData,
+            "PNG",
+            margin,
+            offsetY,
+            printableWidth,
+            imageHeight,
+            undefined,
+            "FAST",
+          );
+          remainingHeight -= printableHeight;
+        }
+
+        firstPage = false;
       }
 
       const dateSuffix = new Date().toISOString().slice(0, 10);
