@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { adminAPI } from "../../../services/api";
 import type {
   AdminSurveysComparisonResponse,
@@ -6,6 +8,261 @@ import type {
 } from "../../../types";
 
 const barColor = "bg-[#113780]";
+
+type JsPdfWithAutoTable = jsPDF & {
+  lastAutoTable?: {
+    finalY: number;
+  };
+};
+
+type DynamicSurveyAnalysis = {
+  generatedSummary: string;
+  insightItems: string[];
+  recommendations: string[];
+  adaptiveNote: string;
+};
+
+type ExecutiveTrafficLight = {
+  status: "Verde" | "Amarillo" | "Rojo";
+  color: [number, number, number];
+  interpretation: string;
+};
+
+const round2 = (value: number) => Number(value.toFixed(2));
+
+const percentage = (value: number, total: number) => {
+  if (total <= 0) return 0;
+  return round2((value / total) * 100);
+};
+
+const getCountForValues = (
+  distribution: SurveyDistributionItem[],
+  values: number[],
+) => {
+  return distribution.reduce((sum, item) => {
+    if (values.includes(item.value)) {
+      return sum + item.count;
+    }
+    return sum;
+  }, 0);
+};
+
+const average = (values: number[]) => {
+  if (!values.length) return 0;
+  const total = values.reduce((sum, value) => sum + value, 0);
+  return total / values.length;
+};
+
+const median = (values: number[]) => {
+  if (!values.length) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 === 0) {
+    return (sorted[middle - 1] + sorted[middle]) / 2;
+  }
+  return sorted[middle];
+};
+
+const getExecutiveTrafficLight = (
+  deltaAverage: number,
+): ExecutiveTrafficLight => {
+  if (deltaAverage >= 0.3) {
+    return {
+      status: "Verde",
+      color: [22, 163, 74],
+      interpretation:
+        "Impacto alto: el aprendizaje percibido crece de forma consistente.",
+    };
+  }
+
+  if (deltaAverage >= 0.1) {
+    return {
+      status: "Amarillo",
+      color: [245, 158, 11],
+      interpretation:
+        "Impacto moderado: hay mejora, pero con margen claro de optimización.",
+    };
+  }
+
+  return {
+    status: "Rojo",
+    color: [239, 68, 68],
+    interpretation:
+      "Impacto bajo o negativo: se recomienda intervención prioritaria.",
+  };
+};
+
+const buildDynamicAnalysis = (
+  source: AdminSurveysComparisonResponse,
+): DynamicSurveyAnalysis => {
+  const participantsInitial = source.generalSurvey.participants;
+  const participantsFinal = source.finalSurvey.participants;
+  const completionRate = percentage(
+    participantsFinal,
+    participantsInitial || 1,
+  );
+
+  const initialTotalDist = source.generalSurvey.distribution.reduce(
+    (sum, item) => sum + item.count,
+    0,
+  );
+  const finalTotalDist = source.finalSurvey.distribution.reduce(
+    (sum, item) => sum + item.count,
+    0,
+  );
+
+  const topBoxInitial = percentage(
+    getCountForValues(source.generalSurvey.distribution, [4, 5]),
+    initialTotalDist,
+  );
+  const topBoxFinal = percentage(
+    getCountForValues(source.finalSurvey.distribution, [4, 5]),
+    finalTotalDist,
+  );
+  const lowBoxInitial = percentage(
+    getCountForValues(source.generalSurvey.distribution, [1, 2]),
+    initialTotalDist,
+  );
+  const lowBoxFinal = percentage(
+    getCountForValues(source.finalSurvey.distribution, [1, 2]),
+    finalTotalDist,
+  );
+
+  const pairedVotes = (source.userVotes || []).filter((vote) => !!vote.final);
+  const pairedCount = pairedVotes.length;
+
+  const pairedInitialAverages = pairedVotes.map((vote) => vote.initial.average);
+  const pairedFinalAverages = pairedVotes.map(
+    (vote) => vote.final?.average || 0,
+  );
+  const pairedDeltas = pairedVotes.map(
+    (vote) => (vote.final?.average || 0) - vote.initial.average,
+  );
+
+  const baseInitialAverage =
+    pairedCount > 0
+      ? average(pairedInitialAverages)
+      : source.generalSurvey.averageScore;
+  const baseFinalAverage =
+    pairedCount > 0
+      ? average(pairedFinalAverages)
+      : source.finalSurvey.averageScore;
+  const knowledgeDelta =
+    pairedCount > 0 ? average(pairedDeltas) : source.comparison.averageDelta;
+
+  const improvedCount = pairedDeltas.filter((delta) => delta > 0).length;
+  const stableCount = pairedDeltas.filter((delta) => delta === 0).length;
+  const declinedCount = pairedDeltas.filter((delta) => delta < 0).length;
+
+  const improvedRate = percentage(improvedCount, pairedCount || 1);
+  const stableRate = percentage(stableCount, pairedCount || 1);
+  const declinedRate = percentage(declinedCount, pairedCount || 1);
+
+  const knowledgeIndexInitial = round2(baseInitialAverage * 20);
+  const knowledgeIndexFinal = round2(baseFinalAverage * 20);
+  const knowledgeIndexDelta = round2(
+    knowledgeIndexFinal - knowledgeIndexInitial,
+  );
+
+  const questionDeltas = (source.questionComparison || []).map((question) => ({
+    question: question.question,
+    delta: round2(question.finalAverage - question.generalAverage),
+  }));
+
+  const topImprovement = [...questionDeltas].sort(
+    (a, b) => b.delta - a.delta,
+  )[0];
+  const topOpportunity = [...questionDeltas].sort(
+    (a, b) => a.delta - b.delta,
+  )[0];
+
+  const gainText =
+    knowledgeDelta >= 0.5
+      ? "incremento alto"
+      : knowledgeDelta >= 0.2
+        ? "incremento moderado"
+        : knowledgeDelta > 0
+          ? "incremento ligero"
+          : knowledgeDelta <= -0.2
+            ? "retroceso"
+            : "estabilidad";
+
+  const generatedSummary =
+    `Con ${participantsInitial} registros iniciales y ${participantsFinal} finales ` +
+    `(cobertura final ${completionRate}%), el análisis muestra ${gainText} ` +
+    `en conocimiento promedio (${round2(baseInitialAverage)} → ${round2(baseFinalAverage)}; Δ ${round2(knowledgeDelta)}). ` +
+    `La percepción positiva (respuestas 4-5) pasó de ${topBoxInitial}% a ${topBoxFinal}% ` +
+    `y la percepción negativa (1-2) de ${lowBoxInitial}% a ${lowBoxFinal}%.`;
+
+  const insightItems: string[] = [
+    `Índice de conocimiento (0-100): inicial ${knowledgeIndexInitial}, final ${knowledgeIndexFinal}, cambio ${knowledgeIndexDelta} puntos.`,
+    `Usuarios con mejora: ${improvedCount}/${pairedCount || 0} (${improvedRate}%). Sin cambio: ${stableRate}%. Descenso: ${declinedRate}%.`,
+    `Delta mediano por usuario: ${round2(median(pairedDeltas))}. Este valor reduce el efecto de casos atípicos.`,
+    `Diferencia global de encuesta final vs inicial: ${round2(source.comparison.averageDelta)} en escala 1-5.`,
+  ];
+
+  if (topImprovement) {
+    insightItems.push(
+      `Mayor avance por pregunta: "${topImprovement.question}" (Δ ${topImprovement.delta}).`,
+    );
+  }
+
+  if (topOpportunity) {
+    insightItems.push(
+      `Mayor área de oportunidad: "${topOpportunity.question}" (Δ ${topOpportunity.delta}).`,
+    );
+  }
+
+  const recommendations: string[] = [];
+
+  if (completionRate < 80) {
+    recommendations.push(
+      "Aumentar la cobertura de encuesta final con recordatorios por grupo y ventana de cierre más amplia para reducir sesgo de no respuesta.",
+    );
+  }
+
+  if (knowledgeDelta <= 0) {
+    recommendations.push(
+      "Reforzar contenidos críticos con microactividades de repaso y evaluación intermedia para asegurar transferencia de conocimiento.",
+    );
+  } else if (knowledgeDelta < 0.3) {
+    recommendations.push(
+      "Mantener la estructura actual, pero añadir ejercicios aplicados al final de cada bloque para acelerar el crecimiento de aprendizaje.",
+    );
+  } else {
+    recommendations.push(
+      "Escalar los elementos mejor evaluados del programa a más sesiones; los datos indican impacto positivo consistente en aprendizaje.",
+    );
+  }
+
+  if (declinedRate > 20) {
+    recommendations.push(
+      "Implementar seguimiento individual para participantes con caída en su puntaje final para identificar barreras de comprensión.",
+    );
+  }
+
+  if (lowBoxFinal > 15) {
+    recommendations.push(
+      "Priorizar acciones en experiencia percibida (claridad de instrucciones, ritmo y ejemplos) para disminuir respuestas bajas (1-2).",
+    );
+  }
+
+  if (!recommendations.length) {
+    recommendations.push(
+      "Continuar monitoreo semanal y segmentar por área/grupo para detectar tempranamente cambios en tendencia.",
+    );
+  }
+
+  const adaptiveNote =
+    "Este análisis se recalcula automáticamente con cada nueva respuesta de encuesta inicial/final, ajustando métricas, hallazgos y recomendaciones en función del comportamiento real de los datos.";
+
+  return {
+    generatedSummary,
+    insightItems,
+    recommendations,
+    adaptiveNote,
+  };
+};
 
 const DistributionChart = ({
   title,
@@ -57,6 +314,8 @@ export default function AdminSurveyComparisonTab() {
   const [data, setData] = useState<AdminSurveysComparisonResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const [exportingExecutivePdf, setExportingExecutivePdf] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -74,6 +333,292 @@ export default function AdminSurveyComparisonTab() {
 
     load();
   }, []);
+
+  const dynamicAnalysis = useMemo(() => {
+    if (!data) return null;
+    return buildDynamicAnalysis(data);
+  }, [data]);
+
+  const handleDownloadPdf = async () => {
+    if (!data || !dynamicAnalysis) return;
+
+    setExportingPdf(true);
+    try {
+      const doc = new jsPDF({ unit: "pt", format: "a4" });
+      const pdfDoc = doc as JsPdfWithAutoTable;
+
+      const ensurePageSpace = (requiredHeight: number) => {
+        const currentY = (pdfDoc.lastAutoTable?.finalY || 40) + 12;
+        if (currentY + requiredHeight > 790) {
+          doc.addPage();
+        }
+      };
+
+      doc.setFontSize(16);
+      doc.text("Comparativo de Encuesta Inicial y Final", 40, 40);
+      doc.setFontSize(10);
+      doc.setTextColor(90, 90, 90);
+      doc.text(`Generado: ${new Date().toLocaleString("es-MX")}`, 40, 58);
+
+      autoTable(doc, {
+        startY: 72,
+        head: [["Métrica", "Valor"]],
+        body: [
+          [
+            "Registros encuesta inicial",
+            String(data.generalSurvey.totalResponses),
+          ],
+          ["Registros encuesta final", String(data.finalSurvey.totalResponses)],
+          ["Participantes inicial", String(data.generalSurvey.participants)],
+          ["Participantes final", String(data.finalSurvey.participants)],
+          [
+            "Promedio inicial (1-5)",
+            data.generalSurvey.averageScore.toFixed(2),
+          ],
+          ["Promedio final (1-5)", data.finalSurvey.averageScore.toFixed(2)],
+          ["Delta promedio", data.comparison.averageDelta.toFixed(2)],
+        ],
+        theme: "striped",
+        headStyles: { fillColor: [17, 55, 128] },
+      });
+
+      ensurePageSpace(90);
+      let currentY = (pdfDoc.lastAutoTable?.finalY || 72) + 20;
+      doc.setTextColor(20, 20, 20);
+      doc.setFontSize(12);
+      doc.text("Análisis inteligente de resultados", 40, currentY);
+
+      doc.setFontSize(10);
+      const summaryLines = doc.splitTextToSize(
+        dynamicAnalysis.generatedSummary,
+        510,
+      );
+      doc.text(summaryLines, 40, currentY + 16);
+      currentY += 16 + summaryLines.length * 12;
+
+      const insightRows = dynamicAnalysis.insightItems.map((item, index) => [
+        `Hallazgo ${index + 1}`,
+        item,
+      ]);
+      autoTable(doc, {
+        startY: currentY + 8,
+        head: [["Tipo", "Detalle"]],
+        body: insightRows,
+        theme: "grid",
+        headStyles: { fillColor: [17, 55, 128] },
+        styles: { cellPadding: 4, fontSize: 9 },
+        columnStyles: { 0: { cellWidth: 95 }, 1: { cellWidth: 415 } },
+      });
+
+      ensurePageSpace(160);
+      currentY = (pdfDoc.lastAutoTable?.finalY || currentY) + 16;
+      autoTable(doc, {
+        startY: currentY,
+        head: [["Recomendaciones accionables"]],
+        body: dynamicAnalysis.recommendations.map((item) => [item]),
+        theme: "grid",
+        headStyles: { fillColor: [17, 55, 128] },
+        styles: { fontSize: 9 },
+      });
+
+      ensurePageSpace(220);
+      currentY = (pdfDoc.lastAutoTable?.finalY || currentY) + 16;
+      autoTable(doc, {
+        startY: currentY,
+        head: [["Pregunta", "Promedio inicial", "Promedio final", "Delta"]],
+        body: (data.questionComparison || []).map((question) => {
+          const delta = question.finalAverage - question.generalAverage;
+          return [
+            question.question,
+            question.generalAverage.toFixed(2),
+            question.finalAverage.toFixed(2),
+            `${delta > 0 ? "+" : ""}${delta.toFixed(2)}`,
+          ];
+        }),
+        theme: "grid",
+        headStyles: { fillColor: [17, 55, 128] },
+        styles: { fontSize: 9 },
+      });
+
+      ensurePageSpace(220);
+      currentY = (pdfDoc.lastAutoTable?.finalY || currentY) + 16;
+      autoTable(doc, {
+        startY: currentY,
+        head: [
+          [
+            "Empleado",
+            "Inicial",
+            "Final",
+            "Promedio Ini",
+            "Promedio Fin",
+            "Delta",
+          ],
+        ],
+        body: (data.userVotes || []).map((vote) => [
+          vote.employeeNumber,
+          `${vote.initial.q1}/${vote.initial.q2}/${vote.initial.q3}`,
+          vote.final
+            ? `${vote.final.q1}/${vote.final.q2}/${vote.final.q3}`
+            : "Sin final",
+          vote.initial.average.toFixed(2),
+          vote.final ? vote.final.average.toFixed(2) : "-",
+          vote.deltaAverage === null
+            ? "-"
+            : `${vote.deltaAverage > 0 ? "+" : ""}${vote.deltaAverage.toFixed(2)}`,
+        ]),
+        theme: "grid",
+        headStyles: { fillColor: [17, 55, 128] },
+        styles: { fontSize: 8 },
+      });
+
+      const dateSuffix = new Date().toISOString().slice(0, 10);
+      doc.save(`comparativo-encuestas-${dateSuffix}.pdf`);
+    } finally {
+      setExportingPdf(false);
+    }
+  };
+
+  const handleDownloadExecutivePdf = async () => {
+    if (!data || !dynamicAnalysis) return;
+
+    setExportingExecutivePdf(true);
+    try {
+      const doc = new jsPDF({ unit: "pt", format: "a4" });
+      const pdfDoc = doc as JsPdfWithAutoTable;
+      const trafficLight = getExecutiveTrafficLight(
+        data.comparison.averageDelta,
+      );
+
+      doc.setFontSize(16);
+      doc.text("Resumen Ejecutivo - Comparativo de Encuestas", 40, 40);
+      doc.setFontSize(10);
+      doc.setTextColor(90, 90, 90);
+      doc.text(`Generado: ${new Date().toLocaleString("es-MX")}`, 40, 58);
+
+      autoTable(doc, {
+        startY: 72,
+        head: [["Indicador clave", "Valor"]],
+        body: [
+          [
+            "Participantes encuesta inicial",
+            String(data.generalSurvey.participants),
+          ],
+          [
+            "Participantes encuesta final",
+            String(data.finalSurvey.participants),
+          ],
+          [
+            "Promedio inicial (1-5)",
+            data.generalSurvey.averageScore.toFixed(2),
+          ],
+          ["Promedio final (1-5)", data.finalSurvey.averageScore.toFixed(2)],
+          ["Delta promedio", data.comparison.averageDelta.toFixed(2)],
+          [
+            "Diferencias significativas",
+            String(data.comparison.significantDifferences.length),
+          ],
+        ],
+        theme: "striped",
+        headStyles: { fillColor: [17, 55, 128] },
+      });
+
+      let currentY = (pdfDoc.lastAutoTable?.finalY || 72) + 20;
+      doc.setFontSize(12);
+      doc.setTextColor(20, 20, 20);
+      doc.text("Semáforo de impacto (según delta promedio)", 40, currentY);
+
+      const circleY = currentY + 18;
+      doc.setFillColor(229, 231, 235);
+      doc.circle(48, circleY, 6, "F");
+      doc.circle(68, circleY, 6, "F");
+      doc.circle(88, circleY, 6, "F");
+
+      if (trafficLight.status === "Rojo") {
+        doc.setFillColor(
+          trafficLight.color[0],
+          trafficLight.color[1],
+          trafficLight.color[2],
+        );
+        doc.circle(48, circleY, 6, "F");
+      }
+      if (trafficLight.status === "Amarillo") {
+        doc.setFillColor(
+          trafficLight.color[0],
+          trafficLight.color[1],
+          trafficLight.color[2],
+        );
+        doc.circle(68, circleY, 6, "F");
+      }
+      if (trafficLight.status === "Verde") {
+        doc.setFillColor(
+          trafficLight.color[0],
+          trafficLight.color[1],
+          trafficLight.color[2],
+        );
+        doc.circle(88, circleY, 6, "F");
+      }
+
+      doc.setFontSize(10);
+      doc.setTextColor(55, 65, 81);
+      doc.text(
+        `Estado: ${trafficLight.status} (Δ promedio: ${data.comparison.averageDelta.toFixed(2)})`,
+        110,
+        circleY + 3,
+      );
+
+      const interpretationLines = doc.splitTextToSize(
+        trafficLight.interpretation,
+        440,
+      );
+      doc.text(interpretationLines, 110, circleY + 18);
+
+      currentY = circleY + 24 + interpretationLines.length * 11;
+      doc.setTextColor(20, 20, 20);
+      doc.setFontSize(12);
+      doc.text("Síntesis ejecutiva", 40, currentY);
+
+      doc.setFontSize(10);
+      const summaryLines = doc.splitTextToSize(
+        dynamicAnalysis.generatedSummary,
+        510,
+      );
+      doc.text(summaryLines, 40, currentY + 16);
+
+      currentY += 16 + summaryLines.length * 12;
+      autoTable(doc, {
+        startY: currentY + 10,
+        head: [["Hallazgos principales"]],
+        body: dynamicAnalysis.insightItems.slice(0, 5).map((item) => [item]),
+        theme: "grid",
+        headStyles: { fillColor: [17, 55, 128] },
+        styles: { fontSize: 9 },
+      });
+
+      currentY = (pdfDoc.lastAutoTable?.finalY || currentY) + 14;
+      autoTable(doc, {
+        startY: currentY,
+        head: [["Recomendaciones para toma de decisión"]],
+        body: dynamicAnalysis.recommendations.map((item) => [item]),
+        theme: "grid",
+        headStyles: { fillColor: [17, 55, 128] },
+        styles: { fontSize: 9 },
+      });
+
+      currentY = (pdfDoc.lastAutoTable?.finalY || currentY) + 16;
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
+      const adaptiveLines = doc.splitTextToSize(
+        dynamicAnalysis.adaptiveNote,
+        510,
+      );
+      doc.text(adaptiveLines, 40, currentY);
+
+      const dateSuffix = new Date().toISOString().slice(0, 10);
+      doc.save(`comparativo-encuestas-resumen-ejecutivo-${dateSuffix}.pdf`);
+    } finally {
+      setExportingExecutivePdf(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -103,13 +648,35 @@ export default function AdminSurveyComparisonTab() {
   return (
     <div className="space-y-4">
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-        <h2 className="text-lg font-bold text-gray-900">
-          Comparación: Encuesta General vs Encuesta Final
-        </h2>
-        <p className="text-sm text-gray-500 mt-1">
-          Distribución de respuestas de ambas encuestas para identificar
-          tendencias y diferencias significativas.
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">
+              Comparación: Encuesta General vs Encuesta Final
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Distribución de respuestas de ambas encuestas para identificar
+              tendencias y diferencias significativas.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={handleDownloadExecutivePdf}
+              disabled={exportingPdf || exportingExecutivePdf}
+              className="bg-white border border-[#113780] text-[#113780] hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded-lg text-sm font-medium"
+            >
+              {exportingExecutivePdf
+                ? "Generando ejecutivo..."
+                : "PDF Ejecutivo"}
+            </button>
+            <button
+              onClick={handleDownloadPdf}
+              disabled={exportingPdf || exportingExecutivePdf}
+              className="bg-[#113780] hover:bg-[#0C2A5C] disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg text-sm font-medium"
+            >
+              {exportingPdf ? "Generando PDF..." : "Descargar PDF"}
+            </button>
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
           <div className="bg-blue-50 rounded-lg p-3">
@@ -153,6 +720,42 @@ export default function AdminSurveyComparisonTab() {
           analyzedValues={data.finalSurvey.totalAnswerValues}
           data={data.finalSurvey.distribution}
         />
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <h3 className="font-semibold text-gray-900">
+          Análisis inteligente de resultados
+        </h3>
+        <p className="text-sm text-gray-600 mt-1">
+          {dynamicAnalysis?.generatedSummary}
+        </p>
+
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-blue-50 rounded-lg p-3">
+            <p className="text-sm font-semibold text-[#113780]">
+              Hallazgos clave
+            </p>
+            <ul className="mt-2 space-y-1 text-sm text-gray-700 list-disc pl-5">
+              {(dynamicAnalysis?.insightItems || []).map((item, index) => (
+                <li key={`insight-${index}`}>{item}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="bg-emerald-50 rounded-lg p-3">
+            <p className="text-sm font-semibold text-emerald-800">
+              Recomendaciones accionables
+            </p>
+            <ul className="mt-2 space-y-1 text-sm text-gray-700 list-disc pl-5">
+              {(dynamicAnalysis?.recommendations || []).map((item, index) => (
+                <li key={`recommendation-${index}`}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <p className="text-xs text-gray-500 mt-3">
+          {dynamicAnalysis?.adaptiveNote}
+        </p>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
