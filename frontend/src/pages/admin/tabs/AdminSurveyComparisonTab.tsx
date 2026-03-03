@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { adminAPI } from "../../../services/api";
@@ -8,6 +9,14 @@ import type {
 } from "../../../types";
 
 const barColor = "bg-[#113780]";
+const PDF_THEME_COLOR: [number, number, number] = [17, 55, 128];
+const PDF_FONT_SIZE = {
+  title: 16,
+  section: 12,
+  body: 10,
+  table: 9,
+  footnote: 9,
+};
 
 type JsPdfWithAutoTable = jsPDF & {
   lastAutoTable?: {
@@ -311,11 +320,13 @@ const DistributionChart = ({
 };
 
 export default function AdminSurveyComparisonTab() {
+  const comparisonScreenRef = useRef<HTMLDivElement | null>(null);
   const [data, setData] = useState<AdminSurveysComparisonResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [exportingPdf, setExportingPdf] = useState(false);
   const [exportingExecutivePdf, setExportingExecutivePdf] = useState(false);
+  const [exportingScreenPdf, setExportingScreenPdf] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -354,9 +365,16 @@ export default function AdminSurveyComparisonTab() {
         }
       };
 
-      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(
+        PDF_THEME_COLOR[0],
+        PDF_THEME_COLOR[1],
+        PDF_THEME_COLOR[2],
+      );
+      doc.setFontSize(PDF_FONT_SIZE.title);
       doc.text("Comparativo de Encuesta Inicial y Final", 40, 40);
-      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(PDF_FONT_SIZE.body);
       doc.setTextColor(90, 90, 90);
       doc.text(`Generado: ${new Date().toLocaleString("es-MX")}`, 40, 58);
 
@@ -379,16 +397,22 @@ export default function AdminSurveyComparisonTab() {
           ["Delta promedio", data.comparison.averageDelta.toFixed(2)],
         ],
         theme: "striped",
-        headStyles: { fillColor: [17, 55, 128] },
+        headStyles: {
+          fillColor: PDF_THEME_COLOR,
+          fontSize: PDF_FONT_SIZE.table,
+        },
+        styles: { fontSize: PDF_FONT_SIZE.table, cellPadding: 4 },
       });
 
       ensurePageSpace(90);
       let currentY = (pdfDoc.lastAutoTable?.finalY || 72) + 20;
       doc.setTextColor(20, 20, 20);
-      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(PDF_FONT_SIZE.section);
       doc.text("Análisis inteligente de resultados", 40, currentY);
 
-      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(PDF_FONT_SIZE.body);
       const summaryLines = doc.splitTextToSize(
         dynamicAnalysis.generatedSummary,
         510,
@@ -405,8 +429,11 @@ export default function AdminSurveyComparisonTab() {
         head: [["Tipo", "Detalle"]],
         body: insightRows,
         theme: "grid",
-        headStyles: { fillColor: [17, 55, 128] },
-        styles: { cellPadding: 4, fontSize: 9 },
+        headStyles: {
+          fillColor: PDF_THEME_COLOR,
+          fontSize: PDF_FONT_SIZE.table,
+        },
+        styles: { cellPadding: 4, fontSize: PDF_FONT_SIZE.table },
         columnStyles: { 0: { cellWidth: 95 }, 1: { cellWidth: 415 } },
       });
 
@@ -417,8 +444,11 @@ export default function AdminSurveyComparisonTab() {
         head: [["Recomendaciones accionables"]],
         body: dynamicAnalysis.recommendations.map((item) => [item]),
         theme: "grid",
-        headStyles: { fillColor: [17, 55, 128] },
-        styles: { fontSize: 9 },
+        headStyles: {
+          fillColor: PDF_THEME_COLOR,
+          fontSize: PDF_FONT_SIZE.table,
+        },
+        styles: { fontSize: PDF_FONT_SIZE.table, cellPadding: 4 },
       });
 
       ensurePageSpace(220);
@@ -436,8 +466,11 @@ export default function AdminSurveyComparisonTab() {
           ];
         }),
         theme: "grid",
-        headStyles: { fillColor: [17, 55, 128] },
-        styles: { fontSize: 9 },
+        headStyles: {
+          fillColor: PDF_THEME_COLOR,
+          fontSize: PDF_FONT_SIZE.table,
+        },
+        styles: { fontSize: PDF_FONT_SIZE.table, cellPadding: 4 },
       });
 
       ensurePageSpace(220);
@@ -467,8 +500,11 @@ export default function AdminSurveyComparisonTab() {
             : `${vote.deltaAverage > 0 ? "+" : ""}${vote.deltaAverage.toFixed(2)}`,
         ]),
         theme: "grid",
-        headStyles: { fillColor: [17, 55, 128] },
-        styles: { fontSize: 8 },
+        headStyles: {
+          fillColor: PDF_THEME_COLOR,
+          fontSize: PDF_FONT_SIZE.table,
+        },
+        styles: { fontSize: PDF_FONT_SIZE.table, cellPadding: 4 },
       });
 
       const dateSuffix = new Date().toISOString().slice(0, 10);
@@ -489,9 +525,16 @@ export default function AdminSurveyComparisonTab() {
         data.comparison.averageDelta,
       );
 
-      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(
+        PDF_THEME_COLOR[0],
+        PDF_THEME_COLOR[1],
+        PDF_THEME_COLOR[2],
+      );
+      doc.setFontSize(PDF_FONT_SIZE.title);
       doc.text("Resumen Ejecutivo - Comparativo de Encuestas", 40, 40);
-      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(PDF_FONT_SIZE.body);
       doc.setTextColor(90, 90, 90);
       doc.text(`Generado: ${new Date().toLocaleString("es-MX")}`, 40, 58);
 
@@ -519,11 +562,16 @@ export default function AdminSurveyComparisonTab() {
           ],
         ],
         theme: "striped",
-        headStyles: { fillColor: [17, 55, 128] },
+        headStyles: {
+          fillColor: PDF_THEME_COLOR,
+          fontSize: PDF_FONT_SIZE.table,
+        },
+        styles: { fontSize: PDF_FONT_SIZE.table, cellPadding: 4 },
       });
 
       let currentY = (pdfDoc.lastAutoTable?.finalY || 72) + 20;
-      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(PDF_FONT_SIZE.section);
       doc.setTextColor(20, 20, 20);
       doc.text("Semáforo de impacto (según delta promedio)", 40, currentY);
 
@@ -558,7 +606,8 @@ export default function AdminSurveyComparisonTab() {
         doc.circle(88, circleY, 6, "F");
       }
 
-      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(PDF_FONT_SIZE.body);
       doc.setTextColor(55, 65, 81);
       doc.text(
         `Estado: ${trafficLight.status} (Δ promedio: ${data.comparison.averageDelta.toFixed(2)})`,
@@ -574,10 +623,12 @@ export default function AdminSurveyComparisonTab() {
 
       currentY = circleY + 24 + interpretationLines.length * 11;
       doc.setTextColor(20, 20, 20);
-      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(PDF_FONT_SIZE.section);
       doc.text("Síntesis ejecutiva", 40, currentY);
 
-      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(PDF_FONT_SIZE.body);
       const summaryLines = doc.splitTextToSize(
         dynamicAnalysis.generatedSummary,
         510,
@@ -590,8 +641,11 @@ export default function AdminSurveyComparisonTab() {
         head: [["Hallazgos principales"]],
         body: dynamicAnalysis.insightItems.slice(0, 5).map((item) => [item]),
         theme: "grid",
-        headStyles: { fillColor: [17, 55, 128] },
-        styles: { fontSize: 9 },
+        headStyles: {
+          fillColor: PDF_THEME_COLOR,
+          fontSize: PDF_FONT_SIZE.table,
+        },
+        styles: { fontSize: PDF_FONT_SIZE.table, cellPadding: 4 },
       });
 
       currentY = (pdfDoc.lastAutoTable?.finalY || currentY) + 14;
@@ -600,12 +654,15 @@ export default function AdminSurveyComparisonTab() {
         head: [["Recomendaciones para toma de decisión"]],
         body: dynamicAnalysis.recommendations.map((item) => [item]),
         theme: "grid",
-        headStyles: { fillColor: [17, 55, 128] },
-        styles: { fontSize: 9 },
+        headStyles: {
+          fillColor: PDF_THEME_COLOR,
+          fontSize: PDF_FONT_SIZE.table,
+        },
+        styles: { fontSize: PDF_FONT_SIZE.table, cellPadding: 4 },
       });
 
       currentY = (pdfDoc.lastAutoTable?.finalY || currentY) + 16;
-      doc.setFontSize(9);
+      doc.setFontSize(PDF_FONT_SIZE.footnote);
       doc.setTextColor(100, 100, 100);
       const adaptiveLines = doc.splitTextToSize(
         dynamicAnalysis.adaptiveNote,
@@ -617,6 +674,70 @@ export default function AdminSurveyComparisonTab() {
       doc.save(`comparativo-encuestas-resumen-ejecutivo-${dateSuffix}.pdf`);
     } finally {
       setExportingExecutivePdf(false);
+    }
+  };
+
+  const handleDownloadScreenPdf = async () => {
+    if (!comparisonScreenRef.current) return;
+
+    setExportingScreenPdf(true);
+    try {
+      const canvas = await html2canvas(comparisonScreenRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        windowWidth: comparisonScreenRef.current.scrollWidth,
+        windowHeight: comparisonScreenRef.current.scrollHeight,
+      });
+
+      const imageData = canvas.toDataURL("image/png", 1.0);
+      const doc = new jsPDF({
+        unit: "pt",
+        format: "a4",
+        orientation: "portrait",
+      });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 20;
+      const printableWidth = pageWidth - margin * 2;
+      const printableHeight = pageHeight - margin * 2;
+      const scaledImageHeight = (canvas.height * printableWidth) / canvas.width;
+
+      let remainingHeight = scaledImageHeight;
+      let offsetY = margin;
+
+      doc.addImage(
+        imageData,
+        "PNG",
+        margin,
+        offsetY,
+        printableWidth,
+        scaledImageHeight,
+        undefined,
+        "FAST",
+      );
+      remainingHeight -= printableHeight;
+
+      while (remainingHeight > 0) {
+        doc.addPage();
+        offsetY = margin - (scaledImageHeight - remainingHeight);
+        doc.addImage(
+          imageData,
+          "PNG",
+          margin,
+          offsetY,
+          printableWidth,
+          scaledImageHeight,
+          undefined,
+          "FAST",
+        );
+        remainingHeight -= printableHeight;
+      }
+
+      const dateSuffix = new Date().toISOString().slice(0, 10);
+      doc.save(`comparativo-encuestas-foto-pantalla-${dateSuffix}.pdf`);
+    } finally {
+      setExportingScreenPdf(false);
     }
   };
 
@@ -646,7 +767,7 @@ export default function AdminSurveyComparisonTab() {
   }
 
   return (
-    <div className="space-y-4">
+    <div ref={comparisonScreenRef} className="space-y-4">
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
@@ -661,7 +782,9 @@ export default function AdminSurveyComparisonTab() {
           <div className="flex flex-wrap gap-2">
             <button
               onClick={handleDownloadExecutivePdf}
-              disabled={exportingPdf || exportingExecutivePdf}
+              disabled={
+                exportingPdf || exportingExecutivePdf || exportingScreenPdf
+              }
               className="bg-white border border-[#113780] text-[#113780] hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded-lg text-sm font-medium"
             >
               {exportingExecutivePdf
@@ -669,8 +792,21 @@ export default function AdminSurveyComparisonTab() {
                 : "PDF Ejecutivo"}
             </button>
             <button
+              onClick={handleDownloadScreenPdf}
+              disabled={
+                exportingPdf || exportingExecutivePdf || exportingScreenPdf
+              }
+              className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded-lg text-sm font-medium"
+            >
+              {exportingScreenPdf
+                ? "Generando foto PDF..."
+                : "PDF Foto Pantalla"}
+            </button>
+            <button
               onClick={handleDownloadPdf}
-              disabled={exportingPdf || exportingExecutivePdf}
+              disabled={
+                exportingPdf || exportingExecutivePdf || exportingScreenPdf
+              }
               className="bg-[#113780] hover:bg-[#0C2A5C] disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg text-sm font-medium"
             >
               {exportingPdf ? "Generando PDF..." : "Descargar PDF"}
