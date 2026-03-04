@@ -33,26 +33,36 @@ const sanitizePdfText = (value: string) => {
 
 const s = (value: string | number) => sanitizePdfText(String(value));
 
-const normalizeOklchColorVariables = (clonedDocument: Document) => {
+const UNSUPPORTED_COLOR_FUNCTION_REGEX = /oklch\([^()]*\)/gi;
+
+const normalizeUnsupportedColorFunctions = (clonedDocument: Document) => {
   const root = clonedDocument.documentElement;
+  const body = clonedDocument.body;
   const view = clonedDocument.defaultView;
 
-  if (!root || !view) return;
+  if (!root || !body || !view) return;
 
-  const rootStyles = view.getComputedStyle(root);
   const colorProbe = clonedDocument.createElement("span");
   colorProbe.textContent = ".";
   colorProbe.style.position = "fixed";
   colorProbe.style.inset = "0";
   colorProbe.style.opacity = "0";
   colorProbe.style.pointerEvents = "none";
-  clonedDocument.body.appendChild(colorProbe);
+  body.appendChild(colorProbe);
 
   const convertToRgb = (colorValue: string) => {
     colorProbe.style.color = "";
     colorProbe.style.color = colorValue;
     return view.getComputedStyle(colorProbe).color || colorValue;
   };
+
+  const normalizeValue = (value: string) => {
+    return value.replace(UNSUPPORTED_COLOR_FUNCTION_REGEX, (match) =>
+      convertToRgb(match),
+    );
+  };
+
+  const rootStyles = view.getComputedStyle(root);
 
   for (let index = 0; index < rootStyles.length; index += 1) {
     const propertyName = rootStyles.item(index);
@@ -61,12 +71,63 @@ const normalizeOklchColorVariables = (clonedDocument: Document) => {
     const propertyValue = rootStyles.getPropertyValue(propertyName).trim();
     if (!propertyValue.includes("oklch(")) continue;
 
-    const normalizedValue = propertyValue.replace(/oklch\([^)]+\)/gi, (match) =>
-      convertToRgb(match),
-    );
+    const normalizedValue = normalizeValue(propertyValue);
 
     root.style.setProperty(propertyName, normalizedValue);
   }
+
+  const styleNodes = clonedDocument.querySelectorAll("style");
+  styleNodes.forEach((styleNode) => {
+    const cssText = styleNode.textContent;
+    if (!cssText || !cssText.includes("oklch(")) return;
+    styleNode.textContent = normalizeValue(cssText);
+  });
+
+  const colorRelatedProperties = [
+    "color",
+    "background-color",
+    "border-top-color",
+    "border-right-color",
+    "border-bottom-color",
+    "border-left-color",
+    "outline-color",
+    "text-decoration-color",
+    "text-emphasis-color",
+    "caret-color",
+    "column-rule-color",
+    "-webkit-text-fill-color",
+    "-webkit-text-stroke-color",
+    "box-shadow",
+    "text-shadow",
+    "fill",
+    "stroke",
+  ];
+
+  const allElements = clonedDocument.querySelectorAll<HTMLElement>("*");
+  allElements.forEach((element) => {
+    const computedStyle = view.getComputedStyle(element);
+
+    colorRelatedProperties.forEach((propertyName) => {
+      const propertyValue = computedStyle.getPropertyValue(propertyName).trim();
+      if (!propertyValue || !propertyValue.includes("oklch(")) return;
+
+      element.style.setProperty(propertyName, normalizeValue(propertyValue));
+    });
+
+    const inlineStyle = element.style;
+    for (let index = 0; index < inlineStyle.length; index += 1) {
+      const propertyName = inlineStyle.item(index);
+      const propertyValue = inlineStyle.getPropertyValue(propertyName);
+      if (!propertyValue.includes("oklch(")) continue;
+
+      const priority = inlineStyle.getPropertyPriority(propertyName);
+      inlineStyle.setProperty(
+        propertyName,
+        normalizeValue(propertyValue),
+        priority,
+      );
+    }
+  });
 
   colorProbe.remove();
 };
@@ -773,7 +834,7 @@ export default function AdminSurveyComparisonTab() {
           useCORS: true,
           backgroundColor: "#ffffff",
           onclone: (clonedDocument) => {
-            normalizeOklchColorVariables(clonedDocument);
+            normalizeUnsupportedColorFunctions(clonedDocument);
           },
           x: 0,
           y: offset,
@@ -842,6 +903,11 @@ export default function AdminSurveyComparisonTab() {
 
       const dateSuffix = new Date().toISOString().slice(0, 10);
       doc.save(`comparativo-encuestas-foto-pantalla-${dateSuffix}.pdf`);
+    } catch (error) {
+      console.error("No fue posible generar el PDF foto de pantalla", error);
+      window.alert(
+        "No fue posible generar el PDF foto de pantalla. Intenta nuevamente.",
+      );
     } finally {
       setExportingScreenPdf(false);
     }
