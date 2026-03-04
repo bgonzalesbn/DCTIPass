@@ -132,6 +132,70 @@ const normalizeUnsupportedColorFunctions = (clonedDocument: Document) => {
   colorProbe.remove();
 };
 
+const printCurrentViewFallback = (target: HTMLElement) => {
+  const printFrame = document.createElement("iframe");
+  printFrame.style.position = "fixed";
+  printFrame.style.width = "0";
+  printFrame.style.height = "0";
+  printFrame.style.border = "0";
+  printFrame.style.right = "0";
+  printFrame.style.bottom = "0";
+  document.body.appendChild(printFrame);
+
+  const frameDoc = printFrame.contentDocument;
+  const frameWindow = printFrame.contentWindow;
+
+  if (!frameDoc || !frameWindow) {
+    printFrame.remove();
+    window.alert(
+      "No fue posible abrir el modo de impresión. Intenta nuevamente.",
+    );
+    return;
+  }
+
+  const styleNodes = Array.from(
+    document.querySelectorAll("style, link[rel='stylesheet']"),
+  )
+    .map((node) => node.outerHTML)
+    .join("\n");
+
+  const normalizedTargetHtml = target.outerHTML;
+
+  frameDoc.open();
+  frameDoc.write(`
+    <!DOCTYPE html>
+    <html lang="es">
+      <head>
+        <meta charset="UTF-8" />
+        <title>Comparativo Encuestas</title>
+        ${styleNodes}
+        <style>
+          @page { size: A4 portrait; margin: 10mm; }
+          html, body { margin: 0; padding: 0; background: #ffffff; }
+          body { padding: 8px; }
+        </style>
+      </head>
+      <body>
+        ${normalizedTargetHtml}
+      </body>
+    </html>
+  `);
+  frameDoc.close();
+
+  const cleanup = () => {
+    setTimeout(() => {
+      printFrame.remove();
+    }, 500);
+  };
+
+  frameWindow.addEventListener("afterprint", cleanup, { once: true });
+
+  setTimeout(() => {
+    frameWindow.focus();
+    frameWindow.print();
+  }, 250);
+};
+
 type JsPdfWithAutoTable = jsPDF & {
   lastAutoTable?: {
     finalY: number;
@@ -806,11 +870,11 @@ export default function AdminSurveyComparisonTab() {
   };
 
   const handleDownloadScreenPdf = async () => {
-    if (!comparisonScreenRef.current) return;
+    const target = comparisonScreenRef.current;
+    if (!target) return;
 
     setExportingScreenPdf(true);
     try {
-      const target = comparisonScreenRef.current;
       const doc = new jsPDF({
         unit: "pt",
         format: "a4",
@@ -905,9 +969,7 @@ export default function AdminSurveyComparisonTab() {
       doc.save(`comparativo-encuestas-foto-pantalla-${dateSuffix}.pdf`);
     } catch (error) {
       console.error("No fue posible generar el PDF foto de pantalla", error);
-      window.alert(
-        "No fue posible generar el PDF foto de pantalla. Intenta nuevamente.",
-      );
+      printCurrentViewFallback(target);
     } finally {
       setExportingScreenPdf(false);
     }
