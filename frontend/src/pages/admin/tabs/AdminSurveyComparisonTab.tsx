@@ -35,6 +35,44 @@ const s = (value: string | number) => sanitizePdfText(String(value));
 
 const UNSUPPORTED_COLOR_FUNCTION_REGEX = /oklch\([^()]*\)/gi;
 
+const forceChartBarsVisibility = (targetDocument: Document) => {
+  const view = targetDocument.defaultView;
+  if (!view) return;
+
+  const chartTracks =
+    targetDocument.querySelectorAll<HTMLElement>("[data-chart-track]");
+  chartTracks.forEach((track) => {
+    const computedTrackStyle = view.getComputedStyle(track);
+    const computedHeight = Number.parseFloat(computedTrackStyle.height || "0");
+    const safeHeight = Math.max(
+      8,
+      Number.isFinite(computedHeight) ? computedHeight : 0,
+    );
+
+    track.style.height = `${safeHeight}px`;
+    track.style.minHeight = `${safeHeight}px`;
+    track.style.backgroundColor = "#e5e7eb";
+    track.style.border = "1px solid #cbd5e1";
+    track.style.borderRadius = "9999px";
+    track.style.overflow = "hidden";
+  });
+
+  const chartFills =
+    targetDocument.querySelectorAll<HTMLElement>("[data-chart-fill]");
+  chartFills.forEach((fill) => {
+    const computedFillColor = view.getComputedStyle(fill).backgroundColor;
+    const safeFillColor =
+      computedFillColor && computedFillColor !== "rgba(0, 0, 0, 0)"
+        ? computedFillColor
+        : "#113780";
+
+    fill.style.display = "block";
+    fill.style.height = "100%";
+    fill.style.minHeight = "100%";
+    fill.style.backgroundColor = safeFillColor;
+  });
+};
+
 const normalizeUnsupportedColorFunctions = (clonedDocument: Document) => {
   const root = clonedDocument.documentElement;
   const body = clonedDocument.body;
@@ -129,6 +167,8 @@ const normalizeUnsupportedColorFunctions = (clonedDocument: Document) => {
     }
   });
 
+  forceChartBarsVisibility(clonedDocument);
+
   colorProbe.remove();
 };
 
@@ -173,6 +213,19 @@ const printCurrentViewFallback = (target: HTMLElement) => {
           @page { size: A4 portrait; margin: 10mm; }
           html, body { margin: 0; padding: 0; background: #ffffff; }
           body { padding: 8px; }
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          [data-chart-track] {
+            background: #e5e7eb !important;
+            border: 1px solid #cbd5e1 !important;
+            min-height: 8px !important;
+          }
+          [data-chart-fill] {
+            display: block !important;
+            min-height: 100% !important;
+          }
         </style>
       </head>
       <body>
@@ -181,6 +234,7 @@ const printCurrentViewFallback = (target: HTMLElement) => {
     </html>
   `);
   frameDoc.close();
+  normalizeUnsupportedColorFunctions(frameDoc);
 
   const cleanup = () => {
     setTimeout(() => {
@@ -484,8 +538,12 @@ const DistributionChart = ({
                 {item.count} respuesta(s) • {item.percentage}%
               </span>
             </div>
-            <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
+            <div
+              data-chart-track
+              className="h-3 w-full bg-gray-100 rounded-full overflow-hidden"
+            >
               <div
+                data-chart-fill
                 className={`h-full ${barColor}`}
                 style={{ width: `${item.percentage}%` }}
               />
@@ -1161,8 +1219,12 @@ export default function AdminSurveyComparisonTab() {
                             {dist.count} • {dist.percentage}%
                           </span>
                         </div>
-                        <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          data-chart-track
+                          className="h-2 w-full bg-gray-100 rounded-full overflow-hidden"
+                        >
                           <div
+                            data-chart-fill
                             className="h-full bg-blue-500"
                             style={{ width: `${dist.percentage}%` }}
                           />
@@ -1185,8 +1247,12 @@ export default function AdminSurveyComparisonTab() {
                             {dist.count} • {dist.percentage}%
                           </span>
                         </div>
-                        <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          data-chart-track
+                          className="h-2 w-full bg-gray-100 rounded-full overflow-hidden"
+                        >
                           <div
+                            data-chart-fill
                             className="h-full bg-emerald-600"
                             style={{ width: `${dist.percentage}%` }}
                           />
