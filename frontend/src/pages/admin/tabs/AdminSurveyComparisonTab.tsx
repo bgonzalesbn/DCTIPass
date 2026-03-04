@@ -33,6 +33,44 @@ const sanitizePdfText = (value: string) => {
 
 const s = (value: string | number) => sanitizePdfText(String(value));
 
+const normalizeOklchColorVariables = (clonedDocument: Document) => {
+  const root = clonedDocument.documentElement;
+  const view = clonedDocument.defaultView;
+
+  if (!root || !view) return;
+
+  const rootStyles = view.getComputedStyle(root);
+  const colorProbe = clonedDocument.createElement("span");
+  colorProbe.textContent = ".";
+  colorProbe.style.position = "fixed";
+  colorProbe.style.inset = "0";
+  colorProbe.style.opacity = "0";
+  colorProbe.style.pointerEvents = "none";
+  clonedDocument.body.appendChild(colorProbe);
+
+  const convertToRgb = (colorValue: string) => {
+    colorProbe.style.color = "";
+    colorProbe.style.color = colorValue;
+    return view.getComputedStyle(colorProbe).color || colorValue;
+  };
+
+  for (let index = 0; index < rootStyles.length; index += 1) {
+    const propertyName = rootStyles.item(index);
+    if (!propertyName.startsWith("--")) continue;
+
+    const propertyValue = rootStyles.getPropertyValue(propertyName).trim();
+    if (!propertyValue.includes("oklch(")) continue;
+
+    const normalizedValue = propertyValue.replace(/oklch\([^)]+\)/gi, (match) =>
+      convertToRgb(match),
+    );
+
+    root.style.setProperty(propertyName, normalizedValue);
+  }
+
+  colorProbe.remove();
+};
+
 type JsPdfWithAutoTable = jsPDF & {
   lastAutoTable?: {
     finalY: number;
@@ -734,6 +772,9 @@ export default function AdminSurveyComparisonTab() {
           scale: Math.min(2, window.devicePixelRatio || 1.5),
           useCORS: true,
           backgroundColor: "#ffffff",
+          onclone: (clonedDocument) => {
+            normalizeOklchColorVariables(clonedDocument);
+          },
           x: 0,
           y: offset,
           width: totalWidth,
