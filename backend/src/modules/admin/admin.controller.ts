@@ -8,9 +8,12 @@ import {
   Delete,
   Body,
   Param,
+  Query,
+  Res,
   UseGuards,
   Logger,
 } from "@nestjs/common";
+import { Response } from "express";
 import { AdminGuard } from "../../common/guards/admin.guard";
 import { AdminService } from "./admin.service";
 import {
@@ -72,6 +75,28 @@ export class AdminController {
   @Get("reports/surveys-comparison")
   async getSurveysComparisonReport() {
     return this.adminService.getSurveysComparisonReport();
+  }
+
+  @Get("rally-photos")
+  async getRallyPhotos(
+    @Query("page") page: number = 1,
+    @Query("limit") limit: number = 20,
+  ) {
+    return this.adminService.getRallyPhotos(Number(page), Number(limit));
+  }
+
+  @Get("rally-photos/:id/download")
+  async downloadRallyPhoto(@Param("id") id: string, @Res() res: Response) {
+    const file = await this.adminService.getRallyPhotoDownload(id);
+
+    res.setHeader("Content-Type", file.mimeType);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${file.fileName}"`,
+    );
+    res.setHeader("Cache-Control", "private, max-age=300");
+
+    return res.status(200).send(file.buffer);
   }
 
   @Patch("users/:id")

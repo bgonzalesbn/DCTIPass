@@ -38,6 +38,10 @@ import {
 } from "../awards/schemas/user-award.schema";
 
 import { Quiz, QuizSchema } from "../awards/schemas/quiz.schema";
+import {
+  RallyPhoto,
+  RallyPhotoSchema,
+} from "../rally-photos/schemas/rally-photo.schema";
 
 @Module({
   imports: [
@@ -54,6 +58,7 @@ import { Quiz, QuizSchema } from "../awards/schemas/quiz.schema";
       { name: StickerAward.name, schema: StickerAwardSchema },
       { name: UserAward.name, schema: UserAwardSchema },
       { name: Quiz.name, schema: QuizSchema },
+      { name: RallyPhoto.name, schema: RallyPhotoSchema },
     ]),
   ],
   controllers: [AdminController],

@@ -365,6 +365,14 @@ export const adminAPI = {
   updateAward: (id: string, data: Record<string, unknown>) =>
     apiClient.put(`/admin/awards/${id}`, data),
   deleteAward: (id: string) => apiClient.delete(`/admin/awards/${id}`),
+
+  // Rally Photos (Admin)
+  getRallyPhotos: (page: number = 1, limit: number = 12) =>
+    apiClient.get("/admin/rally-photos", { params: { page, limit } }),
+  downloadRallyPhoto: (id: string) =>
+    apiClient.get(`/admin/rally-photos/${id}/download`, {
+      responseType: "blob",
+    }),
 };
 
 // Suggestions endpoints

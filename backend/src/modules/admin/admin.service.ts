@@ -68,6 +68,10 @@ import {
 } from "../awards/schemas/user-award.schema";
 
 import { Quiz, QuizDocument } from "../awards/schemas/quiz.schema";
+import {
+  RallyPhoto,
+  RallyPhotoDocument,
+} from "../rally-photos/schemas/rally-photo.schema";
 
 @Injectable()
 export class AdminService {
@@ -158,7 +162,136 @@ export class AdminService {
     private userAwardModel: Model<UserAwardDocument>,
     @InjectModel(Quiz.name)
     private quizModel: Model<QuizDocument>,
+    @InjectModel(RallyPhoto.name)
+    private rallyPhotoModel: Model<RallyPhotoDocument>,
   ) {}
+
+  // ==================== RALLY PHOTOS ====================
+
+  async getRallyPhotos(page: number = 1, limit: number = 20) {
+    const safePage = Math.max(1, Number.isFinite(page) ? page : 1);
+    const safeLimit = Math.min(
+      100,
+      Math.max(1, Number.isFinite(limit) ? limit : 20),
+    );
+    const skip = (safePage - 1) * safeLimit;
+
+    const [items, totalItems] = await Promise.all([
+      this.rallyPhotoModel
+        .find({})
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(safeLimit)
+        .select("employeeNumber imageData caption createdAt")
+        .lean(),
+      this.rallyPhotoModel.countDocuments({}),
+    ]);
+
+    const totalPages = Math.max(1, Math.ceil(totalItems / safeLimit));
+
+    return {
+      items: items.map((photo: any) => ({
+        _id: photo._id?.toString(),
+        employeeNumber: photo.employeeNumber,
+        imageData: photo.imageData,
+        caption: photo.caption || "",
+        createdAt: photo.createdAt,
+      })),
+      pagination: {
+        page: safePage,
+        limit: safeLimit,
+        totalItems,
+        totalPages,
+        hasNextPage: safePage < totalPages,
+        hasPrevPage: safePage > 1,
+      },
+    };
+  }
+
+  async getRallyPhotoDownload(id: string) {
+    const photo = await this.rallyPhotoModel
+      .findById(id)
+      .select("employeeNumber imageData createdAt")
+      .lean();
+
+    if (!photo) {
+      throw new NotFoundException("Foto no encontrada.");
+    }
+
+    const parsedImage = this.parseImageData(photo.imageData as string);
+    const createdAt = (photo as any).createdAt as Date | string | undefined;
+
+    return {
+      buffer: parsedImage.buffer,
+      mimeType: parsedImage.mimeType,
+      fileName: this.buildRallyPhotoFilename(
+        photo.employeeNumber as string,
+        createdAt,
+        parsedImage.extension,
+      ),
+    };
+  }
+
+  private parseImageData(imageData: string): {
+    buffer: Buffer;
+    mimeType: string;
+    extension: string;
+  } {
+    if (!imageData || typeof imageData !== "string") {
+      throw new BadRequestException("La imagen almacenada es invalida.");
+    }
+
+    let mimeType = "image/jpeg";
+    let base64Payload = imageData;
+
+    const dataUrlMatch = imageData.match(/^data:(.+?);base64,(.+)$/);
+    if (dataUrlMatch) {
+      mimeType = dataUrlMatch[1] || mimeType;
+      base64Payload = dataUrlMatch[2] || "";
+    }
+
+    const buffer = Buffer.from(base64Payload, "base64");
+    if (!buffer || buffer.length === 0) {
+      throw new BadRequestException(
+        "No se pudo procesar la imagen almacenada.",
+      );
+    }
+
+    return {
+      buffer,
+      mimeType,
+      extension: this.mimeTypeToExtension(mimeType),
+    };
+  }
+
+  private mimeTypeToExtension(mimeType: string): string {
+    const normalized = mimeType.toLowerCase();
+    if (normalized.includes("png")) return "png";
+    if (normalized.includes("webp")) return "webp";
+    if (normalized.includes("gif")) return "gif";
+    if (normalized.includes("bmp")) return "bmp";
+    return "jpg";
+  }
+
+  private buildRallyPhotoFilename(
+    employeeNumber: string,
+    createdAt: Date | string | undefined,
+    extension: string,
+  ): string {
+    const safeEmployee = (employeeNumber || "empleado")
+      .replace(/[^a-zA-Z0-9_-]/g, "")
+      .slice(0, 32);
+
+    const date = createdAt ? new Date(createdAt) : new Date();
+    const timestamp = Number.isNaN(date.getTime())
+      ? Date.now().toString()
+      : date
+          .toISOString()
+          .replace(/[^0-9]/g, "")
+          .slice(0, 14);
+
+    return `rally-photo-${safeEmployee || "empleado"}-${timestamp}.${extension}`;
+  }
 
   // ==================== USERS ====================
 

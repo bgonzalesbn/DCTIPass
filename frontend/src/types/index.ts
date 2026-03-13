@@ -172,6 +172,28 @@ export interface AdminGroupMember {
   assignedAt: string;
 }
 
+export interface AdminRallyPhoto {
+  _id: string;
+  employeeNumber: string;
+  imageData: string;
+  caption: string;
+  createdAt: string;
+}
+
+export interface AdminPagination {
+  page: number;
+  limit: number;
+  totalItems: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export interface AdminRallyPhotosResponse {
+  items: AdminRallyPhoto[];
+  pagination: AdminPagination;
+}
+
 export interface DashboardStats {
   totalUsers: number;
   activeUsers: number;

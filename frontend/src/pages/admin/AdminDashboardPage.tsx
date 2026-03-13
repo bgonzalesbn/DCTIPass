@@ -15,6 +15,7 @@ const tabs = [
   { key: "stickers", label: "Stickers", icon: "🏆" },
   { key: "groups", label: "Grupos", icon: "👥" },
   { key: "users", label: "Usuarios", icon: "👤" },
+  { key: "rallyPhotos", label: "Fotos Rally", icon: "📸" },
 ] as const;
 
 type TabKey = (typeof tabs)[number]["key"];
@@ -29,6 +30,7 @@ import AdminPendingSurveyTab from "./tabs/AdminPendingSurveyTab";
 import AdminAwardsAnalyticsTab from "./tabs/AdminAwardsAnalyticsTab";
 import AdminSatisfactionAnalyticsTab from "./tabs/AdminSatisfactionAnalyticsTab";
 import AdminSurveyComparisonTab from "./tabs/AdminSurveyComparisonTab";
+import AdminRallyPhotosTab from "./tabs/AdminRallyPhotosTab";
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
@@ -73,6 +75,8 @@ export default function AdminDashboardPage() {
         return <AdminGroupsTab />;
       case "users":
         return <AdminUsersTab />;
+      case "rallyPhotos":
+        return <AdminRallyPhotosTab />;
     }
   };
 
